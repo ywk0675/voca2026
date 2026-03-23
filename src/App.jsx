@@ -90,17 +90,20 @@ export default function App() {
 
     let mounted = true;
 
-    supabase.auth.getSession().then(({ data }) => {
+    // onAuthStateChange fires for INITIAL_SESSION, SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED etc.
+    // This catches OAuth callbacks where the session is delivered via URL hash.
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
       if (mounted) {
-        setSession(data.session);
+        setSession(nextSession ?? null);
       }
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    // Also call getSession() as a fallback for cases where the event already fired
+    supabase.auth.getSession().then(({ data }) => {
       if (mounted) {
-        setSession(nextSession);
+        setSession((prev) => prev !== undefined ? prev : (data.session ?? null));
       }
     });
 
