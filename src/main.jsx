@@ -4,7 +4,8 @@ import App from './App.jsx'
 import TeacherDashboard from './TeacherDashboard.jsx'
 
 const params = new URLSearchParams(window.location.search);
-const isTeacher = params.get("teacher") === "pegasus20262026";
+const teacherPw = import.meta.env.VITE_TEACHER_PASSWORD ?? "pegasus20262026";
+const isTeacher = params.get("teacher") === teacherPw;
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   isTeacher

@@ -1,10 +1,9 @@
 import { createClient } from "@supabase/supabase-js";
 
-// ← 선생님이 Supabase Settings → API 에서 복붙해주세요
-const SUPABASE_URL  = "https://nlbmceftumhzpduckevf.supabase.co";
-const SUPABASE_ANON = "sb_publishable_IHB_Sbe5J39_AnZ5Q2JnDA_yx42t97P";
+const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  ?? "";
+const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON ?? "";
 
-const isConfigured = SUPABASE_URL !== "YOUR_SUPABASE_URL";
+const isConfigured = SUPABASE_URL.startsWith("https://");
 
 export const supabase = isConfigured
   ? createClient(SUPABASE_URL, SUPABASE_ANON)
