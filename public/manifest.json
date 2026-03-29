@@ -1,14 +1,24 @@
 {
-  "name": "VocabMon",
-  "short_name": "VocabMon",
-  "description": "영어 단어 배틀 학습 게임",
+  "name": "VOCA MONSTER",
+  "short_name": "VocaMon",
+  "description": "귀여운 몬스터를 키우며 영단어를 배워요!",
   "start_url": "/",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#0C0A18",
-  "theme_color": "#0C0A18",
+  "theme_color": "#7B2FBE",
+  "orientation": "portrait",
   "icons": [
-    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
-    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }

@@ -6808,6 +6808,40 @@ export default function VocabMon() {
   // VOC-106: 저장 토스트
   const [toast, setToast] = useState(null); // string | null
 
+  // PWA 설치 배너
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+
+  // 서비스 워커 등록 + 설치 이벤트 캐치
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+      const dismissed = sessionStorage.getItem("pwa_dismissed");
+      if (!dismissed) setShowInstallBanner(true);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    window.addEventListener("appinstalled", () => setShowInstallBanner(false));
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  function handleInstall() {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    installPrompt.userChoice.then(() => {
+      setInstallPrompt(null);
+      setShowInstallBanner(false);
+    });
+  }
+
+  function dismissInstallBanner() {
+    sessionStorage.setItem("pwa_dismissed", "1");
+    setShowInstallBanner(false);
+  }
+
   const logRef = useRef(null);
 
   // ── 로그인 처리: Supabase에서 진행사항 불러오기 ──
@@ -7138,6 +7172,36 @@ export default function VocabMon() {
   // Toast wrapper helper — renders on top of any screen
   const ToastLayer = () => toast ? <Toast msg={toast} onDone={()=>setToast(null)}/> : null;
 
+  // PWA 설치 배너
+  const InstallBanner = () => showInstallBanner ? (
+    <div style={{
+      position:"fixed",bottom:0,left:0,right:0,zIndex:9999,
+      background:"linear-gradient(135deg,#2D1B6B,#1A0533)",
+      borderTop:"2px solid #7B2FBE",
+      padding:"14px 18px",display:"flex",alignItems:"center",gap:"12px",
+      boxShadow:"0 -4px 24px #7B2FBE44",
+    }}>
+      <img src="/icon-192.png" alt="icon" style={{width:52,height:52,borderRadius:12,flexShrink:0}}/>
+      <div style={{flex:1,minWidth:0}}>
+        <div style={{color:"#fff",fontWeight:700,fontSize:15,lineHeight:1.3}}>
+          홈 화면에 추가할래요? 🐉
+        </div>
+        <div style={{color:"#C77DFF",fontSize:12,marginTop:2}}>
+          앱처럼 바로 실행돼요!
+        </div>
+      </div>
+      <button onClick={handleInstall} style={{
+        background:"#7B2FBE",color:"#fff",border:"none",borderRadius:10,
+        padding:"9px 16px",fontWeight:700,fontSize:14,cursor:"pointer",
+        whiteSpace:"nowrap",flexShrink:0,
+      }}>추가하기</button>
+      <button onClick={dismissInstallBanner} style={{
+        background:"transparent",color:"#888",border:"none",
+        fontSize:20,cursor:"pointer",padding:"4px 6px",flexShrink:0,lineHeight:1,
+      }}>✕</button>
+    </div>
+  ) : null;
+
   // TITLE
   if(screen==="title") return (
     <div className="crt page slide-up" style={{
@@ -7147,6 +7211,7 @@ export default function VocabMon() {
     }}>
       <style>{CSS}</style>
       <ToastLayer/>
+      <InstallBanner/>
       {/* Stars bg */}
       <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
         {[...Array(35)].map((_,i)=>(
