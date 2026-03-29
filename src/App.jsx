@@ -6938,6 +6938,21 @@ export default function VocabMon() {
     setDailyEggDate(restoredEggDate);
 
     setPlayer({ name, classCode });
+
+    // ── 진행 있으면 바로 월드맵으로 점프 ──
+    const hasProgress = !!(saved?.lineId && saved?.curBook);
+    if (hasProgress) {
+      setScreen("world");
+      // 무료 알 있으면 토스트로 알림
+      const todayStr = new Date().toDateString();
+      if ((saved?.dailyEggDate || "") !== todayStr) {
+        setTimeout(() => setToast("🥚 오늘의 무료 알이 기다려요! 홈에서 받아봐"), 800);
+      }
+      // 스트릭 축하
+      if (newStreak > 1) {
+        setTimeout(() => setToast(`🔥 ${newStreak}일 연속! 오늘도 파이팅`), 200);
+      }
+    }
   }
 
   // ── 자동 저장: 주요 상태 바뀔 때마다 Supabase에 저장 ──
