@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import LoginScreen from "./LoginScreen.jsx";
 import { loadProgress, saveProgress } from "./supabase.js";
+import { CATCH_MON_LINES, EGG_DROP, rollEggRarity, rollMonsterFromLine } from "./catchMons.jsx";
 
 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 //  PLAYER MONSTERS — face RIGHT naturally (no flip needed)
@@ -6808,6 +6809,13 @@ export default function VocabMon() {
   // VOC-106: 저장 토스트
   const [toast, setToast] = useState(null); // string | null
 
+  // ── 몬스터 수집 시스템 ──
+  const [caughtMons, setCaughtMons] = useState([]); // 잡은 몬스터 ID 배열
+  const [pendingEggs, setPendingEggs] = useState([]); // [{rarity, lineId, unitsLeft}]
+  const [eggHatch, setEggHatch] = useState(null); // {mon, lineId} 부화 연출
+  const [wrongWords, setWrongWords] = useState([]); // 영구 오답 단어 [{w,m,def,opts}]
+  const [showEggReady, setShowEggReady] = useState(false);
+
   // PWA 설치 배너
   const [installPrompt, setInstallPrompt] = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
@@ -6855,9 +6863,12 @@ export default function VocabMon() {
       if (saved.lineId)     setLineId(saved.lineId);
       if (saved.stageIdx !== undefined) setStageIdx(saved.stageIdx);
       if (saved.curBook)    setCurBook(saved.curBook);
-      if (saved.streak)     setStreak(saved.streak);
-      if (saved.loginDays)  setLoginDays(saved.loginDays);
-      if (saved.lastLogin)  setLastLogin(saved.lastLogin);
+      if (saved.streak)      setStreak(saved.streak);
+      if (saved.loginDays)   setLoginDays(saved.loginDays);
+      if (saved.lastLogin)   setLastLogin(saved.lastLogin);
+      if (saved.caughtMons)  setCaughtMons(saved.caughtMons);
+      if (saved.pendingEggs) setPendingEggs(saved.pendingEggs);
+      if (saved.wrongWords)  setWrongWords(saved.wrongWords);
     }
     setPlayer({ name, classCode });
   }
@@ -6870,10 +6881,11 @@ export default function VocabMon() {
         unitStars, monLv, monExp, coins,
         lineId, stageIdx, curBook,
         streak, loginDays, lastLogin,
+        caughtMons, pendingEggs, wrongWords,
       });
     }, 1000); // 1초 debounce
     return () => clearTimeout(timeout);
-  }, [player, unitStars, monLv, monExp, coins, lineId, stageIdx, curBook, streak, loginDays]);
+  }, [player, unitStars, monLv, monExp, coins, lineId, stageIdx, curBook, streak, loginDays, caughtMons, pendingEggs, wrongWords]);
 
   // BOOK SELECT — sync tab to current book's group when opening
   useEffect(()=>{
@@ -6994,6 +7006,11 @@ export default function VocabMon() {
       const newP=Math.max(0,pHp-ed);
       setWrongCount(c=>c+1);
       setWrongQueue(q=>[...q,word]);
+      // 영구 오답 저장 (Revenge Land용)
+      setWrongWords(prev => {
+        if (prev.some(x=>x.w===word.w && x.m===word.m)) return prev;
+        return [...prev, {w:word.w, m:word.m, def:word.def||"", opts:word.opts||[]}];
+      });
       setLog(p=>[...p,`❌ "${battleStage===2?word.m:word.w}" — -${ed}HP`]);
       // VOC-105: 오답 피드백
       setFeedback({type:"wrong", msg:"괜찮아, 이 단어는 다시 나와요"});
@@ -7046,6 +7063,31 @@ export default function VocabMon() {
         }
       } else { setMonExp(newExp); }
       setLog(p=>[...p,`🏆 Victory! +${ec}G +${ex}EXP · ${stars}★`]);
+
+      // ── 알 드롭 + 부화 시스템 ──
+      const totalQ = queue.length;
+      const accuracy = totalQ > 0 ? (totalQ - wrongCount) / totalQ : 0;
+      const eggRarity = rollEggRarity(accuracy);
+      const possLines = EGG_DROP[eggRarity] || EGG_DROP.common;
+      const pickedLine = possLines[Math.floor(Math.random() * possLines.length)];
+      const newEgg = { rarity: eggRarity, lineId: pickedLine, unitsLeft: 3 };
+      // 기존 알 카운트 다운 + 새 알 추가
+      setPendingEggs(prev => {
+        const withNew = [...prev, newEgg];
+        const ticked = withNew.map(e => ({ ...e, unitsLeft: e.unitsLeft - 1 }));
+        const ready = ticked.filter(e => e.unitsLeft <= 0);
+        const still = ticked.filter(e => e.unitsLeft > 0);
+        ready.forEach((egg, i) => {
+          setCaughtMons(owned => {
+            const caught = rollMonsterFromLine(egg.lineId, owned);
+            if (!caught) return owned;
+            setTimeout(() => setEggHatch({ mon: caught, lineId: egg.lineId }), 1800 + i * 3000);
+            if (owned.includes(caught.id)) return owned;
+            return [...owned, caught.id];
+          });
+        });
+        return still;
+      });
     } else {
       setLog(p=>[...p,`💀 ${mon.name} fainted...`]);
     }
@@ -7565,6 +7607,8 @@ export default function VocabMon() {
           {[
             {l:"📚", fn:()=>setScreen("bookselect"), bg:"linear-gradient(135deg,#1A3020,#2A5030)",sh:"#0A1810"},
             {l:"📖", fn:()=>setScreen("collection"), bg:"linear-gradient(135deg,#3A1880,#5A28B8)",sh:"#18083A"},
+            {l:wrongWords.length>0?"⚔️🔴":"⚔️", fn:()=>setScreen("revenge"), bg:wrongWords.length>0?"linear-gradient(135deg,#3A0800,#660A00)":"#1C182E",sh:wrongWords.length>0?"#1A0000":"#080612"},
+            {l:"🏆", fn:()=>setScreen("leaderboard"), bg:"linear-gradient(135deg,#1A1400,#2A2000)",sh:"#0A0800"},
             {l:"✨",  fn:tryEvolve, bg:evoReady?"linear-gradient(135deg,#6600CC,#AA44FF)":"#1C182E",sh:evoReady?"#330066":"#080612",disabled:!evoReady},
             {l:"🏠", fn:()=>setScreen("title"), bg:"#1C182E",sh:"#080612"},
           ].map((b,i)=>(
@@ -7943,28 +7987,386 @@ export default function VocabMon() {
   }
 
   // COLLECTION
+  // ── 알 부화 모달 ──────────────────────────────────
+  if(eggHatch) {
+    const line = CATCH_MON_LINES.find(l=>l.lineId===eggHatch.lineId);
+    const Sp = eggHatch.mon.Sprite;
+    return (
+      <div style={{
+        position:"fixed",inset:0,background:"#000",zIndex:9999,
+        display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
+        gap:20
+      }}>
+        <style>{CSS}</style>
+        <style>{`
+          @keyframes eggPop{0%{transform:scale(0) rotate(-10deg);opacity:0}60%{transform:scale(1.3) rotate(5deg)}80%{transform:scale(0.9)}100%{transform:scale(1);opacity:1}}
+          @keyframes sparkle{0%,100%{opacity:0}50%{opacity:1}}
+          .egg-pop{animation:eggPop 0.8s cubic-bezier(0.34,1.56,0.64,1) forwards}
+        `}</style>
+        {/* sparkle bg */}
+        {[...Array(20)].map((_,i)=>(
+          <div key={i} style={{
+            position:"fixed",
+            left:`${(i*37+13)%100}%`,top:`${(i*29+7)%100}%`,
+            fontSize:`${8+i%12}px`,
+            animation:`sparkle ${1+i%3*0.5}s ${i%4*0.3}s ease-in-out infinite`,
+            pointerEvents:"none"
+          }}>✦</div>
+        ))}
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(14px,4vw,22px)",color:line?.rarityClr||"#FFD700",textAlign:"center"}}>
+          {line?.rarityLabel||"★★★★ Legendary"}
+        </div>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(20px,6vw,36px)",color:"#FFFFFF",textShadow:`0 0 30px ${line?.eggColor}`,textAlign:"center"}}>
+          알이 부화했어!
+        </div>
+        <div className="egg-pop" style={{marginTop:8}}>
+          <Sp w={Math.min(160, window.innerWidth*0.38)}/>
+        </div>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(18px,5vw,28px)",color:line?.typeClr||"#FFD700",marginTop:4}}>
+          {eggHatch.mon.name}
+        </div>
+        <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(11px,3vw,14px)",color:"#9988CC",textAlign:"center",maxWidth:260,lineHeight:1.5}}>
+          {eggHatch.mon.desc}
+        </div>
+        <div style={{color:"#6A5888",fontSize:"clamp(10px,2.5vw,13px)",marginTop:4}}>
+          {line?.type} TYPE
+        </div>
+        <button className="big-btn" onClick={()=>setEggHatch(null)} style={{
+          marginTop:12,background:`linear-gradient(135deg,${line?.typeClr||"#7B2FBE"},${line?.eggColor||"#5533AA"})`,
+          color:"#fff",fontSize:"clamp(14px,4vw,18px)"
+        }}>
+          도감에 추가! 🎉
+        </button>
+      </div>
+    );
+  }
+
+  // ── REVENGE LAND 화면 ─────────────────────────────
+  if(screen==="revenge") {
+    const [rIdx, setRIdx] = React.useState(0);
+    const [rSel, setRSel] = React.useState(null);
+    const [rCorrect, setRCorrect] = React.useState(0);
+    const [rDone, setRDone] = React.useState(false);
+    const words = wrongWords.slice(0, 10);
+    const cur = words[rIdx];
+    if(words.length === 0) return (
+      <div className="crt page slide-up" style={{alignItems:"center",justifyContent:"center",gap:20,
+        background:"radial-gradient(ellipse at top,#0A1A0A,#0C0A18)"}}>
+        <style>{CSS}</style>
+        <div style={{fontSize:"clamp(48px,14vw,80px)"}}>🎉</div>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-lg)",color:"#44FF88",textAlign:"center"}}>
+          모든 단어 복습 완료!
+        </div>
+        <div style={{fontFamily:"var(--f-ui)",color:"#6A5888",fontSize:"var(--fs-sm)"}}>
+          틀린 단어가 없어요
+        </div>
+        <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")}>← BACK</button>
+      </div>
+    );
+    if(rDone) return (
+      <div className="crt page slide-up" style={{alignItems:"center",justifyContent:"center",gap:20,
+        background:"radial-gradient(ellipse at top,#0A0A2A,#0C0A18)"}}>
+        <style>{CSS}</style>
+        <div style={{fontSize:"clamp(48px,14vw,80px)"}}>⚔️</div>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-lg)",color:"#FFD700",textAlign:"center"}}>
+          Revenge 완료!
+        </div>
+        <div style={{fontFamily:"var(--f-ui)",color:"#9988CC",fontSize:"var(--fs-sm)",textAlign:"center"}}>
+          {rCorrect}/{words.length} 정답<br/>
+          {rCorrect===words.length?"완벽! 단어 해방 +200 EXP 🎉":"다시 도전해봐!"}
+        </div>
+        <button className="big-btn" style={{background:"linear-gradient(135deg,#AA2200,#CC4400)"}}
+          onClick={()=>{
+            if(rCorrect===words.length){
+              setWrongWords(prev=>prev.slice(words.length));
+              setMonExp(e=>{const ne=e+200;const th=monLv*80;if(ne>=th){setMonLv(l=>l+1);return ne-th;}return ne;});
+              setToast("⚔️ Revenge 완료! 단어 해방 +200 EXP");
+            }
+            setScreen(mon?"world":"title");
+          }}>
+          {rCorrect===words.length?"단어 해방! ✨":"← BACK"}
+        </button>
+      </div>
+    );
+    // 선택지 생성 (4지선다)
+    const allMs = words.map(x=>x.m);
+    const opts = cur ? shuffle([cur.m,...allMs.filter(m=>m!==cur.m).sort(()=>Math.random()-0.5).slice(0,3)]) : [];
+    return (
+      <div className="crt page slide-up" style={{
+        padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.5vh,16px)",
+        background:"radial-gradient(ellipse at top,#0A0118,#0C0A18)"}}>
+        <style>{CSS}</style>
+        {/* 헤더 */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FF4444"}}>
+            ⚔️ REVENGE LAND
+          </div>
+          <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-sm)",color:"#FF8888"}}>
+            {rIdx+1}/{words.length}
+          </div>
+        </div>
+        {/* 진행 바 */}
+        <div style={{height:6,background:"#2A1A1A",borderRadius:3,flexShrink:0}}>
+          <div style={{height:"100%",background:"linear-gradient(90deg,#FF4444,#FF8800)",
+            borderRadius:3,width:`${((rIdx)/(words.length))*100}%`,transition:"width 0.5s"}}/>
+        </div>
+        {/* 고블린 보스 */}
+        <div style={{textAlign:"center",flexShrink:0}}>
+          <div style={{fontSize:"clamp(48px,14vw,72px)",animation:"floatBob 2s ease-in-out infinite"}}>👾</div>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#FF6644",marginTop:4}}>
+            이 단어를 훔쳐간 고블린을 잡아라!
+          </div>
+        </div>
+        {/* 문제 카드 */}
+        <div style={{background:"linear-gradient(135deg,#1A0010,#2A0518)",borderRadius:16,
+          padding:"clamp(16px,4vw,24px)",border:"2px solid #FF444466",textAlign:"center",flexShrink:0}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(22px,6vw,36px)",color:"#FF8888",marginBottom:8}}>
+            {cur?.w}
+          </div>
+          {cur?.def && <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#886688",lineHeight:1.5}}>
+            {cur.def}
+          </div>}
+        </div>
+        {/* 선택지 */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(8px,2vw,12px)",flex:1}}>
+          {opts.map(opt=>{
+            const isCorrect = opt===cur?.m;
+            const selected = rSel!==null;
+            let bg = "linear-gradient(135deg,#1C0A28,#28103A)";
+            let border = "2px solid #4A2060";
+            if(selected && opt===rSel) {
+              bg = isCorrect?"linear-gradient(135deg,#0A3A1A,#0A5A22)":"linear-gradient(135deg,#3A0A0A,#5A0A0A)";
+              border = isCorrect?"2px solid #44FF66":"2px solid #FF4444";
+            } else if(selected && isCorrect) {
+              bg = "linear-gradient(135deg,#0A3A1A,#0A5A22)";
+              border = "2px solid #44FF66";
+            }
+            return (
+              <button key={opt} onClick={()=>{
+                if(rSel!==null)return;
+                setRSel(opt);
+                if(opt===cur?.m) setRCorrect(c=>c+1);
+                setTimeout(()=>{
+                  if(rIdx+1>=words.length) setRDone(true);
+                  else { setRIdx(i=>i+1); setRSel(null); }
+                },900);
+              }} style={{
+                background:bg,border,borderRadius:14,
+                padding:"clamp(12px,3vw,18px) clamp(8px,2vw,12px)",
+                fontFamily:"var(--f-ui)",fontWeight:700,
+                fontSize:"clamp(13px,3.5vw,17px)",color:"#E0D8FF",
+                cursor:selected?"default":"pointer",
+                textAlign:"center",lineHeight:1.3,
+              }}>
+                {opt}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  // ── LEADERBOARD 화면 ──────────────────────────────
+  if(screen==="leaderboard") {
+    const [lbData, setLbData] = React.useState(null);
+    React.useEffect(()=>{
+      import("./supabase.js").then(({supabase})=>{
+        if(!supabase){setLbData([]);return;}
+        supabase.from("progress")
+          .select("name,data")
+          .eq("class_code", player.classCode)
+          .then(({data})=>{
+            if(!data){setLbData([]);return;}
+            const rows = data.map(r=>({
+              name:r.name,
+              caught:(r.data?.caughtMons||[]).length,
+              stars: Object.values(r.data?.unitStars||{}).reduce((a,b)=>a+b,0),
+              monLv: r.data?.monLv||1,
+            })).sort((a,b)=>b.caught-a.caught||b.stars-a.stars);
+            setLbData(rows);
+          });
+      });
+    },[]);
+    const medals = ["🥇","🥈","🥉"];
+    return (
+      <div className="crt page-y slide-up" style={{
+        padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2vh,14px)",
+        background:"radial-gradient(ellipse at top,#1A1400,#0C0A18)"}}>
+        <style>{CSS}</style>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FFD700"}}>
+            🏆 RANKING
+          </div>
+          <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888"}}>
+            {player?.classCode}반
+          </div>
+        </div>
+        <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#6A5888",textAlign:"center",flexShrink:0}}>
+          몬스터 많이 모은 순서
+        </div>
+        {lbData===null?(
+          <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",
+            fontFamily:"var(--f-pk)",color:"#4A3A60",fontSize:"var(--fs-sm)"}}>불러오는 중...</div>
+        ):(
+          <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
+            {lbData.length===0&&(
+              <div style={{textAlign:"center",fontFamily:"var(--f-pk)",color:"#4A3A60",
+                fontSize:"var(--fs-sm)",marginTop:40}}>아직 데이터가 없어요</div>
+            )}
+            {lbData.map((row,i)=>{
+              const isMe = row.name===player?.name;
+              return (
+                <div key={i} style={{
+                  background:isMe?"linear-gradient(135deg,#1A0838,#280A50)":"#16122A",
+                  border:isMe?"2px solid #7B2FBE":"1px solid #2A2440",
+                  borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
+                  display:"flex",alignItems:"center",gap:12,
+                }}>
+                  <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(18px,5vw,24px)",minWidth:36,textAlign:"center"}}>
+                    {i<3?medals[i]:i+1}
+                  </div>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontFamily:"var(--f-ui)",fontWeight:800,
+                      fontSize:"clamp(13px,3.5vw,16px)",color:isMe?"#C77DFF":"#E0D8FF",
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {row.name}{isMe?" (나)":""}
+                    </div>
+                    <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#6A5888",marginTop:2}}>
+                      Lv.{row.monLv} · ★{row.stars}
+                    </div>
+                  </div>
+                  <div style={{textAlign:"center",flexShrink:0}}>
+                    <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(18px,5vw,24px)",color:"#FFD700"}}>
+                      {row.caught}
+                    </div>
+                    <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.5vmin,8px)",color:"#6A5888"}}>
+                      마리
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
+          padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
+          color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612",flexShrink:0}}>
+          ← BACK
+        </button>
+      </div>
+    );
+  }
+
+  // ── COLLECTION 화면 (새 버전) ─────────────────────
   if(screen==="collection") {
-    // A monster is "owned/seen" if its line is unlocked
-    // Current partner: show up to current stageIdx; other lines: show stage 0 only
+    // A monster is "owned/seen" if its line is unlocked (partner system)
     const isOwned = (lineId2, si) => {
       if(!unlockLine(lineId2)) return false;
       if(lineId===lineId2) return si<=stageIdx;
-      return si===0; // other lines show base form only
+      return si===0;
     };
 
+    // 총 catch 몬스터 수
+    const totalCatch = CATCH_MON_LINES.flatMap(l=>l.stages).length; // 18
+    const ownedCount = caughtMons.length;
     return (
       <div className="crt page-y slide-up" style={{
         padding:"clamp(10px,2.5vw,16px)",gap:10,
         background:"radial-gradient(ellipse at top,#1A0A2E,#0C0A18)"}}>
         <style>{CSS}</style>
+        {/* 헤더 */}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>📖 COLLECTION</div>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>📖 MONSTER DEX</div>
           <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-sm)",color:"#F5C842"}}>
-            ★{totalStars}
+            {ownedCount}/{totalCatch}마리
           </div>
         </div>
 
-        {/* Evo lines */}
+        {/* ── 새 수집 몬스터 도감 ── */}
+        <div style={{background:"#16122A",borderRadius:12,padding:12,border:"1px solid #7B2FBE44",flexShrink:0}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#C77DFF",marginBottom:10}}>
+            ✨ 수집한 몬스터
+          </div>
+          {CATCH_MON_LINES.map(line=>{
+            const ownedInLine = line.stages.filter(s=>caughtMons.includes(s.id));
+            return (
+              <div key={line.lineId} style={{marginBottom:14}}>
+                <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+                  <span style={{fontSize:14}}>{line.eggEmoji}</span>
+                  <span style={{fontFamily:"var(--f-pk)",fontSize:"clamp(7px,1.8vmin,9px)",color:line.typeClr}}>
+                    {line.type} TYPE
+                  </span>
+                  <span style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.5vmin,8px)",color:line.rarityClr,marginLeft:4}}>
+                    {line.rarityLabel}
+                  </span>
+                  <span style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.5vmin,8px)",color:"#6A5888",marginLeft:"auto"}}>
+                    {ownedInLine.length}/{line.stages.length}
+                  </span>
+                </div>
+                <div style={{display:"flex",gap:"clamp(4px,1.5vw,10px)"}}>
+                  {line.stages.map((st,si)=>{
+                    const owned = caughtMons.includes(st.id);
+                    const Sp = st.Sprite;
+                    return (
+                      <div key={st.id} style={{flex:1,textAlign:"center",
+                        background:owned?`${line.typeBg}`:"#0E0C1A",
+                        borderRadius:10,padding:"8px 4px",
+                        border:`1px solid ${owned?line.typeClr+"44":"#2A2440"}`,
+                        opacity:owned?1:0.35}}>
+                        {owned ? (
+                          <div style={{animation:`floatBob ${2+si*.4}s ease-in-out infinite`}}>
+                            <Sp w={Math.min(48,Math.max(28,Math.floor(window.innerWidth*0.1)))}/>
+                          </div>
+                        ) : (
+                          <div style={{filter:"brightness(0)",opacity:0.3}}>
+                            <Sp w={Math.min(48,Math.max(28,Math.floor(window.innerWidth*0.1)))}/>
+                          </div>
+                        )}
+                        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(5px,1.3vmin,7px)",
+                          color:owned?line.typeClr:"#2A2440",marginTop:4}}>
+                          {owned?st.name:"???"}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* 알 현황 */}
+        {pendingEggs.length>0&&(
+          <div style={{background:"#16122A",borderRadius:12,padding:12,border:"1px solid #3A2060",flexShrink:0}}>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#9966CC",marginBottom:8}}>
+              🥚 알 부화 중
+            </div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:8}}>
+              {pendingEggs.map((egg,i)=>{
+                const line=CATCH_MON_LINES.find(l=>l.lineId===egg.lineId);
+                return (
+                  <div key={i} style={{background:"#0E0C1A",borderRadius:10,padding:"8px 12px",
+                    border:`1px solid ${line?.eggColor||"#7B2FBE"}44`,textAlign:"center"}}>
+                    <div style={{fontSize:"clamp(20px,5vmin,28px)"}}>{line?.eggEmoji||"🥚"}</div>
+                    <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.5vmin,8px)",
+                      color:line?.rarityClr||"#AAAAAA",marginTop:2}}>{line?.rarityLabel||"Common"}</div>
+                    <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"clamp(7px,1.8vmin,10px)",
+                      color:"#6A5888",marginTop:2}}>
+                      {egg.unitsLeft}유닛 후 부화
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 파트너 몬스터 섹션 */}
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#F5C842",flexShrink:0,marginTop:4}}>
+          🤝 파트너 몬스터 (★별로 해금)
+        </div>
+        <div style={{display:"flex",flexDirection:"column",gap:8,flexShrink:0}}>
         {EVO_LINES.map(line=>{
           const locked=!unlockLine(line.lineId);
           return (
@@ -8054,6 +8456,8 @@ export default function VocabMon() {
             })}
           </div>
         </div>
+
+        </div>{/* end EVO_LINES outer div */}
 
         <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")}
           style={{padding:"clamp(10px,2.2vmin,14px)",fontSize:"var(--fs-sm)",
