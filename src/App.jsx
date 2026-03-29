@@ -6810,11 +6810,16 @@ export default function VocabMon() {
   const [toast, setToast] = useState(null); // string | null
 
   // ── 몬스터 수집 시스템 ──
-  const [caughtMons, setCaughtMons] = useState([]); // 잡은 몬스터 ID 배열
-  const [pendingEggs, setPendingEggs] = useState([]); // [{rarity, lineId, unitsLeft}]
-  const [eggHatch, setEggHatch] = useState(null); // {mon, lineId} 부화 연출
-  const [wrongWords, setWrongWords] = useState([]); // 영구 오답 단어 [{w,m,def,opts}]
-  const [showEggReady, setShowEggReady] = useState(false);
+  const [caughtMons,    setCaughtMons]    = useState([]); // 잡은 몬스터 ID 배열
+  const [pendingEggs,   setPendingEggs]   = useState([]); // [{id,rarity,lineId,answersLeft}]
+  const [eggHatch,      setEggHatch]      = useState(null); // {mon,lineId} 부화 연출
+  const [wrongWords,    setWrongWords]    = useState([]); // 영구 오답 단어
+  const [eggAnswers,    setEggAnswers]    = useState(0);  // 현재 알 진행 정답 수 (UI용)
+
+  // ── Duolingo 시스템 ──
+  const [dailyMissions, setDailyMissions] = useState([]); // [{id,label,emoji,target,progress,done}]
+  const [dailyEggDate,  setDailyEggDate]  = useState(""); // 오늘 무료 알 받은 날짜
+  const [streakShields, setStreakShields] = useState(0);  // 실드 개수
 
   // PWA 설치 배너
   const [installPrompt, setInstallPrompt] = useState(null);
@@ -6852,24 +6857,86 @@ export default function VocabMon() {
 
   const logRef = useRef(null);
 
+  // ── 미션 생성 헬퍼 ──
+  function makeDailyMissions() {
+    const pool = [
+      { id:"correct10", emoji:"✅", label:"정답 10개 맞추기",    target:10, progress:0, done:false },
+      { id:"correct20", emoji:"✅", label:"정답 20개 맞추기",    target:20, progress:0, done:false },
+      { id:"unit1",     emoji:"⚔️", label:"유닛 1개 완주하기",   target:1,  progress:0, done:false },
+      { id:"combo5",    emoji:"🔥", label:"5연속 정답 달성",     target:5,  progress:0, done:false },
+      { id:"revenge",   emoji:"👾", label:"Revenge Land 클리어", target:1,  progress:0, done:false },
+      { id:"words15",   emoji:"📖", label:"단어 15개 학습",      target:15, progress:0, done:false },
+    ];
+    // 매일 날짜 기반으로 3개 선택 (같은 날은 같은 미션)
+    const seed = new Date().toDateString();
+    let h = 0; for (const c of seed) h = (h * 31 + c.charCodeAt(0)) & 0xffffffff;
+    const picks = [];
+    const used = new Set();
+    for (let i = 0; picks.length < 3; i++) {
+      const idx = Math.abs((h + i * 7919)) % pool.length;
+      if (!used.has(idx)) { used.add(idx); picks.push({...pool[idx]}); }
+    }
+    return picks;
+  }
+
   // ── 로그인 처리: Supabase에서 진행사항 불러오기 ──
   async function handleLogin(name, classCode) {
     const saved = await loadProgress(name, classCode);
+    const today = new Date().toDateString();
+    let restoredStreak = 0, restoredLoginDays = 0, restoredLastLogin = "";
+    let restoredEggDate = "", restoredShields = 0;
+
     if (saved) {
-      if (saved.unitStars)  setUnitStars(saved.unitStars);
-      if (saved.monLv)      setMonLv(saved.monLv);
-      if (saved.monExp)     setMonExp(saved.monExp);
-      if (saved.coins)      setCoins(saved.coins);
-      if (saved.lineId)     setLineId(saved.lineId);
+      if (saved.unitStars)    setUnitStars(saved.unitStars);
+      if (saved.monLv)        setMonLv(saved.monLv);
+      if (saved.monExp)       setMonExp(saved.monExp);
+      if (saved.coins)        setCoins(saved.coins);
+      if (saved.lineId)       setLineId(saved.lineId);
       if (saved.stageIdx !== undefined) setStageIdx(saved.stageIdx);
-      if (saved.curBook)    setCurBook(saved.curBook);
-      if (saved.streak)      setStreak(saved.streak);
-      if (saved.loginDays)   setLoginDays(saved.loginDays);
-      if (saved.lastLogin)   setLastLogin(saved.lastLogin);
-      if (saved.caughtMons)  setCaughtMons(saved.caughtMons);
-      if (saved.pendingEggs) setPendingEggs(saved.pendingEggs);
-      if (saved.wrongWords)  setWrongWords(saved.wrongWords);
+      if (saved.curBook)      setCurBook(saved.curBook);
+      if (saved.caughtMons)   setCaughtMons(saved.caughtMons);
+      if (saved.pendingEggs)  setPendingEggs(saved.pendingEggs);
+      if (saved.wrongWords)   setWrongWords(saved.wrongWords);
+      if (saved.streakShields) { setStreakShields(saved.streakShields); restoredShields = saved.streakShields; }
+      restoredStreak    = saved.streak    || 0;
+      restoredLoginDays = saved.loginDays || 0;
+      restoredLastLogin = saved.lastLogin || "";
+      restoredEggDate   = saved.dailyEggDate || "";
     }
+
+    // ── 스트릭 업데이트 ──
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    let newStreak = restoredStreak;
+    if (restoredLastLogin !== today) {
+      if (restoredLastLogin === yesterday) {
+        newStreak = restoredStreak + 1;
+      } else if (restoredLastLogin !== "") {
+        // 하루 빠짐 → 실드 사용 or 리셋
+        if (restoredShields > 0) {
+          newStreak = restoredStreak; // 실드로 유지
+          setStreakShields(s => s - 1);
+        } else {
+          newStreak = 1; // 리셋
+        }
+      } else {
+        newStreak = 1; // 첫 로그인
+      }
+      setLoginDays(d => restoredLoginDays + 1);
+      setLastLogin(today);
+    }
+    setStreak(newStreak);
+
+    // ── 데일리 미션 생성 (오늘 날짜 기준) ──
+    const savedMissionDate = saved?.dailyMissionDate || "";
+    if (savedMissionDate !== today) {
+      setDailyMissions(makeDailyMissions());
+    } else {
+      setDailyMissions(saved?.dailyMissions || makeDailyMissions());
+    }
+
+    // ── 데일리 무료 알 지급 ──
+    setDailyEggDate(restoredEggDate);
+
     setPlayer({ name, classCode });
   }
 
@@ -6882,10 +6949,12 @@ export default function VocabMon() {
         lineId, stageIdx, curBook,
         streak, loginDays, lastLogin,
         caughtMons, pendingEggs, wrongWords,
+        dailyMissions, dailyEggDate, streakShields,
+        dailyMissionDate: new Date().toDateString(),
       });
-    }, 1000); // 1초 debounce
+    }, 1000);
     return () => clearTimeout(timeout);
-  }, [player, unitStars, monLv, monExp, coins, lineId, stageIdx, curBook, streak, loginDays, caughtMons, pendingEggs, wrongWords]);
+  }, [player, unitStars, monLv, monExp, coins, lineId, stageIdx, curBook, streak, loginDays, caughtMons, pendingEggs, wrongWords, dailyMissions, dailyEggDate, streakShields]);
 
   // BOOK SELECT — sync tab to current book's group when opening
   useEffect(()=>{
@@ -6987,6 +7056,35 @@ export default function VocabMon() {
       setFeedback({type:"correct", msg:`정답! +${expGain} EXP${ns>=3?` 🔥×${ns}`:""}`});
       setTimeout(()=>setFeedback(null), 800);
 
+      // ── 알 진행도 +1 (정답마다) ──
+      setPendingEggs(prev => {
+        if (prev.length === 0) return prev;
+        const updated = [...prev];
+        updated[0] = { ...updated[0], answersLeft: (updated[0].answersLeft ?? 10) - 1 };
+        if (updated[0].answersLeft <= 0) {
+          const egg = updated[0];
+          setCaughtMons(owned => {
+            const caught = rollMonsterFromLine(egg.lineId, owned);
+            if (!caught) return owned;
+            setTimeout(() => setEggHatch({ mon: caught, lineId: egg.lineId }), 400);
+            return owned.includes(caught.id) ? owned : [...owned, caught.id];
+          });
+          return updated.slice(1);
+        }
+        return updated;
+      });
+      setEggAnswers(a => a + 1);
+
+      // ── 미션 진행도 업데이트 ──
+      setDailyMissions(prev => prev.map(m => {
+        if (m.done) return m;
+        let np = m.progress;
+        if (m.id === "correct10" || m.id === "correct20" || m.id === "words15") np = Math.min(m.target, np + 1);
+        if (m.id === "combo5" && ns >= m.target) np = m.target;
+        const done = np >= m.target;
+        return { ...m, progress: np, done };
+      }));
+
       // ── 정답: 플레이어가 적에게 돌진 ──
       setAttackP(true);                          // 플레이어 출발
       setTimeout(()=>{
@@ -7070,24 +7168,19 @@ export default function VocabMon() {
       const eggRarity = rollEggRarity(accuracy);
       const possLines = EGG_DROP[eggRarity] || EGG_DROP.common;
       const pickedLine = possLines[Math.floor(Math.random() * possLines.length)];
-      const newEgg = { rarity: eggRarity, lineId: pickedLine, unitsLeft: 3 };
-      // 기존 알 카운트 다운 + 새 알 추가
-      setPendingEggs(prev => {
-        const withNew = [...prev, newEgg];
-        const ticked = withNew.map(e => ({ ...e, unitsLeft: e.unitsLeft - 1 }));
-        const ready = ticked.filter(e => e.unitsLeft <= 0);
-        const still = ticked.filter(e => e.unitsLeft > 0);
-        ready.forEach((egg, i) => {
-          setCaughtMons(owned => {
-            const caught = rollMonsterFromLine(egg.lineId, owned);
-            if (!caught) return owned;
-            setTimeout(() => setEggHatch({ mon: caught, lineId: egg.lineId }), 1800 + i * 3000);
-            if (owned.includes(caught.id)) return owned;
-            return [...owned, caught.id];
-          });
-        });
-        return still;
-      });
+      // 새 알 추가 (정답 10개로 부화 — answer()에서 처리)
+      const newEgg = { id: Date.now(), rarity: eggRarity, lineId: pickedLine, answersLeft: 10 };
+      setPendingEggs(prev => [...prev, newEgg]);
+
+      // 유닛 완주 미션 업데이트
+      setDailyMissions(prev => prev.map(m => {
+        if (m.done) return m;
+        if (m.id === "unit1") {
+          const np = Math.min(m.target, m.progress + 1);
+          return { ...m, progress: np, done: np >= m.target };
+        }
+        return m;
+      }));
     } else {
       setLog(p=>[...p,`💀 ${mon.name} fainted...`]);
     }
@@ -7245,98 +7338,172 @@ export default function VocabMon() {
   ) : null;
 
   // TITLE
-  if(screen==="title") return (
-    <div className="crt page slide-up" style={{
-      alignItems:"center",justifyContent:"center",
-      padding:"clamp(16px,4vw,32px)",gap:"clamp(14px,3.5vh,26px)",
-      background:"radial-gradient(ellipse at 40% 20%,#1A0E2E,#0C0A18)"
-    }}>
-      <style>{CSS}</style>
-      <ToastLayer/>
-      <InstallBanner/>
-      {/* Stars bg */}
-      <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
-        {[...Array(35)].map((_,i)=>(
-          <div key={i} style={{position:"absolute",width:i%4===0?3:1,height:i%4===0?3:1,
-            background:"#fff",left:`${(i*37+13)%100}%`,top:`${(i*29+7)%100}%`,
-            opacity:.08+i%7*.12,borderRadius:"50%",
-            animation:`pulse ${1.5+i%4*.7}s ease-in-out infinite`,animationDelay:`${i*.15}s`}}/>
-        ))}
-      </div>
+  if(screen==="title") {
+    const today = new Date().toDateString();
+    const hasFreeEgg = dailyEggDate !== today;
+    const doneMissions = dailyMissions.filter(m=>m.done).length;
+    const allMissionsDone = doneMissions >= dailyMissions.length && dailyMissions.length > 0;
+    const firstEgg = pendingEggs[0];
+    const eggPct = firstEgg ? Math.round(((10 - (firstEgg.answersLeft ?? 10)) / 10) * 100) : 0;
+    const eggLine = firstEgg ? CATCH_MON_LINES.find(l=>l.lineId===firstEgg.lineId) : null;
 
-      {/* Logo */}
-      <div style={{textAlign:"center"}}>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,1.8vmin,10px)",color:"#6A5888",letterSpacing:3,marginBottom:6}}>
-          WONDERFUL WORLD · BASIC LV.5
-        </div>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(26px,6.5vmin,46px)",color:"#F5C842",
-          animation:"titleGlow 3s ease-in-out infinite",letterSpacing:2}}>VOCAB</div>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(26px,6.5vmin,46px)",color:"#FF5533",
-          textShadow:"3px 3px 0 #880000",letterSpacing:2,marginTop:-4}}>MON</div>
-        <div style={{height:2,background:"linear-gradient(90deg,transparent,#F5C842,transparent)",margin:"6px 0"}}/>
-        <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888"}}>
-          Learn Words · Battle Monsters
-        </div>
-      </div>
+    function claimDailyEgg() {
+      if (!hasFreeEgg) return;
+      const possLines = EGG_DROP.common;
+      const lineId2 = possLines[Math.floor(Math.random() * possLines.length)];
+      const newEgg = { id: Date.now(), rarity:"common", lineId: lineId2, answersLeft: 10 };
+      setPendingEggs(prev => [...prev, newEgg]);
+      setDailyEggDate(today);
+      setToast("🥚 오늘의 알 받기 완료! 정답 10개로 부화해봐");
+    }
 
-      {/* Monster parade */}
-      <div style={{display:"flex",gap:"clamp(8px,2.5vw,20px)",alignItems:"flex-end",justifyContent:"center"}}>
-        {EVO_LINES.map((line,i)=>{
-          const s=line.stages[0];
-          const locked=!unlockLine(line.lineId);
-          return (
-            <div key={line.lineId} style={{textAlign:"center",
-              animation:`floatBob ${2+i*.4}s ease-in-out infinite`,animationDelay:`${i*.55}s`,
-              opacity:locked?.35:1}}>
-              <s.Sprite w={Math.min(60,Math.max(36,Math.floor(window.innerWidth*.12)))}/>
-              <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(5px,1.2vmin,7px)",
-                color:s.color,marginTop:3}}>{locked?"??":s.name}</div>
-              {locked&&<div style={{fontSize:"clamp(10px,2.5vmin,13px)"}}>🔒</div>}
+    return (
+      <div className="crt page-y slide-up" style={{
+        padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.2vh,14px)",
+        background:"radial-gradient(ellipse at 40% 0%,#1A0E2E,#0C0A18)"
+      }}>
+        <style>{CSS}</style>
+        <ToastLayer/>
+        <InstallBanner/>
+
+        {/* 별 배경 */}
+        <div style={{position:"fixed",inset:0,pointerEvents:"none"}}>
+          {[...Array(25)].map((_,i)=>(
+            <div key={i} style={{position:"absolute",width:i%4===0?2:1,height:i%4===0?2:1,
+              background:"#fff",left:`${(i*37+13)%100}%`,top:`${(i*29+7)%100}%`,
+              opacity:.06+i%7*.09,borderRadius:"50%",
+              animation:`pulse ${1.5+i%4*.7}s ease-in-out infinite`}}/>
+          ))}
+        </div>
+
+        {/* ── 상단: 로고 + 스트릭 ── */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(20px,5vmin,32px)",color:"#F5C842",
+              lineHeight:1,letterSpacing:2}}>VOCAB<span style={{color:"#FF5533"}}>MON</span>
             </div>
-          );
-        })}
-        {/* hint at hidden */}
-        <div style={{textAlign:"center",animation:"floatBob 2.8s ease-in-out infinite",opacity:.2}}>
-          <LexivoreSprite w={Math.min(60,Math.max(36,Math.floor(window.innerWidth*.12)))}/>
-          <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(5px,1.2vmin,7px)",color:"#9944EE",marginTop:3}}>???</div>
+            <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888",marginTop:2}}>
+              {player?.name} 님
+            </div>
+          </div>
+          <div style={{textAlign:"center",background:"#1A1400",borderRadius:14,
+            padding:"8px 14px",border:`2px solid ${streak>=7?"#FF9933":"#2A2000"}`}}>
+            <div style={{fontSize:"clamp(20px,5vmin,28px)"}}>{streak>=7?"🔥":"🕯️"}</div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(14px,4vmin,20px)",
+              color:streak>=7?"#FF9933":"#886633",lineHeight:1}}>{streak}</div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(5px,1.3vmin,7px)",color:"#6A5888"}}>일 연속</div>
+          </div>
         </div>
-      </div>
 
-      {/* Star counter */}
-      {totalStars>0&&(
-        <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-sm)",color:"#F5C842"}}>
-          ★ {totalStars} stars collected
-        </div>
-      )}
-
-      {/* Daily streak */}
-      {loginDays>1&&(
-        <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:"#FF9933",
-          background:"#1E1A10",padding:"4px 12px",borderRadius:20,border:"1px solid #443300"}}>
-          🔥 {loginDays}일 연속 출석!
-        </div>
-      )}
-
-      {/* Buttons */}
-      <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:300}}>
-        {/* VOC-104: START/CONTINUE 동적 문구 */}
+        {/* ── 이어하기 버튼 ── */}
         <button className="big-btn" onClick={()=>setScreen(mon?"world":"bookselect")}
-          style={{padding:"clamp(12px,2.5vmin,18px)",fontSize:"var(--fs-sm)",color:"#fff",
-            background:"linear-gradient(135deg,#3C7020,#5AA030)",boxShadow:"0 4px 0 #1E3A10"}}>
+          style={{padding:"clamp(13px,3vmin,18px)",fontSize:"clamp(15px,4vmin,18px)",
+            color:"#fff",background:"linear-gradient(135deg,#3C7020,#5AA030)",
+            boxShadow:"0 5px 0 #1E3A10",flexShrink:0,letterSpacing:1}}>
           {(lineId && totalStars > 0) ? "▶  이어하기" : "▶  게임 시작"}
         </button>
-        <button className="big-btn" onClick={()=>setScreen("collection")}
-          style={{padding:"clamp(10px,2.2vmin,14px)",fontSize:"var(--fs-sm)",color:"#fff",
-            background:"linear-gradient(135deg,#2A1880,#4A2AAA)",boxShadow:"0 4px 0 #0A0838"}}>
-          📖  COLLECTION
-        </button>
-      </div>
 
-      <div style={{animation:"blink 1.5s step-end infinite",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#4A3A60"}}>
-        PRESS START
+        {/* ── 오늘의 알 ── */}
+        <div style={{background:"#16122A",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
+          border:`2px solid ${hasFreeEgg?"#7B2FBE88":"#2A2440"}`,flexShrink:0}}>
+          <div style={{display:"flex",alignItems:"center",gap:10}}>
+            <div style={{fontSize:"clamp(28px,7vmin,36px)",animation:hasFreeEgg?"floatBob 2s ease-in-out infinite":"none"}}>
+              🥚
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",
+                color:hasFreeEgg?"#C77DFF":"#4A3A60"}}>
+                {hasFreeEgg ? "오늘의 무료 알!" : "오늘 알 받음 ✓"}
+              </div>
+              {firstEgg && (
+                <div style={{marginTop:4}}>
+                  <div style={{display:"flex",justifyContent:"space-between",
+                    fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#6A5888",marginBottom:3}}>
+                    <span>{eggLine?.eggEmoji} {eggLine?.rarityLabel}</span>
+                    <span>{10-(firstEgg.answersLeft??10)}/10 정답</span>
+                  </div>
+                  <div style={{height:8,background:"#0E0C1A",borderRadius:4,overflow:"hidden"}}>
+                    <div style={{height:"100%",borderRadius:4,transition:"width 0.4s",
+                      background:`linear-gradient(90deg,${eggLine?.typeClr||"#7B2FBE"},${eggLine?.eggColor||"#C77DFF"})`,
+                      width:`${eggPct}%`}}/>
+                  </div>
+                </div>
+              )}
+            </div>
+            {hasFreeEgg && (
+              <button onClick={claimDailyEgg} style={{
+                background:"linear-gradient(135deg,#7B2FBE,#C77DFF)",color:"#fff",
+                border:"none",borderRadius:10,padding:"8px 14px",fontWeight:700,
+                fontSize:"clamp(12px,3vw,14px)",cursor:"pointer",whiteSpace:"nowrap",flexShrink:0
+              }}>받기!</button>
+            )}
+          </div>
+          {pendingEggs.length > 1 && (
+            <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#4A3A60",marginTop:6}}>
+              +{pendingEggs.length-1}개 알 대기 중
+            </div>
+          )}
+        </div>
+
+        {/* ── 오늘의 미션 ── */}
+        <div style={{background:"#16122A",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
+          border:`2px solid ${allMissionsDone?"#44BB4488":"#2A2440"}`,flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",
+              color:allMissionsDone?"#44FF88":"#F5C842"}}>
+              {allMissionsDone?"✅ 오늘 미션 완료!":"📋 오늘의 미션"}
+            </div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#6A5888"}}>
+              {doneMissions}/{dailyMissions.length}
+            </div>
+          </div>
+          <div style={{display:"flex",flexDirection:"column",gap:7}}>
+            {dailyMissions.map(m=>(
+              <div key={m.id} style={{display:"flex",alignItems:"center",gap:10,
+                background:m.done?"#0A2A0A":"#0E0C1A",borderRadius:10,padding:"8px 12px",
+                border:`1px solid ${m.done?"#44BB4444":"#2A2440"}`}}>
+                <div style={{fontSize:"clamp(14px,3.5vmin,18px)"}}>{m.emoji}</div>
+                <div style={{flex:1}}>
+                  <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"clamp(11px,3vw,13px)",
+                    color:m.done?"#44FF88":"#C0B8D8",textDecoration:m.done?"line-through":"none"}}>
+                    {m.label}
+                  </div>
+                  {!m.done && m.target > 1 && (
+                    <div style={{marginTop:3,height:4,background:"#1A1A2E",borderRadius:2,overflow:"hidden"}}>
+                      <div style={{height:"100%",background:"#7B2FBE",borderRadius:2,
+                        width:`${Math.min(100,(m.progress/m.target)*100)}%`,transition:"width 0.3s"}}/>
+                    </div>
+                  )}
+                </div>
+                <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(9px,2.5vmin,12px)",
+                  color:m.done?"#44FF88":"#4A3A60",whiteSpace:"nowrap"}}>
+                  {m.done?"완료!!":`${m.progress}/${m.target}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── 하단 버튼 그리드 ── */}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,flexShrink:0}}>
+          {[
+            {l:"📖 도감", fn:()=>setScreen("collection"), bg:"linear-gradient(135deg,#2A1880,#4A2AAA)"},
+            {l:`⚔️${wrongWords.length>0?" 🔴":""}`, fn:()=>setScreen("revenge"), bg:wrongWords.length>0?"linear-gradient(135deg,#3A0800,#660A00)":"#16122A"},
+            {l:"🏆 랭킹", fn:()=>setScreen("leaderboard"), bg:"linear-gradient(135deg,#1A1400,#2A2200)"},
+            {l:`🛒 ${caughtMons.length>0?coins+"G":"샵"}`, fn:()=>setScreen("shop"), bg:"linear-gradient(135deg,#0A2A1A,#0A4A2A)"},
+            {l:"👤 파트너", fn:()=>setScreen("select"), bg:"#16122A"},
+            {l:"📚 교재", fn:()=>setScreen("bookselect"), bg:"#16122A"},
+          ].map((b,i)=>(
+            <button key={i} className="big-btn" onClick={b.fn}
+              style={{padding:"clamp(9px,2.2vmin,12px) 4px",fontSize:"clamp(11px,3vw,13px)",
+                color:"#E0D8FF",background:b.bg,boxShadow:"0 3px 0 #080612"}}>
+              {b.l}
+            </button>
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  }
 
   // SELECT LINE
   if(screen==="select") return (
@@ -8036,6 +8203,111 @@ export default function VocabMon() {
           color:"#fff",fontSize:"clamp(14px,4vw,18px)"
         }}>
           도감에 추가! 🎉
+        </button>
+      </div>
+    );
+  }
+
+  // ── 코인 샵 화면 ──────────────────────────────────
+  if(screen==="shop") {
+    const ITEMS = [
+      { id:"egg_common",   emoji:"🥚",   name:"일반 알",        desc:"Common 몬스터 알",         price:50,  rarity:"common" },
+      { id:"egg_rare",     emoji:"🥚✨",  name:"레어 알",        desc:"Rare 이상 확정",            price:150, rarity:"rare" },
+      { id:"egg_sr",       emoji:"🌟",   name:"슈퍼레어 알",    desc:"Shadow/Bolt 확정",          price:350, rarity:"superrare" },
+      { id:"hatch_now",    emoji:"💊",   name:"즉시 부화권",    desc:"첫 번째 알 바로 부화!",     price:80,  action:"hatch" },
+      { id:"shield",       emoji:"🛡️",  name:"스트릭 실드",    desc:"하루 빠져도 스트릭 유지",   price:100, action:"shield" },
+      { id:"title_warrior",emoji:"⚔️",  name:"칭호: 단어전사", desc:"이름 앞에 칭호 표시",       price:200, action:"title_warrior" },
+    ];
+
+    function buyItem(item) {
+      if (coins < item.price) { setToast("코인이 부족해요!"); return; }
+      setCoins(c => c - item.price);
+      if (item.action === "hatch") {
+        if (pendingEggs.length === 0) { setToast("부화할 알이 없어요!"); setCoins(c=>c+item.price); return; }
+        const egg = pendingEggs[0];
+        setCaughtMons(owned => {
+          const caught = rollMonsterFromLine(egg.lineId, owned);
+          if (!caught) return owned;
+          setTimeout(() => setEggHatch({ mon: caught, lineId: egg.lineId }), 200);
+          return owned.includes(caught.id) ? owned : [...owned, caught.id];
+        });
+        setPendingEggs(prev => prev.slice(1));
+        setToast("💊 즉시 부화!");
+      } else if (item.action === "shield") {
+        setStreakShields(s => s + 1);
+        setToast("🛡️ 실드 +1! 하루 빠져도 스트릭 유지");
+      } else if (item.rarity) {
+        const possLines = EGG_DROP[item.rarity] || EGG_DROP.common;
+        const lineId2 = possLines[Math.floor(Math.random() * possLines.length)];
+        setPendingEggs(prev => [...prev, { id: Date.now(), rarity: item.rarity, lineId: lineId2, answersLeft: 10 }]);
+        setToast(`${item.emoji} ${item.name} 구매 완료! 정답 10개로 부화`);
+      } else {
+        setToast(`${item.emoji} ${item.name} 구매 완료!`);
+      }
+    }
+
+    return (
+      <div className="crt page-y slide-up" style={{
+        padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.2vh,14px)",
+        background:"radial-gradient(ellipse at top,#001A0A,#0C0A18)"}}>
+        <style>{CSS}</style>
+        <ToastLayer/>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#44FF88"}}>🛒 SHOP</div>
+          <div style={{background:"#1A2A1A",borderRadius:20,padding:"6px 14px",
+            border:"1px solid #226633",display:"flex",alignItems:"center",gap:6}}>
+            <span style={{fontSize:16}}>🪙</span>
+            <span style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842",fontWeight:800}}>{coins}G</span>
+          </div>
+        </div>
+
+        {/* 실드 현황 */}
+        {streakShields > 0 && (
+          <div style={{background:"#0A1A0A",borderRadius:10,padding:"8px 14px",border:"1px solid #33664433",
+            fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#44AA66",flexShrink:0}}>
+            🛡️ 스트릭 실드 {streakShields}개 보유 중
+          </div>
+        )}
+
+        {/* 아이템 목록 */}
+        <div style={{display:"flex",flexDirection:"column",gap:10,flex:1}}>
+          {ITEMS.map(item => {
+            const canBuy = coins >= item.price;
+            const isHatchDisabled = item.action==="hatch" && pendingEggs.length===0;
+            return (
+              <div key={item.id} style={{
+                background:"#16122A",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
+                border:"1px solid #2A2440",display:"flex",alignItems:"center",gap:12,
+                opacity: isHatchDisabled ? 0.4 : 1
+              }}>
+                <div style={{fontSize:"clamp(28px,7vmin,36px)",flexShrink:0}}>{item.emoji}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"var(--f-ui)",fontWeight:800,
+                    fontSize:"clamp(13px,3.5vw,15px)",color:"#E0D8FF"}}>{item.name}</div>
+                  <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",
+                    color:"#6A5888",marginTop:2}}>{item.desc}</div>
+                </div>
+                <button onClick={()=>!isHatchDisabled&&buyItem(item)} style={{
+                  background:canBuy&&!isHatchDisabled
+                    ?"linear-gradient(135deg,#226633,#44AA55)"
+                    :"#1A1A2A",
+                  color:canBuy&&!isHatchDisabled?"#fff":"#4A3A60",
+                  border:`1px solid ${canBuy&&!isHatchDisabled?"#44AA5544":"#2A2440"}`,
+                  borderRadius:10,padding:"8px 14px",fontWeight:700,
+                  fontSize:"clamp(12px,3vw,14px)",cursor:canBuy&&!isHatchDisabled?"pointer":"default",
+                  whiteSpace:"nowrap",flexShrink:0
+                }}>
+                  🪙{item.price}G
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <button className="big-btn" onClick={()=>setScreen("title")} style={{
+          padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
+          color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612",flexShrink:0}}>
+          ← BACK
         </button>
       </div>
     );
