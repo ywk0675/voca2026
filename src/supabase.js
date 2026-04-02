@@ -22,7 +22,7 @@ export async function loadProgress(name, classCode) {
       .select("data")
       .eq("name", name)
       .eq("class_code", classCode)
-      .single();
+      .maybeSingle();
     if (error || !data) return null;
     return data.data;
   } catch { return null; }

@@ -22,7 +22,7 @@ export default function LoginScreen({ onLogin }) {
   }
 
   return (
-    <div style={{
+    <div data-testid="login-screen" style={{
       minHeight: "100dvh",
       background: "linear-gradient(160deg, #0D0A1A 0%, #1A1030 100%)",
       display: "flex", flexDirection: "column",
@@ -58,6 +58,7 @@ export default function LoginScreen({ onLogin }) {
             내 이름
           </label>
           <input
+            data-testid="login-name-input"
             type="text"
             placeholder="예) 김민준"
             value={name}
@@ -78,6 +79,7 @@ export default function LoginScreen({ onLogin }) {
             반 코드
           </label>
           <input
+            data-testid="login-code-input"
             type="text"
             placeholder="선생님한테 받은 코드"
             value={code}
@@ -103,6 +105,7 @@ export default function LoginScreen({ onLogin }) {
         )}
 
         <button
+          data-testid="login-start-button"
           onClick={handleStart}
           disabled={loading}
           style={{
