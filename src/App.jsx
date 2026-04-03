@@ -1230,7 +1230,7 @@ export default function VocabMon() {
       // 달걀 있으면 알림으로 안내
       const todayStr = new Date().toDateString();
       if ((saved?.dailyEggDate || "") !== todayStr) {
-        setTimeout(() => setToast("무료 알을 받을 수 있습니다. 홈에서 바로 챙기세요."), 800);
+        // 무료 알 안내 토스트 제거 (홈 화면 버튼으로 확인 가능)
       }
       // 스트릭 알림
       if (newStreak > 1) {
@@ -2331,7 +2331,7 @@ export default function VocabMon() {
 
         <div style={{textAlign:"center",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#4A3A60",flexShrink:0}}>SELECT UNIT</div>
 
-        <div style={{flex:1,display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(5px,1.5vmin,8px)",overflowY:"auto",minHeight:0}}>
+        <div style={{flex:1,display:"grid",gridTemplateColumns:"1fr 1fr",gridAutoRows:"minmax(clamp(52px,11vh,68px),auto)",gap:"clamp(5px,1.5vmin,8px)",overflowY:"auto",minHeight:0}}>
           {[...Array(bookInfo?.units||12)].map((_,i)=>{
             const uid=i+1;
             const u=getUnitInfo(curBook||"ww5", uid);
