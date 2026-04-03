@@ -2331,7 +2331,7 @@ export default function VocabMon() {
 
         <div style={{textAlign:"center",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#4A3A60",flexShrink:0}}>SELECT UNIT</div>
 
-        <div style={{flex:1,display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(5px,1.5vmin,8px)",overflow:"hidden",minHeight:0}}>
+        <div style={{flex:1,display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(5px,1.5vmin,8px)",overflowY:"auto",minHeight:0}}>
           {[...Array(bookInfo?.units||12)].map((_,i)=>{
             const uid=i+1;
             const u=getUnitInfo(curBook||"ww5", uid);
@@ -2807,10 +2807,10 @@ export default function VocabMon() {
     const line = CATCH_MON_LINES.find(l=>l.lineId===eggHatch.lineId);
     const Sp = eggHatch.mon.Sprite;
     return (
-      <div data-testid="egg-hatch-modal" style={{
+      <div data-testid="egg-hatch-modal" onClick={()=>setEggHatch(null)} style={{
         position:"fixed",inset:0,background:"#000",zIndex:9999,
         display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",
-        gap:20
+        gap:20,cursor:"pointer"
       }}>
         <style>{CSS}</style>
         <style>{`
