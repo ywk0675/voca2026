@@ -2682,7 +2682,7 @@ export default function VocabMon() {
           )}
 
           {/* Log */}
-          <div ref={logRef} style={{flex:1,minHeight:0,overflowY:"auto",
+          <div ref={logRef} style={{flex:"0 1 auto",maxHeight:"clamp(72px,14vh,104px)",overflowY:"auto",
             background:"#0A0818",borderRadius:8,border:"1px solid var(--rim)",
             padding:"clamp(5px,1.2vmin,8px) 12px"}}>
             {log.slice(-4).map((l,i,a)=>(
