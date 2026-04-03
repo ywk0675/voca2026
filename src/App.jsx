@@ -1811,7 +1811,7 @@ export default function VocabMon() {
   if (!player) return <LoginScreen onLogin={handleLogin} />;
 
   // Toast wrapper helper ??renders on top of any screen
-  const ToastLayer = () => toast ? <Toast msg={toast} onDone={()=>setToast(null)}/> : null;
+  const toastEl = toast ? <Toast msg={toast} onDone={()=>setToast(null)}/> : null;
 
   // 튜토리얼 오버레이 (첫 플레이어만)
   if (tutorialStep > 0) {
@@ -1884,7 +1884,7 @@ export default function VocabMon() {
         background:"radial-gradient(ellipse at 40% 0%,#1A0E2E,#0C0A18)"
       }}>
         <style>{CSS}</style>
-        <ToastLayer/>
+        {toastEl}
         <InstallBanner/>
 
         {/* 별 배경 */}
@@ -2240,7 +2240,7 @@ export default function VocabMon() {
         background:"radial-gradient(ellipse at 50% 0%,#14102A,#0C0A18)"
       }}>
         <style>{CSS}</style>
-        <ToastLayer/>
+        {toastEl}
 
         {evoAnim&&(
           <div style={{position:"fixed",inset:0,zIndex:1000,
@@ -2502,7 +2502,7 @@ export default function VocabMon() {
     return (
       <div data-testid="battle-screen" className="crt page slide-up" style={{background:"#0C0A18"}}>
         <style>{CSS}</style>
-        <ToastLayer/>
+        {toastEl}
         {/* VOC-103: 단계 진행바 */}
         <StepBar
           steps={[BOOK_SERIES.find(b=>b.id===(curBook||"ww5"))?.subtitle||"교재", `Unit ${curUnit}`, stgLabel]}
@@ -2867,7 +2867,7 @@ export default function VocabMon() {
         padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.2vh,14px)",
         background:"radial-gradient(ellipse at top,#120826,#0C0A18)"}}>
         <style>{CSS}</style>
-        <ToastLayer/>
+        {toastEl}
 
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
           <div>
@@ -3055,7 +3055,7 @@ export default function VocabMon() {
         padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.2vh,14px)",
         background:"radial-gradient(ellipse at top,#001A0A,#0C0A18)"}}>
         <style>{CSS}</style>
-        <ToastLayer/>
+        {toastEl}
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
           <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#44FF88"}}>🛒 SHOP</div>
           <div style={{background:"#1A2A1A",borderRadius:20,padding:"6px 14px",
