@@ -153,6 +153,13 @@ const NullvoidSprite = ({ w=88, hurt=false }) => (
   </svg>
 );
 
+const DIFFICULTY_MODES = [
+  { key:"easy",   label:"EASY",   color:"#F5C842", icon:"🌟", timerSec:null },
+  { key:"normal", label:"NORMAL", color:"#4488FF", icon:"📘", timerSec:null },
+  { key:"hard",   label:"HARD",   color:"#FF4444", icon:"🔥", timerSec:30   },
+  { key:"hell",   label:"HELL",   color:"#AA44FF", icon:"💀", timerSec:10   },
+];
+
 const ENEMIES = [
   { id:"forgex",   name:"FORGEX",   Sprite:ForgexSprite,   type:"ERASE", typeClr:"#CC4444", color:"#FF4444", hp:70,  atk:8,  def:4,  bgKey:"plains" },
   { id:"blankus",  name:"BLANKUS",  Sprite:BlankusSprite,  type:"BLANK", typeClr:"#888888", color:"#AAAAAA", hp:95,  atk:11, def:7,  bgKey:"library"},
@@ -459,12 +466,12 @@ function Nameplate({name,typeName,typeClr,hp,maxHp,lv,isEnemy=false}) {
 }
 
 // Stars display
-function Stars({count,max=3,size="md"}) {
+function Stars({count,max=3,size="md",color="#F5C842"}) {
   const sz=size==="sm"?"clamp(12px,3vmin,16px)":"clamp(16px,4vmin,22px)";
   return (
     <div style={{display:"flex",gap:2}}>
       {[...Array(max)].map((_,i)=>(
-        <span key={i} style={{fontSize:sz}} className={i<count?"star-filled":"star-empty"}>★</span>
+        <span key={i} style={{fontSize:sz,color:i<count?color:undefined,textShadow:i<count?`0 0 8px ${color}88`:undefined}} className={i<count?"star-filled":"star-empty"}>★</span>
       ))}
     </div>
   );
@@ -917,6 +924,10 @@ export default function VocabMon() {
   // Battle state
   const [curUnit,  setCurUnit]  = useState(null);
   const [battleStage, setBattleStage] = useState(0); // 0=EXPLORE 1=RECALL 2=MASTER
+  const [difficulty, setDifficulty] = useState("easy");
+  const [timer, setTimer] = useState(null);
+  const timerRef = useRef(null);
+  const [showDiffModal, setShowDiffModal] = useState(null); // {uid, stg}
   const [curEnemy, setCurEnemy] = useState(null);
   const [queue,    setQueue]    = useState([]);
   const [wrongQueue,setWrongQueue]=useState([]);
@@ -1153,7 +1164,19 @@ export default function VocabMon() {
     let restoredLineId = null;
 
     if (saved) {
-      if (saved.unitStars)    setUnitStars(saved.unitStars);
+      if (saved.unitStars) {
+        const migrated = {};
+        Object.entries(saved.unitStars).forEach(([k, v]) => {
+          const parts = k.split("_");
+          const lastPart = parts[parts.length - 1];
+          if (!["easy","normal","hard","hell"].includes(lastPart)) {
+            migrated[`${k}_easy`] = v;
+          } else {
+            migrated[k] = v;
+          }
+        });
+        setUnitStars(migrated);
+      }
       if (saved.coins)        setCoins(saved.coins);
       restoredLineId = saved.lineId && getCatchLineById(saved.lineId) ? saved.lineId : null;
       if (restoredLineId)     setLineId(restoredLineId);
@@ -1407,7 +1430,15 @@ export default function VocabMon() {
   }
 
   // Get stars for a unit+stage key
-  const getUnitStars = (uid,stg) => unitStars[`${curBook||"ww5"}_${uid}_${stg}`] || 0;
+  const getUnitStars = (uid, stg, diff="easy") => unitStars[`${curBook||"ww5"}_${uid}_${stg}_${diff}`] || 0;
+
+  function isDifficultyUnlocked(uid, stg, diff) {
+    if (diff === "easy") return true;
+    if (diff === "normal") return getUnitStars(uid, stg, "easy") >= 3;
+    if (diff === "hard")   return getUnitStars(uid, stg, "normal") >= 3;
+    if (diff === "hell")   return getUnitStars(uid, stg, "hard") >= 3;
+    return false;
+  }
 
   // Calc stars from battle result (only called when didWin=true)
   function calcStars(wc,total) {
@@ -1430,7 +1461,7 @@ export default function VocabMon() {
     return shuffle([word.m, ...shuffled.map(w=>w.m)]);
   }
 
-  function startBattle(uid, stg=0, bookId=null) {
+  function startBattle(uid, stg=0, bookId=null, diff="easy") {
     const bk = bookId||curBook||"ww5";
     const words = shuffle(getWordsForUnit(bk, uid));
     if(!words.length) return;
@@ -1439,6 +1470,9 @@ export default function VocabMon() {
     if (!effMon) return;
     if(bookId) setCurBook(bookId);
     const scaledEnemy = {...enemy, hp: words.length};
+    setDifficulty(diff);
+    const modeInfo = DIFFICULTY_MODES.find(m => m.key === diff);
+    setTimer(modeInfo?.timerSec ?? null);
     setCurUnit(uid); setBattleStage(stg); setCurEnemy(scaledEnemy);
     setQueue(words); setWrongQueue([]); setQIdx(0);
     setCurOpts(stg===2 ? getMasterOpts(words[0]) : getOpts(words[0]));
@@ -1457,11 +1491,13 @@ export default function VocabMon() {
 
   function answer(opt) {
     if(phase!=="question"||sel) return;
-    setSel(opt); setPhase("anim");
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    const isTimeout = opt === "__timeout__";
+    setSel(isTimeout ? null : opt); setPhase("anim");
     const word=queue[qIdx];
     // correct answer depends on stage
     const correctAns = battleStage===2 ? word.m : word.w;
-    const correct = opt===correctAns;
+    const correct = !isTimeout && opt===correctAns;
     const effMon = mon;
     if (!effMon) return;
     const eff = {...effMon, atk:effMon.atk+monLv*2};
@@ -1550,7 +1586,30 @@ export default function VocabMon() {
     const w=queue[nxt];
     setCurOpts(battleStage===2?getMasterOpts(w):getOpts(w));
     setSel(null); setPhase("question");
+    const modeInfo = DIFFICULTY_MODES.find(m => m.key === difficulty);
+    if (modeInfo?.timerSec) setTimer(modeInfo.timerSec);
   }
+
+  useEffect(() => {
+    if (screen !== "battle" || phase !== "question" || timer === null) {
+      if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+      return;
+    }
+    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; }
+    timerRef.current = setInterval(() => {
+      setTimer(prev => {
+        if (prev === null) return null;
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          timerRef.current = null;
+          setTimeout(() => answer("__timeout__"), 0);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => { if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = null; } };
+  }, [screen, phase, qIdx]);
 
   function endBattle(didWin, wc=wrongCount) {
     stopBGM();
@@ -1559,9 +1618,10 @@ export default function VocabMon() {
     if(didWin){
       const total=queue.length;
       const stars=calcStars(wc,total);
-      const key=`${curBook||"ww5"}_${curUnit}_${battleStage}`;
+      const key=`${curBook||"ww5"}_${curUnit}_${battleStage}_${difficulty}`;
       setUnitStars(prev=>({...prev,[key]:Math.max(prev[key]||0,stars)}));
-      const ec=20+curUnit*8; const ex=40+curUnit*12;
+      const diffMult = {easy:1, normal:1.2, hard:1.5, hell:2}[difficulty] || 1;
+      const ec = Math.round((20+curUnit*8) * diffMult); const ex = Math.round((40+curUnit*12) * diffMult);
       setCoins(c=>c+ec);
       if(!dailyDone){ setDailyDone(true); }
       // Level up check
@@ -1579,7 +1639,12 @@ export default function VocabMon() {
       // 알 보상 + 일일 미션 업데이트
       const totalQ = queue.length;
       const accuracy = totalQ > 0 ? (totalQ - wc) / totalQ : 0;
-      const eggRarity = rollEggRarity(accuracy);
+      let eggRarity = rollEggRarity(accuracy);
+      if (difficulty === "hard" && eggRarity === "common") eggRarity = "rare";
+      if (difficulty === "hell") {
+        if (eggRarity === "common") eggRarity = "rare";
+        if (eggRarity === "rare" && Math.random() < 0.3) eggRarity = "epic";
+      }
       const possLines = EGG_DROP[eggRarity] || EGG_DROP.common;
       const pickedLine = possLines[Math.floor(Math.random() * possLines.length)];
       // 시간 기반 부화 메타: 전투 보상 알은 인벤토리에 추가
@@ -2336,9 +2401,11 @@ export default function VocabMon() {
             const uid=i+1;
             const u=getUnitInfo(curBook||"ww5", uid);
             const ok=uid===1||Object.keys(unitStars).some(k=>{
-              const [bk,un]=k.split("_"); return bk===(curBook||"ww5")&&parseInt(un)===uid-1&&unitStars[k]>=1;
+              const match=k.match(/^(.+)_(\d+)_\d+_\w+$/);
+              if(!match) return false;
+              return match[1]===(curBook||"ww5")&&parseInt(match[2])===uid-1&&unitStars[k]>=1;
             });
-            const bestStars=Math.max(0,...[0,1,2].map(s=>getUnitStars(uid,s)));
+            const bestStars=Math.max(0,...[0,1,2].flatMap(s=>DIFFICULTY_MODES.map(m=>getUnitStars(uid,s,m.key))));
             return (
               <div key={uid}
                 data-testid={`world-unit-${uid}`}
@@ -2424,8 +2491,8 @@ export default function VocabMon() {
                   tabIndex={locked ? -1 : 0}
                   aria-disabled={locked}
                   aria-label={`${label}${locked?" (잠김)":""}`}
-                  onClick={()=>!locked&&startBattle(uid,stg)}
-                  onKeyDown={e=>{if(!locked&&(e.key==="Enter"||e.key===" ")){e.preventDefault();startBattle(uid,stg);}}}
+                  onClick={()=>!locked&&setShowDiffModal({uid,stg})}
+                  onKeyDown={e=>{if(!locked&&(e.key==="Enter"||e.key===" ")){e.preventDefault();setShowDiffModal({uid,stg});}}}
                   className="card-btn"
                   style={{
                     borderRadius:12,padding:"clamp(12px,2.5vh,16px)",
@@ -2442,6 +2509,17 @@ export default function VocabMon() {
                       <Stars count={stars} size="sm"/>
                     </div>
                     <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888"}}>{desc}</div>
+                    <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
+                      {DIFFICULTY_MODES.map(m=>{
+                        const ds = getUnitStars(uid, stg, m.key);
+                        if (!isDifficultyUnlocked(uid, stg, m.key) && ds === 0) return null;
+                        return (
+                          <span key={m.key} style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.4vmin,8px)",color:m.color}}>
+                            {m.icon}{ds}★
+                          </span>
+                        );
+                      })}
+                    </div>
                     {locked&&<div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#4A3A60",marginTop:4}}>
                       이전 단계를 먼저 클리어하세요.
                     </div>}
@@ -2480,6 +2558,63 @@ export default function VocabMon() {
               fontSize:"var(--fs-sm)",color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
             BACK
           </button>
+
+          {showDiffModal && (
+            <div style={{position:"fixed",inset:0,zIndex:300,
+              display:"flex",alignItems:"center",justifyContent:"center",
+              background:"rgba(8,5,18,0.92)",padding:20}}
+              onClick={()=>setShowDiffModal(null)}>
+              <div onClick={e=>e.stopPropagation()} style={{
+                background:"#12101E",border:"2px solid #2A2440",
+                borderRadius:20,padding:"clamp(16px,4vw,24px)",
+                maxWidth:340,width:"100%",
+                boxShadow:"0 0 40px rgba(0,0,0,0.8)"}}>
+                <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",
+                  color:"#F5C842",textAlign:"center",marginBottom:16}}>
+                  난이도 선택
+                </div>
+                {DIFFICULTY_MODES.map(mode=>{
+                  const unlocked = isDifficultyUnlocked(showDiffModal.uid, showDiffModal.stg, mode.key);
+                  const stars = getUnitStars(showDiffModal.uid, showDiffModal.stg, mode.key);
+                  return (
+                    <div key={mode.key}
+                      onClick={()=>{ if(unlocked){ startBattle(showDiffModal.uid, showDiffModal.stg, null, mode.key); setShowDiffModal(null); } }}
+                      style={{
+                        borderRadius:12,padding:"clamp(10px,2.2vmin,14px)",marginBottom:8,
+                        cursor:unlocked?"pointer":"not-allowed",
+                        opacity:unlocked?1:0.35,
+                        background:`linear-gradient(135deg,#14121E,${mode.color}18)`,
+                        border:`2px solid ${stars>0?mode.color+"88":unlocked?mode.color+"44":"#1A1828"}`,
+                        boxShadow:stars>0?`0 0 10px ${mode.color}22`:"none",
+                      }}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+                        <span style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:mode.color}}>
+                          {mode.icon} {mode.label}
+                        </span>
+                        <Stars count={stars} size="sm" color={mode.color}/>
+                      </div>
+                      {mode.timerSec&&(
+                        <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#6A5888"}}>
+                          ⏱ {mode.timerSec}초 제한
+                        </div>
+                      )}
+                      {!unlocked&&(
+                        <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#4A3A60",marginTop:4}}>
+                          이전 난이도 3성을 먼저 달성하세요
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <button onClick={()=>setShowDiffModal(null)}
+                  style={{width:"100%",marginTop:4,padding:"10px",background:"#1C182E",
+                    color:"#8878AA",borderRadius:10,border:"none",cursor:"pointer",
+                    fontFamily:"var(--f-ui)",fontWeight:700}}>
+                  닫기
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -2494,10 +2629,15 @@ export default function VocabMon() {
     const bgSvg=BG_MAP[curEnemy.bgKey]||BG_PLAINS;
 
     // What to show in the question panel
+    const isDefOnly = difficulty !== "easy";
+
     const qPrompt = battleStage===0 ? word?.def
-                  : battleStage===1 ? `뜻 ${word?.m}`
+                  : battleStage===1 ? (isDefOnly ? word?.def : `뜻 ${word?.m}`)
                   : `단어 ${word?.w}`;
-    const qHint   = battleStage===0 ? `뜻 ${word?.m}` : battleStage===1 ? word?.def : word?.def;
+    const qHint = isDefOnly ? null
+                : battleStage===0 ? `뜻 ${word?.m}`
+                : battleStage===1 ? word?.def
+                : word?.def;
 
     return (
       <div data-testid="battle-screen" className="crt page slide-up" style={{background:"#0C0A18"}}>
@@ -2641,6 +2781,28 @@ export default function VocabMon() {
             </div>
           </div>
 
+          {timer !== null && (() => {
+            const maxSec = DIFFICULTY_MODES.find(m=>m.key===difficulty)?.timerSec || 30;
+            const pct = Math.max(0, (timer / maxSec) * 100);
+            const tc = timer <= 5 ? "#FF2222" : timer <= 10 ? "#FF9933" : "#44CC77";
+            return (
+              <div style={{display:"flex",alignItems:"center",gap:8,flexShrink:0}}>
+                <span style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:tc,
+                  minWidth:36, animation:timer<=5?"pulse .5s ease-in-out infinite":"none"}}>
+                  {timer}s
+                </span>
+                <div style={{flex:1,height:7,background:"#1A1828",borderRadius:4,overflow:"hidden"}}>
+                  <div style={{width:`${pct}%`,height:"100%",background:tc,borderRadius:4,
+                    transition:"width 1s linear"}}/>
+                </div>
+                <span style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.5vmin,8px)",
+                  color:DIFFICULTY_MODES.find(m=>m.key===difficulty)?.color}}>
+                  {difficulty.toUpperCase()}
+                </span>
+              </div>
+            );
+          })()}
+
           {/* Question card */}
           {word&&(
             <div className="battle-panel" style={{padding:"clamp(9px,2vmin,13px) clamp(10px,2.5vw,15px)",flexShrink:0}}>
@@ -2653,10 +2815,12 @@ export default function VocabMon() {
                 color:"#18100E",lineHeight:1.65,wordBreak:"break-word"}}>
                 {qPrompt}
               </div>
-              <div data-testid="battle-question-hint" style={{marginTop:6,paddingTop:6,borderTop:"2px solid #C8C0B0",
-                fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"clamp(11px,2.8vmin,13px)",color:"#7A5A30"}}>
-                {qHint}
-              </div>
+              {qHint && (
+                <div data-testid="battle-question-hint" style={{marginTop:6,paddingTop:6,borderTop:"2px solid #C8C0B0",
+                  fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"clamp(11px,2.8vmin,13px)",color:"#7A5A30"}}>
+                  {qHint}
+                </div>
+              )}
             </div>
           )}
 
@@ -2724,9 +2888,19 @@ export default function VocabMon() {
           textShadow:won?"0 0 28px rgba(245,200,66,.6),3px 3px 0 #6A3A00":"0 0 28px rgba(220,30,10,.6),3px 3px 0 #600000",
           marginBottom:8}}>{won?"VICTORY!":"DEFEAT..."}</div>
 
+        {(() => {
+          const dm = DIFFICULTY_MODES.find(m=>m.key===difficulty);
+          return (
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",
+              color:dm?.color,marginBottom:8}}>
+              {dm?.icon} {dm?.label} MODE
+            </div>
+          );
+        })()}
+
         {won&&(
           <div style={{marginBottom:12}}>
-            <Stars count={stars} max={3}/>
+            <Stars count={stars} max={3} color={DIFFICULTY_MODES.find(m=>m.key===difficulty)?.color}/>
             <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888",marginTop:6}}>
                 {stars===3 ? "PERFECT! 전체 정답" : stars===2 ? "GOOD! 거의 다 맞혔어요" : "CLEAR! 다시 도전해도 좋습니다"}
             </div>
@@ -2756,7 +2930,7 @@ export default function VocabMon() {
             월드로 돌아가기
           </button>
           {curUnit&&(
-            <button data-testid="result-retry-button" className="big-btn" onClick={()=>startBattle(curUnit,battleStage,curBook)}
+            <button data-testid="result-retry-button" className="big-btn" onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty)}
               style={{padding:"clamp(12px,2.5vmin,16px)",fontSize:"var(--fs-sm)",color:"#fff",
                 background:"linear-gradient(135deg,#2A1880,#4A2AAA)",boxShadow:"0 4px 0 #0A0838"}}>
               다시 도전
