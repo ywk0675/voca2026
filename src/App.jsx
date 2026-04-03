@@ -2692,14 +2692,13 @@ export default function VocabMon() {
             ))}
           </div>
 
-          {/* VOC-106: 중단하고 나가기 버튼 */}
+          {/* 도망가기 버튼 */}
           <button className="big-btn" onClick={()=>{
-            setToast("진행 상태가 저장되었습니다.");
             setScreen("world");
           }}
             style={{flexShrink:0,padding:"clamp(10px,2.2vmin,13px)",
-              fontSize:"var(--fs-xs)",color:"#8878AA",background:"#1C182E",boxShadow:"0 3px 0 #080612"}}>
-            중단하고 나가기</button>
+              fontSize:"var(--fs-xs)",color:"#FF6644",background:"#1C0E0A",boxShadow:"0 3px 0 #080200",border:"1px solid #442211"}}>
+            🏃 도망가기</button>
         </div>
       </div>
     );
