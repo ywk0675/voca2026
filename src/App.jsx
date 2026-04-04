@@ -3,7 +3,7 @@ import LoginScreen from "./LoginScreen.jsx";
 import { loadProgress, saveProgress, supabase } from "./supabase.js";
 import { CATCH_MON_LINES, EGG_DROP, PARTNER_UNLOCK_STARS, getCatchLineById, getCatchStage, rollEggRarity, rollMonsterFromLine } from "./catchMons.jsx";
 import { startBGM, stopBGM, sfxCorrect, sfxWrong, sfxHitEnemy, sfxHitPlayer, sfxVictory, sfxDefeat, sfxBattleStart, sfxHatch, sfxEvolveStart, sfxEvolveDone, setMuted, isMuted } from "./audio.js";
-import { BOOK_SERIES, getUnitInfo, getWordsForUnit } from "./wordData.js";
+import { BOOK_SERIES, getUnitInfo, getWordsForUnit, getSubStages } from "./wordData.js";
 import {
   HATCH_DURATIONS_MS,
   createDefaultHatcherySlots,
@@ -766,7 +766,7 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
           width:"100%",maxWidth:280,padding:"clamp(13px,3vmin,17px)"
         }} onClick={()=>{
           setCoins(c=>c+coinReward);
-          setMonExp(e=>{const ne=e+expReward;const th=monLv*80;if(ne>=th){setMonLv(l=>l+1);return ne-th;}return ne;});
+          setMonExp(e=>{const ne=e+expReward;const th=60+monLv*20;if(ne>=th){setMonLv(l=>l+1);return ne-th;}return ne;});
           if(isPerfect) setWrongWords(prev=>prev.slice(words.length));
           if(giveEgg){
             const rLines=["flame","wave","leaf","bolt"];
@@ -924,6 +924,7 @@ export default function VocabMon() {
   // Battle state
   const [curUnit,  setCurUnit]  = useState(null);
   const [battleStage, setBattleStage] = useState(0); // 0=EXPLORE 1=RECALL 2=MASTER
+  const [curSubStage, setCurSubStage] = useState(0); // 0-3=sub, 4=boss
   const [difficulty, setDifficulty] = useState("easy");
   const [timer, setTimer] = useState(null);
   const timerRef = useRef(null);
@@ -1429,8 +1430,17 @@ export default function VocabMon() {
     },1800);
   }
 
-  // Get stars for a unit+stage key
-  const getUnitStars = (uid, stg, diff="easy") => unitStars[`${curBook||"ww5"}_${uid}_${stg}_${diff}`] || 0;
+  // Get stars for a unit+stage key (aggregates across sub-stages)
+  const getUnitStars = (uid, stg, diff="easy") => {
+    const bk = curBook||"ww5";
+    const pre = `${bk}_${uid}_${stg}_`;
+    const suf = `_${diff}`;
+    return Math.max(
+      unitStars[`${pre}boss${suf}`] || 0,
+      ...[0,1,2,3].map(i => unitStars[`${pre}s${i}${suf}`] || 0),
+      unitStars[`${bk}_${uid}_${stg}_${diff}`] || 0  // backward compat
+    );
+  };
 
   function isDifficultyUnlocked(uid, stg, diff) {
     if (diff === "easy") return true;
@@ -1461,9 +1471,11 @@ export default function VocabMon() {
     return shuffle([word.m, ...shuffled.map(w=>w.m)]);
   }
 
-  function startBattle(uid, stg=0, bookId=null, diff="easy") {
+  function startBattle(uid, stg=0, bookId=null, diff="easy", subIdx=0) {
     const bk = bookId||curBook||"ww5";
-    const words = shuffle(getWordsForUnit(bk, uid));
+    const allWords = getWordsForUnit(bk, uid);
+    const subStages = getSubStages(bk, uid);
+    const words = shuffle(subIdx === 4 ? allWords : (subStages[subIdx] || allWords));
     if(!words.length) return;
     const enemy = getEnemy(uid);
     const effMon = mon;
@@ -1473,15 +1485,16 @@ export default function VocabMon() {
     setDifficulty(diff);
     const modeInfo = DIFFICULTY_MODES.find(m => m.key === diff);
     setTimer(modeInfo?.timerSec ?? null);
-    setCurUnit(uid); setBattleStage(stg); setCurEnemy(scaledEnemy);
+    setCurUnit(uid); setBattleStage(stg); setCurSubStage(subIdx); setCurEnemy(scaledEnemy);
     setQueue(words); setWrongQueue([]); setQIdx(0);
     setCurOpts(stg===2 ? getMasterOpts(words[0]) : getOpts(words[0]));
     setPHp(effMon.hp); setEHp(words.length);
     setWrongCount(0); setCorrectCount(0);
     const stgLabel=["EXPLORE","RECALL","MASTER"][stg];
+    const subLabel = subIdx === 4 ? "👑 BOSS" : `Part ${subIdx+1}`;
     setLog([
       `A wild ${enemy.name} appeared!`,
-      `Stage: ${stgLabel} mode`,
+      `${stgLabel} · ${subLabel}`,
       stg===0 ? "뜻을 보고 영어 단어를 고르세요." : stg===1 ? "소리를 듣고 영어 단어를 고르세요." : "영어 단어 뜻을 직접 떠올리세요.",
     ]);
     setPhase("question"); setSel(null); setComboStr(0); setDmgVal(null);
@@ -1509,7 +1522,7 @@ export default function VocabMon() {
       const newE=Math.max(0,eHp-1);
       setCorrectCount(c=>c+1);
       setLog(p=>[...p,`${ns>=3?`콤보 ${ns}! `:""}정답 "${battleStage===2?word.m:word.w}" · -${final}HP`]);
-      const expGain = 12 + (ns>=3?6:0);
+      const expGain = 22 + (ns>=3?10:0);
       setFeedback({type:"correct", msg:`정답! +${expGain} EXP${ns>=3?` · 콤보 ${ns}`:""}`});
       setTimeout(()=>setFeedback(null), 800);
 
@@ -1618,7 +1631,8 @@ export default function VocabMon() {
     if(didWin){
       const total=queue.length;
       const stars=calcStars(wc,total);
-      const key=`${curBook||"ww5"}_${curUnit}_${battleStage}_${difficulty}`;
+      const subLabel = curSubStage === 4 ? "boss" : `s${curSubStage}`;
+      const key=`${curBook||"ww5"}_${curUnit}_${battleStage}_${subLabel}_${difficulty}`;
       setUnitStars(prev=>({...prev,[key]:Math.max(prev[key]||0,stars)}));
       const diffMult = {easy:1, normal:1.2, hard:1.5, hell:2}[difficulty] || 1;
       const ec = Math.round((20+curUnit*8) * diffMult); const ex = Math.round((40+curUnit*12) * diffMult);
@@ -1626,7 +1640,7 @@ export default function VocabMon() {
       if(!dailyDone){ setDailyDone(true); }
       // Level up check
       const newExp = monExp+ex;
-      const threshold = monLv*80;
+      const threshold = 60 + monLv*20;
       if(newExp>=threshold){
         const newLv=monLv+1;
         setMonLv(newLv); setMonExp(newExp-threshold);
@@ -2157,7 +2171,7 @@ export default function VocabMon() {
           {ownedPartners.length > 0 ? (
             ownedPartners.map(({ line, stage, index, entry }) => {
               const active = mon?.id === stage.id;
-              const expBase = Math.max(80, (entry?.level ?? 1) * 80);
+              const expBase = Math.max(80, 60 + (entry?.level ?? 1) * 20);
               const expPct = Math.min(100, ((entry?.exp ?? 0) / expBase) * 100);
               return (
                 <div key={stage.id}
@@ -2298,7 +2312,7 @@ export default function VocabMon() {
   // World map
   if(screen==="world"&&mon) {
     const bookInfo = BOOK_SERIES.find((b)=>b.id===(curBook||"ww5"));
-    const expPct=Math.min(100,(monExp/(monLv*80))*100);
+    const expPct=Math.min(100,(monExp/(60+monLv*20))*100);
     return (
       <div data-testid="world-screen" className="crt page slide-up" style={{
         padding:"clamp(7px,2vmin,12px)",gap:"clamp(5px,1.5vmin,9px)",
@@ -2400,11 +2414,9 @@ export default function VocabMon() {
           {[...Array(bookInfo?.units||12)].map((_,i)=>{
             const uid=i+1;
             const u=getUnitInfo(curBook||"ww5", uid);
-            const ok=uid===1||Object.keys(unitStars).some(k=>{
-              const match=k.match(/^(.+)_(\d+)_\d+_\w+$/);
-              if(!match) return false;
-              return match[1]===(curBook||"ww5")&&parseInt(match[2])===uid-1&&unitStars[k]>=1;
-            });
+            const ok=uid===1||Object.keys(unitStars).some(k=>
+              k.startsWith(`${curBook||"ww5"}_${uid-1}_`)&&unitStars[k]>=1
+            );
             const bestStars=Math.max(0,...[0,1,2].flatMap(s=>DIFFICULTY_MODES.map(m=>getUnitStars(uid,s,m.key))));
             return (
               <div key={uid}
@@ -2457,6 +2469,7 @@ export default function VocabMon() {
     const uid=parseInt(screen.split("_")[1]);
     const u=getUnitInfo(curBook||"ww5", uid);
     const wordCount=getWordsForUnit(curBook||"ww5", uid).length;
+    const subStageWords=getSubStages(curBook||"ww5", uid);
     const STAGE_INFO=[
       {stg:0,label:"EXPLORE",desc:"뜻을 보고 영어 단어를 고르는 단계",color:"#44CC77",icon:"🧭"},
       {stg:1,label:"RECALL", desc:"뜻을 떠올리며 영어 단어를 복습하는 단계",color:"#FF9933",icon:"🗣️",req:1},
@@ -2520,6 +2533,21 @@ export default function VocabMon() {
                         );
                       })}
                     </div>
+                    {!locked && (
+                      <div style={{display:"flex",gap:4,marginTop:6,alignItems:"center"}}>
+                        {[...Array(Math.min(subStageWords.length,4))].map((_,si)=>{
+                          const done=(unitStars[`${curBook||"ww5"}_${uid}_${stg}_s${si}_easy`]||0)>=1;
+                          return <span key={si} style={{fontSize:"clamp(8px,1.8vmin,10px)",color:done?color:"#2A2438",lineHeight:1}}>●</span>;
+                        })}
+                        {subStageWords.length>0&&(()=>{
+                          const done=(unitStars[`${curBook||"ww5"}_${uid}_${stg}_boss_easy`]||0)>=1;
+                          return <span style={{fontSize:"clamp(9px,2vmin,11px)",opacity:done?1:0.25,marginLeft:2}}>👑</span>;
+                        })()}
+                        <span style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"clamp(7px,1.6vmin,9px)",color:"#4A3A60",marginLeft:2}}>
+                          {Math.min(subStageWords.length,4)}파트+보스
+                        </span>
+                      </div>
+                    )}
                     {locked&&<div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#4A3A60",marginTop:4}}>
                       이전 단계를 먼저 클리어하세요.
                     </div>}
@@ -2916,6 +2944,22 @@ export default function VocabMon() {
         )}
 
         <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:300}}>
+          {won && curSubStage < 3 && (
+            <button data-testid="result-next-sub-button" className="big-btn"
+              onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty,curSubStage+1)}
+              style={{padding:"clamp(12px,2.5vmin,16px)",fontSize:"var(--fs-sm)",color:"#fff",
+                background:"linear-gradient(135deg,#1A5080,#2A80CC)",boxShadow:"0 4px 0 #0A2840"}}>
+              다음 단계 (Part {curSubStage+2} →)
+            </button>
+          )}
+          {won && curSubStage === 3 && (
+            <button data-testid="result-boss-button" className="big-btn"
+              onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty,4)}
+              style={{padding:"clamp(12px,2.5vmin,16px)",fontSize:"var(--fs-sm)",color:"#fff",
+                background:"linear-gradient(135deg,#806010,#C8A020)",boxShadow:"0 4px 0 #402800"}}>
+              👑 보스전 도전!
+            </button>
+          )}
           {hasWrong&&won&&(
             <button className="big-btn" onClick={()=>{
               setScreen(`unitdetail_${curUnit}`);
@@ -2930,7 +2974,7 @@ export default function VocabMon() {
             월드로 돌아가기
           </button>
           {curUnit&&(
-            <button data-testid="result-retry-button" className="big-btn" onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty)}
+            <button data-testid="result-retry-button" className="big-btn" onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty,curSubStage)}
               style={{padding:"clamp(12px,2.5vmin,16px)",fontSize:"var(--fs-sm)",color:"#fff",
                 background:"linear-gradient(135deg,#2A1880,#4A2AAA)",boxShadow:"0 4px 0 #0A0838"}}>
               다시 도전

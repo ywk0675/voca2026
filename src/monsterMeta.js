@@ -1,10 +1,10 @@
 import { CATCH_MON_LINES } from "./catchMons.jsx";
 
 export const HATCH_DURATIONS_MS = {
-  common: 30 * 60 * 1000,
-  rare: 2 * 60 * 60 * 1000,
-  superrare: 6 * 60 * 60 * 1000,
-  legendary: 12 * 60 * 60 * 1000,
+  common: 5 * 60 * 1000,
+  rare: 20 * 60 * 1000,
+  superrare: 60 * 60 * 1000,
+  legendary: 3 * 60 * 60 * 1000,
 };
 
 export const DUPLICATE_REWARDS = {
