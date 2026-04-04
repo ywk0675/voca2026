@@ -1490,6 +1490,1651 @@ export function VolcanixSprite({ w = 64, flipped = false }) {
   );
 }
 
+// ─── FAIRY LINE ──────────────────────────────────────────────────────────────
+
+export function PinkpuffSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* big floppy rabbit ears */}
+      <ellipse cx="16" cy="10" rx="4" ry="10" fill="#FFB3DD" />
+      <ellipse cx="32" cy="10" rx="4" ry="10" fill="#FFB3DD" />
+      <ellipse cx="16" cy="10" rx="2.2" ry="7.5" fill="#FFD6EE" />
+      <ellipse cx="32" cy="10" rx="2.2" ry="7.5" fill="#FFD6EE" />
+      {/* round pink body */}
+      <ellipse cx="24" cy="30" rx="13" ry="12" fill="#FF99DD" />
+      <ellipse cx="24" cy="31" rx="10" ry="9.5" fill="#FFBBEE" />
+      {/* belly */}
+      <ellipse cx="24" cy="33" rx="6.5" ry="5.5" fill="#FFD6EE" />
+      {/* tiny paws */}
+      <ellipse cx="14" cy="40" rx="4.5" ry="2.2" fill="#FF88CC" />
+      <ellipse cx="34" cy="40" rx="4.5" ry="2.2" fill="#FF88CC" />
+      {/* cute little tail */}
+      <circle cx="34" cy="30" r="3" fill="#FFFFFF" />
+      <Face eyeY={26} eyeDx={5} eyeRx={3.2} eyeRy={3.8} iris="#5A1A3A" blush="#FF88CC" nose="#CC66AA" />
+    </SpriteFrame>
+  );
+}
+
+export function FloppearSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* long floppy ears */}
+      <ellipse cx="15" cy="11" rx="4.5" ry="12" fill="#FF88CC" />
+      <ellipse cx="33" cy="11" rx="4.5" ry="12" fill="#FF88CC" />
+      <ellipse cx="15" cy="11" rx="2.5" ry="9" fill="#FFBBEE" />
+      <ellipse cx="33" cy="11" rx="2.5" ry="9" fill="#FFBBEE" />
+      {/* flower crown */}
+      <circle cx="18" cy="4" r="2.5" fill="#FFAACC" />
+      <circle cx="24" cy="2" r="3" fill="#FFD6EE" />
+      <circle cx="30" cy="4" r="2.5" fill="#FF88BB" />
+      <circle cx="18" cy="4" r="1.2" fill="#FFD700" />
+      <circle cx="24" cy="2" r="1.4" fill="#FFD700" />
+      <circle cx="30" cy="4" r="1.2" fill="#FFD700" />
+      {/* body */}
+      <ellipse cx="24" cy="30" rx="13.5" ry="12.5" fill="#FFAADD" />
+      <ellipse cx="24" cy="31" rx="10.5" ry="10" fill="#FFD6EE" />
+      {/* belly */}
+      <ellipse cx="24" cy="34" rx="7" ry="6" fill="#FFF0F7" />
+      {/* paws */}
+      <ellipse cx="13" cy="41" rx="5" ry="2.3" fill="#FF88CC" />
+      <ellipse cx="35" cy="41" rx="5" ry="2.3" fill="#FF88CC" />
+      {/* fluffy tail */}
+      <circle cx="35" cy="29" r="4" fill="#FFFFFF" />
+      <Face eyeY={26} eyeDx={5.2} eyeRx={3.5} eyeRy={4} iris="#4A1830" blush="#FF99CC" nose="#CC5599" />
+    </SpriteFrame>
+  );
+}
+
+export function LunabunSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000025">
+      {/* elegant wings */}
+      <path d="M17 24 Q6 18 5 10 Q11 12 16 18 Z" fill="#FFBBEE" opacity="0.8" />
+      <path d="M31 24 Q42 18 43 10 Q37 12 32 18 Z" fill="#FFBBEE" opacity="0.8" />
+      {/* royal tall ears */}
+      <ellipse cx="15" cy="9" rx="4.5" ry="13" fill="#FF88CC" />
+      <ellipse cx="33" cy="9" rx="4.5" ry="13" fill="#FF88CC" />
+      <ellipse cx="15" cy="9" rx="2.4" ry="10" fill="#FFD6EE" />
+      <ellipse cx="33" cy="9" rx="2.4" ry="10" fill="#FFD6EE" />
+      {/* moon horn */}
+      <path d="M24 8 Q21 2 24 0 Q27 2 24 8 Z" fill="#FFD700" />
+      <Sparkle x={24} y={4} size={2.4} color="#FFF0A0" opacity={0.95} />
+      {/* body */}
+      <ellipse cx="24" cy="30" rx="13" ry="12" fill="#FFBBEE" />
+      <ellipse cx="24" cy="31" rx="10.5" ry="9.5" fill="#FFD6EE" />
+      {/* belly */}
+      <ellipse cx="24" cy="34" rx="7" ry="5.8" fill="#FFF0FA" />
+      {/* star markings */}
+      <Sparkle x={18} y={28} size={2.2} color="#FFD700" opacity={0.85} />
+      <Sparkle x={30} y={26} size={2} color="#FFD700" opacity={0.8} />
+      {/* paws */}
+      <ellipse cx="13" cy="41" rx="5.5" ry="2.3" fill="#FF88CC" />
+      <ellipse cx="35" cy="41" rx="5.5" ry="2.3" fill="#FF88CC" />
+      {/* fluffy tail */}
+      <circle cx="35" cy="28" r="4.5" fill="#FFFFFF" />
+      <Face eyeY={25} eyeDx={5.5} eyeRx={3.8} eyeRy={4.3} iris="#3A1020" blush="#FF99CC" nose="#BB4488" />
+    </SpriteFrame>
+  );
+}
+
+// ─── GHOST LINE ──────────────────────────────────────────────────────────────
+
+export function SpookaSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000010">
+      {/* tiny ghost sheet */}
+      <path d="M16 22 C16 12 20 8 24 8 C28 8 32 12 32 22 L32 36 Q32 40 28 40 Q26 44 24 44 Q22 44 20 40 Q16 40 16 36 Z" fill="#EEFBFF" opacity="0.95" />
+      {/* wavy bottom */}
+      <path d="M16 36 Q18 33 20 36 Q22 39 24 36 Q26 33 28 36 Q30 39 32 36 L32 38 Q30 42 28 40 Q26 44 24 44 Q22 44 20 40 Q18 42 16 38 Z" fill="#CCF0FF" opacity="0.8" />
+      {/* stubby arms */}
+      <path d="M15 24 Q9 22 9 28 Q12 30 15 28 Z" fill="#EEFBFF" opacity="0.9" />
+      <path d="M33 24 Q39 22 39 28 Q36 30 33 28 Z" fill="#EEFBFF" opacity="0.9" />
+      {/* tiny dot eyes */}
+      <circle cx="20" cy="22" r="2.5" fill="#44AABB" />
+      <circle cx="28" cy="22" r="2.5" fill="#44AABB" />
+      <circle cx="19.5" cy="21.5" r="0.9" fill="#FFFFFF" opacity="0.7" />
+      <circle cx="27.5" cy="21.5" r="0.9" fill="#FFFFFF" opacity="0.7" />
+      {/* tiny smile */}
+      <path d="M22 27 Q24 29 26 27" stroke="#6AABB8" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      {/* blush */}
+      <ellipse cx="17" cy="25.5" rx="2.3" ry="1.2" fill="#AADDEE" opacity="0.5" />
+      <ellipse cx="31" cy="25.5" rx="2.3" ry="1.2" fill="#AADDEE" opacity="0.5" />
+    </SpriteFrame>
+  );
+}
+
+export function PhantletSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000018">
+      {/* larger ghost with glowing eyes */}
+      <path d="M13 22 C13 12 18 7 24 7 C30 7 35 12 35 22 L35 37 Q33 42 30 40 Q27 45 24 45 Q21 45 18 40 Q15 42 13 37 Z" fill="#D8F8FF" opacity="0.95" />
+      {/* wavy bottom multi-lobe */}
+      <path d="M13 37 Q15 33 17 37 Q19 40 21 37 Q23 33 25 37 Q27 40 29 37 Q31 33 33 37 Q33 40 30 40 Q27 45 24 45 Q21 45 18 40 Q15 42 13 40 Z" fill="#AADEF0" opacity="0.85" />
+      {/* glowing teal eyes */}
+      <ellipse cx="19" cy="20" rx="4" ry="4.5" fill="#003040" />
+      <ellipse cx="29" cy="20" rx="4" ry="4.5" fill="#003040" />
+      <ellipse cx="19" cy="20" rx="2.4" ry="3" fill="#33DDEE" opacity="0.95" />
+      <ellipse cx="29" cy="20" rx="2.4" ry="3" fill="#33DDEE" opacity="0.95" />
+      <ellipse cx="18.5" cy="18.8" rx="0.9" ry="0.9" fill="#AAFFFF" opacity="0.8" />
+      <ellipse cx="28.5" cy="18.8" rx="0.9" ry="0.9" fill="#AAFFFF" opacity="0.8" />
+      {/* glow */}
+      <ellipse cx="19" cy="20" rx="4.5" ry="5" fill="#33DDEE" opacity="0.18" />
+      <ellipse cx="29" cy="20" rx="4.5" ry="5" fill="#33DDEE" opacity="0.18" />
+      {/* mouth */}
+      <path d="M21 28 Q24 31 27 28" stroke="#55B8CC" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      {/* floating arms */}
+      <path d="M12 24 Q6 22 6 29 Q10 31 13 29 Z" fill="#D8F8FF" opacity="0.9" />
+      <path d="M36 24 Q42 22 42 29 Q38 31 35 29 Z" fill="#D8F8FF" opacity="0.9" />
+      {/* blush */}
+      <ellipse cx="15" cy="26" rx="2.6" ry="1.3" fill="#88CCDD" opacity="0.45" />
+      <ellipse cx="33" cy="26" rx="2.6" ry="1.3" fill="#88CCDD" opacity="0.45" />
+    </SpriteFrame>
+  );
+}
+
+export function HauntlordSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000001A">
+      {/* dramatic cape-like ghost form */}
+      <path d="M10 22 C10 11 16 6 24 6 C32 6 38 11 38 22 L38 40 Q35 46 30 43 Q27 48 24 48 Q21 48 18 43 Q13 46 10 40 Z" fill="#C4EEFF" opacity="0.95" />
+      {/* robe wave bottom */}
+      <path d="M10 40 Q12 35 14 40 Q16 44 18 40 Q20 36 22 40 Q24 44 26 40 Q28 36 30 40 Q32 44 34 40 Q36 35 38 40 Q36 45 30 43 Q27 48 24 48 Q21 48 18 43 Q12 45 10 40 Z" fill="#88CCEE" opacity="0.9" />
+      {/* crown */}
+      <path d="M16 11 L14 5 L18 8 L20 3 L24 7 L28 3 L30 8 L34 5 L32 11 Z" fill="#FFD700" />
+      <path d="M18 10 L17 7 L20 9 L22 5 L24 8 L26 5 L28 9 L31 7 L30 10 Z" fill="#FFF0A0" opacity="0.8" />
+      {/* crown gem */}
+      <circle cx="24" cy="7" r="2.5" fill="#55DDFF" opacity="0.9" />
+      <circle cx="24" cy="7" r="1.2" fill="#FFFFFF" opacity="0.8" />
+      {/* large glowing eyes */}
+      <ellipse cx="18" cy="22" rx="4.5" ry="5" fill="#002030" />
+      <ellipse cx="30" cy="22" rx="4.5" ry="5" fill="#002030" />
+      <ellipse cx="18" cy="22" rx="3" ry="3.5" fill="#44DDFF" opacity="0.95" />
+      <ellipse cx="30" cy="22" rx="3" ry="3.5" fill="#44DDFF" opacity="0.95" />
+      <ellipse cx="17.5" cy="20.8" rx="1.1" ry="1.1" fill="#AAFFFF" opacity="0.85" />
+      <ellipse cx="29.5" cy="20.8" rx="1.1" ry="1.1" fill="#AAFFFF" opacity="0.85" />
+      {/* glow */}
+      <ellipse cx="18" cy="22" rx="5" ry="5.5" fill="#44DDFF" opacity="0.2" />
+      <ellipse cx="30" cy="22" rx="5" ry="5.5" fill="#44DDFF" opacity="0.2" />
+      {/* regal frown/serious mouth */}
+      <path d="M21 30 L27 30" stroke="#44AABB" strokeWidth="2" fill="none" strokeLinecap="round" />
+      {/* floating hands */}
+      <path d="M9 26 Q3 24 3 32 Q7 34 10 31 Z" fill="#C4EEFF" opacity="0.9" />
+      <path d="M39 26 Q45 24 45 32 Q41 34 38 31 Z" fill="#C4EEFF" opacity="0.9" />
+      <Sparkle x={7} y={14} size={2.8} color="#AAFFFF" opacity={0.8} />
+      <Sparkle x={41} y={12} size={2.4} color="#FFD700" opacity={0.75} />
+    </SpriteFrame>
+  );
+}
+
+// ─── SAND LINE ───────────────────────────────────────────────────────────────
+
+export function DustkitSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* round sand mouse body */}
+      <ellipse cx="24" cy="29" rx="13" ry="12" fill="#D4A86A" />
+      <ellipse cx="24" cy="30" rx="10" ry="9.5" fill="#EEC88A" />
+      {/* belly */}
+      <ellipse cx="24" cy="33" rx="6.5" ry="5.5" fill="#F5DFB0" />
+      {/* round ears */}
+      <circle cx="14" cy="17" r="5.5" fill="#D4A86A" />
+      <circle cx="34" cy="17" r="5.5" fill="#D4A86A" />
+      <circle cx="14" cy="17" r="3.5" fill="#EE9977" />
+      <circle cx="34" cy="17" r="3.5" fill="#EE9977" />
+      {/* curled tail */}
+      <path d="M34 36 Q42 32 42 26 Q42 22 39 23 Q38 27 37 31 Q36 34 34 36 Z" fill="#C49A5A" />
+      <circle cx="39" cy="23" r="2.2" fill="#EEC88A" />
+      {/* tiny paws */}
+      <ellipse cx="15" cy="40" rx="4.5" ry="2" fill="#C49A5A" />
+      <ellipse cx="33" cy="40" rx="4.5" ry="2" fill="#C49A5A" />
+      <Face eyeY={26} eyeDx={4.8} eyeRx={3.2} eyeRy={3.8} iris="#3A2010" blush="#E8B070" nose="#AA7040" />
+    </SpriteFrame>
+  );
+}
+
+export function SandrollSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000022">
+      {/* armadillo shell on back */}
+      <path d="M11 20 L13 12 L24 10 L35 12 L37 20 L35 28 L24 30 L13 28 Z" fill="#A87840" />
+      {/* shell segments */}
+      <path d="M12 20 L36 20" stroke="#8A6030" strokeWidth="1.2" fill="none" opacity="0.7" />
+      <path d="M13 24 L35 24" stroke="#8A6030" strokeWidth="1" fill="none" opacity="0.6" />
+      {/* shell highlights */}
+      <path d="M15 13 L33 13" stroke="#C8A060" strokeWidth="1" fill="none" opacity="0.5" />
+      {/* body */}
+      <ellipse cx="24" cy="33" rx="13" ry="11" fill="#C8983C" />
+      <ellipse cx="24" cy="34" rx="10" ry="8.5" fill="#E8B84C" />
+      {/* belly */}
+      <ellipse cx="24" cy="36" rx="6.5" ry="5.5" fill="#F5D898" />
+      {/* stubby legs */}
+      <path d="M12 34 Q8 34 7 39 Q11 41 13 38 Z" fill="#A87840" />
+      <path d="M36 34 Q40 34 41 39 Q37 41 35 38 Z" fill="#A87840" />
+      <ellipse cx="11" cy="41" rx="4" ry="1.8" fill="#8A6030" />
+      <ellipse cx="37" cy="41" rx="4" ry="1.8" fill="#8A6030" />
+      <Face eyeY={28} eyeDx={5} eyeRx={3.3} eyeRy={3.8} iris="#2E1808" blush="#D4A060" nose="#8A5828" />
+    </SpriteFrame>
+  );
+}
+
+export function TerradonSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002A">
+      {/* sand spine fin row */}
+      <path d="M16 11 L14 5 L19 9 Z" fill="#B8883A" />
+      <path d="M21 9 L20 3 L25 7 Z" fill="#D4A850" />
+      <path d="M27 9 L27 2 L31 7 Z" fill="#B8883A" />
+      <path d="M32 11 L34 5 L29 9 Z" fill="#D4A850" />
+      {/* wide lizard body */}
+      <path d="M10 25 C10 15 15 10 24 10 C33 10 38 15 38 25 L38 36 C38 42 33 45 24 45 C15 45 10 42 10 36 Z" fill="#A87830" />
+      <path d="M13 26 C13 18 17 14 24 14 C31 14 35 18 35 26 L35 35 C35 40 31 43 24 43 C17 43 13 40 13 35 Z" fill="#C8A050" />
+      {/* belly scales */}
+      <ellipse cx="24" cy="35" rx="9" ry="7.5" fill="#E8CC88" />
+      {/* thick tail */}
+      <path d="M34 40 Q44 36 46 28 Q44 25 42 27 Q40 33 36 38 L34 41 Z" fill="#A87830" />
+      {/* sandy texture marks */}
+      <path d="M16 24 Q17 28 16 31" stroke="#8A6020" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7" />
+      <path d="M32 23 Q31 27 32 30" stroke="#8A6020" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* clawed feet */}
+      <path d="M11 36 L7 38 L8 42 L13 41 Z" fill="#A87830" />
+      <path d="M37 36 L41 38 L40 42 L35 41 Z" fill="#A87830" />
+      <ellipse cx="10" cy="42.5" rx="4" ry="1.8" fill="#6A4A18" />
+      <ellipse cx="38" cy="42.5" rx="4" ry="1.8" fill="#6A4A18" />
+      <Face eyeY={22} eyeDx={6} eyeRx={3.8} eyeRy={4.2} iris="#2A1808" blush="#D4A860" mouth="serious" nose="#7A5020" />
+    </SpriteFrame>
+  );
+}
+
+// ─── SPEED LINE ──────────────────────────────────────────────────────────────
+
+export function DashpupSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* wind streaks behind */}
+      <path d="M8 24 Q3 22 2 26 Q5 28 9 26 Z" fill="#33DDFF" opacity="0.5" />
+      <path d="M7 29 Q2 27 1 31 Q4 33 8 31 Z" fill="#33DDFF" opacity="0.4" />
+      {/* fox body */}
+      <ellipse cx="25" cy="29" rx="12.5" ry="11.5" fill="#FF7722" />
+      <ellipse cx="25" cy="30" rx="10" ry="9.2" fill="#FF9944" />
+      {/* belly */}
+      <ellipse cx="25" cy="33" rx="6" ry="5.5" fill="#FFD4A0" />
+      {/* fox ears */}
+      <path d="M15 18 L12 9 L19 12 L18 18 Z" fill="#FF6611" />
+      <path d="M33 18 L36 9 L29 12 L30 18 Z" fill="#FF6611" />
+      <path d="M15.5 17 L13.5 10 L17.5 12.5 L17 17 Z" fill="#FFD4A0" />
+      <path d="M32.5 17 L34.5 10 L30.5 12.5 L31 17 Z" fill="#FFD4A0" />
+      {/* lightning bolt tail */}
+      <path d="M34 35 Q38 30 40 28 Q36 28 35 31 Q38 28 40 26 L36 26 Q35 29 33 34 Z" fill="#FF7722" />
+      <path d="M37 26 L40 22 L42 26 L39 26 L41 23 Z" fill="#33DDFF" opacity="0.85" />
+      {/* paws */}
+      <ellipse cx="16" cy="40" rx="4.5" ry="2" fill="#CC5511" />
+      <ellipse cx="34" cy="40" rx="4.5" ry="2" fill="#CC5511" />
+      <Face eyeY={25} eyeDx={5} eyeRx={3.2} eyeRy={3.8} iris="#2A1008" blush="#FF9944" nose="#CC5511" />
+    </SpriteFrame>
+  );
+}
+
+export function ZoomfoxSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000022">
+      {/* multiple speed streaks */}
+      <path d="M7 22 Q1 20 0 25 Q4 27 8 24 Z" fill="#33DDFF" opacity="0.55" />
+      <path d="M6 28 Q0 26 0 31 Q4 34 7 31 Z" fill="#33DDFF" opacity="0.45" />
+      <path d="M7 33 Q2 31 2 36 Q5 38 8 35 Z" fill="#33DDFF" opacity="0.35" />
+      {/* sleek fox body */}
+      <path d="M12 24 C12 15 17 10 24 10 C31 10 36 15 36 24 L36 34 C36 40 31 43 24 43 C17 43 12 40 12 34 Z" fill="#EE6611" />
+      <path d="M15 25 C15 18 18 14 24 14 C30 14 33 18 33 25 L33 33 C33 38 30 41 24 41 C18 41 15 38 15 33 Z" fill="#FF8833" />
+      {/* speed line fur pattern */}
+      <path d="M16 22 Q18 26 16 30" stroke="#CC4400" strokeWidth="1.3" fill="none" strokeLinecap="round" opacity="0.7" />
+      <path d="M20 20 Q22 24 20 28" stroke="#CC4400" strokeWidth="1.1" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M28 20 Q26 24 28 28" stroke="#CC4400" strokeWidth="1.1" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* belly */}
+      <ellipse cx="24" cy="33" rx="7" ry="6" fill="#FFCC88" />
+      {/* fox ears */}
+      <path d="M14 14 L11 5 L18 8 L17 14 Z" fill="#EE6611" />
+      <path d="M34 14 L37 5 L30 8 L31 14 Z" fill="#EE6611" />
+      <path d="M14.5 13 L12.5 7 L16.5 9.5 L16 13 Z" fill="#FFCC88" />
+      <path d="M33.5 13 L35.5 7 L31.5 9.5 L32 13 Z" fill="#FFCC88" />
+      {/* cyan lightning bolt tail */}
+      <path d="M32 37 Q38 32 42 28 Q38 28 36 31 Q40 27 42 24 L37 24 Q35 28 32 36 Z" fill="#EE6611" />
+      <path d="M40 23 L43 19 L45 23 Z" fill="#33DDFF" opacity="0.9" />
+      {/* paws */}
+      <ellipse cx="16" cy="41.5" rx="5" ry="2.2" fill="#BB4400" />
+      <ellipse cx="32" cy="41.5" rx="5" ry="2.2" fill="#BB4400" />
+      <Face eyeY={22} eyeDx={5.5} eyeRx={3.5} eyeRy={4} iris="#1A0804" blush="#FF9944" mouth="serious" nose="#BB4400" />
+    </SpriteFrame>
+  );
+}
+
+export function BlazedashSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002C">
+      {/* afterimage trails — fading fox shapes */}
+      <ellipse cx="8" cy="30" rx="6" ry="9" fill="#FF6611" opacity="0.25" />
+      <ellipse cx="4" cy="31" rx="4" ry="6" fill="#33DDFF" opacity="0.18" />
+      {/* speed streaks */}
+      <path d="M5 21 Q0 19 0 24 Q3 27 6 24 Z" fill="#33DDFF" opacity="0.6" />
+      <path d="M4 28 Q0 26 0 31 Q3 34 5 31 Z" fill="#33DDFF" opacity="0.5" />
+      <path d="M5 34 Q1 32 1 37 Q4 39 6 36 Z" fill="#33DDFF" opacity="0.4" />
+      {/* big body */}
+      <path d="M12 23 C12 13 17 8 24 8 C31 8 36 13 36 23 L36 34 C36 41 31 44 24 44 C17 44 12 41 12 34 Z" fill="#CC4400" />
+      <path d="M15 24 C15 16 18 12 24 12 C30 12 33 16 33 24 L33 33 C33 39 30 42 24 42 C18 42 15 39 15 33 Z" fill="#EE6611" />
+      {/* belly */}
+      <ellipse cx="24" cy="34" rx="8" ry="6.5" fill="#FFBB66" />
+      {/* large swept ears */}
+      <path d="M13 13 L10 3 L18 7 L17 14 Z" fill="#CC4400" />
+      <path d="M35 13 L38 3 L30 7 L31 14 Z" fill="#CC4400" />
+      <path d="M13.5 12 L11.5 5 L17 8 L16 12 Z" fill="#FFBB66" />
+      <path d="M34.5 12 L36.5 5 L31 8 L32 12 Z" fill="#FFBB66" />
+      {/* dramatic lightning bolt tail */}
+      <path d="M32 38 Q40 32 44 26 Q40 26 38 29 Q42 24 44 20 L39 21 Q36 26 32 37 Z" fill="#CC4400" />
+      <path d="M42 20 L45 15 L47 21 Z" fill="#33DDFF" opacity="0.95" />
+      {/* cyan lightning stripes on body */}
+      <path d="M20 18 Q21 22 20 26" stroke="#33DDFF" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.7" />
+      <path d="M27 17 Q26 21 27 25" stroke="#33DDFF" strokeWidth="1.4" fill="none" strokeLinecap="round" opacity="0.7" />
+      {/* paws */}
+      <ellipse cx="16" cy="42" rx="5.5" ry="2.2" fill="#992200" />
+      <ellipse cx="32" cy="42" rx="5.5" ry="2.2" fill="#992200" />
+      <Face eyeY={21} eyeDx={6} eyeRx={4} eyeRy={4.5} iris="#1A0800" blush="#FF9944" mouth="serious" nose="#992200" />
+      <Sparkle x={7} y={10} size={2.6} color="#33DDFF" opacity={0.85} />
+      <Sparkle x={41} y={8} size={2.2} color="#FFCC44" opacity={0.8} />
+    </SpriteFrame>
+  );
+}
+
+// ─── COSMIC LINE ─────────────────────────────────────────────────────────────
+
+export function VoidpupSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* small alien blob body */}
+      <ellipse cx="24" cy="30" rx="13" ry="12" fill="#7744BB" />
+      <ellipse cx="24" cy="31" rx="10.5" ry="9.5" fill="#9966CC" />
+      {/* belly glow */}
+      <ellipse cx="24" cy="34" rx="6" ry="5" fill="#BB88EE" opacity="0.8" />
+      {/* single antenna */}
+      <path d="M24 18 L24 10" stroke="#AA66DD" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="24" cy="9.5" r="2.5" fill="#CC88FF" />
+      <circle cx="24" cy="9.5" r="1.2" fill="#FFFFFF" opacity="0.7" />
+      {/* single big curious eye */}
+      <ellipse cx="24" cy="26" rx="5.5" ry="6" fill="#110022" />
+      <ellipse cx="24" cy="26" rx="3.5" ry="4" fill="#AA55EE" opacity="0.95" />
+      <ellipse cx="22.8" cy="24.5" rx="1.3" ry="1.3" fill="#FFFFFF" opacity="0.8" />
+      <ellipse cx="24" cy="26" rx="5.8" ry="6.2" fill="#AA55EE" opacity="0.2" />
+      {/* stubby arms */}
+      <path d="M12 30 Q7 28 7 33 Q10 35 13 33 Z" fill="#7744BB" />
+      <path d="M36 30 Q41 28 41 33 Q38 35 35 33 Z" fill="#7744BB" />
+      {/* base */}
+      <ellipse cx="17" cy="41" rx="4" ry="1.8" fill="#5533AA" />
+      <ellipse cx="31" cy="41" rx="4" ry="1.8" fill="#5533AA" />
+      {/* tiny stars around */}
+      <Sparkle x={8} y={20} size={2} color="#DD99FF" opacity={0.75} />
+      <Sparkle x={40} y={18} size={1.8} color="#99BBFF" opacity={0.7} />
+    </SpriteFrame>
+  );
+}
+
+export function NebularkSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000028">
+      {/* galaxy pattern aura */}
+      <ellipse cx="24" cy="28" rx="18" ry="16" fill="#3311AA" opacity="0.3" />
+      {/* body with galaxy swirl */}
+      <path d="M11 25 C11 15 16 10 24 10 C32 10 37 15 37 25 L37 35 C37 41 32 44 24 44 C16 44 11 41 11 35 Z" fill="#4422AA" />
+      <path d="M14 26 C14 18 18 14 24 14 C30 14 34 18 34 26 L34 34 C34 39 30 42 24 42 C18 42 14 39 14 34 Z" fill="#6644BB" />
+      {/* galaxy swirl marks */}
+      <path d="M19 26 Q24 22 29 26 Q26 30 24 32 Q22 30 19 26 Z" fill="#AA77EE" opacity="0.5" />
+      <path d="M17 30 Q20 27 24 29" stroke="#CC99FF" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* two antennae */}
+      <path d="M19 12 Q16 6 14 4" stroke="#8855CC" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <circle cx="14" cy="4" r="2.5" fill="#CC88FF" />
+      <path d="M29 12 Q32 6 34 4" stroke="#8855CC" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <circle cx="34" cy="4" r="2.5" fill="#AA66EE" />
+      {/* multiple small eyes */}
+      <ellipse cx="17" cy="22" rx="3.2" ry="3.5" fill="#110033" />
+      <ellipse cx="17" cy="22" rx="1.9" ry="2.2" fill="#8855EE" opacity="0.95" />
+      <ellipse cx="31" cy="22" rx="3.2" ry="3.5" fill="#110033" />
+      <ellipse cx="31" cy="22" rx="1.9" ry="2.2" fill="#6633DD" opacity="0.95" />
+      <ellipse cx="24" cy="20" rx="2.8" ry="3" fill="#110033" />
+      <ellipse cx="24" cy="20" rx="1.6" ry="1.9" fill="#9966FF" opacity="0.95" />
+      <ellipse cx="16.5" cy="21" rx="0.8" ry="0.8" fill="#FFFFFF" opacity="0.7" />
+      <ellipse cx="30.5" cy="21" rx="0.8" ry="0.8" fill="#FFFFFF" opacity="0.7" />
+      {/* tentacle stubs */}
+      <path d="M11 29 Q6 27 5 33 Q9 35 12 32 Z" fill="#4422AA" />
+      <path d="M37 29 Q42 27 43 33 Q39 35 36 32 Z" fill="#4422AA" />
+      {/* paws */}
+      <ellipse cx="15" cy="42" rx="5" ry="2.2" fill="#331188" />
+      <ellipse cx="33" cy="42" rx="5" ry="2.2" fill="#331188" />
+      <Sparkle x={8} y={16} size={2.4} color="#CC99FF" opacity={0.85} />
+      <Sparkle x={40} y={12} size={2} color="#AABBFF" opacity={0.8} />
+    </SpriteFrame>
+  );
+}
+
+export function CosmodrakeSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000030">
+      {/* cosmic dragon aura */}
+      <ellipse cx="24" cy="25" rx="22" ry="20" fill="#220055" opacity="0.3" />
+      {/* wings */}
+      <path d="M14 22 Q4 14 3 6 Q9 8 14 16 L13 22 Z" fill="#3311AA" />
+      <path d="M10 14 Q5 8 6 5 Q10 7 12 13 Z" fill="#6644CC" opacity="0.5" />
+      <path d="M34 22 Q44 14 45 6 Q39 8 34 16 L35 22 Z" fill="#3311AA" />
+      <path d="M38 14 Q43 8 42 5 Q38 7 36 13 Z" fill="#6644CC" opacity="0.5" />
+      {/* star map body */}
+      <path d="M13 23 C13 13 17 8 24 8 C31 8 35 13 35 23 L35 34 C35 41 31 44 24 44 C17 44 13 41 13 34 Z" fill="#220055" />
+      <path d="M16 24 C16 16 19 12 24 12 C29 12 32 16 32 24 L32 33 C32 39 29 42 24 42 C19 42 16 39 16 33 Z" fill="#4422AA" />
+      {/* star map constellations on body */}
+      <Sparkle x={19} y={22} size={2.2} color="#FFD870" opacity={0.9} />
+      <Sparkle x={29} y={20} size={1.8} color="#AABBFF" opacity={0.85} />
+      <Sparkle x={24} y={28} size={2.4} color="#FFD870" opacity={0.9} />
+      <Sparkle x={17} y={32} size={1.6} color="#CC99FF" opacity={0.8} />
+      <Sparkle x={31} y={31} size={1.8} color="#FFD870" opacity={0.85} />
+      <path d="M19 22 L24 28 L29 20" stroke="#8866DD" strokeWidth="0.8" fill="none" opacity="0.5" />
+      <path d="M24 28 L17 32 L31 31" stroke="#8866DD" strokeWidth="0.8" fill="none" opacity="0.4" />
+      {/* horns */}
+      <path d="M18 10 L15 3 L20 7 Z" fill="#7744CC" />
+      <path d="M30 10 L33 3 L28 7 Z" fill="#7744CC" />
+      {/* cosmic tail */}
+      <path d="M32 38 Q40 34 44 26 Q42 24 40 26 Q39 32 34 37 Z" fill="#3311AA" />
+      <Sparkle x={40} y={26} size={2} color="#FFD870" opacity={0.85} />
+      {/* paws */}
+      <ellipse cx="16" cy="42" rx="5.5" ry="2.2" fill="#1A0044" />
+      <ellipse cx="32" cy="42" rx="5.5" ry="2.2" fill="#1A0044" />
+      {/* big glowing eyes */}
+      <ellipse cx="18" cy="21" rx="4" ry="4.5" fill="#0A001A" />
+      <ellipse cx="30" cy="21" rx="4" ry="4.5" fill="#0A001A" />
+      <ellipse cx="18" cy="21" rx="2.5" ry="3" fill="#BB77FF" opacity="0.95" />
+      <ellipse cx="30" cy="21" rx="2.5" ry="3" fill="#9966FF" opacity="0.95" />
+      <ellipse cx="17.5" cy="19.8" rx="1" ry="1" fill="#FFFFFF" opacity="0.8" />
+      <ellipse cx="29.5" cy="19.8" rx="1" ry="1" fill="#FFFFFF" opacity="0.8" />
+      <path d="M21 29 Q24 32 27 29" stroke="#7744CC" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <Sparkle x={7} y={10} size={2.8} color="#AABBFF" opacity={0.8} />
+      <Sparkle x={41} y={9} size={2.4} color="#FFD870" opacity={0.75} />
+    </SpriteFrame>
+  );
+}
+
+// ─── DREAM LINE ──────────────────────────────────────────────────────────────
+
+export function DrowzeeSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* soft cloud puff body */}
+      <ellipse cx="24" cy="28" rx="14" ry="11" fill="#D8C8F8" />
+      <ellipse cx="17" cy="26" rx="7" ry="6" fill="#E8DCFC" />
+      <ellipse cx="31" cy="26" rx="7" ry="6" fill="#E8DCFC" />
+      <ellipse cx="24" cy="22" rx="9" ry="7" fill="#EDE4FE" />
+      {/* sleepy half-closed eyes */}
+      <ellipse cx="20" cy="24" rx="3.2" ry="2.5" fill="#111133" />
+      <path d="M17 22.5 Q20 22 23 22.5" stroke="#D8C8F8" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="28" cy="24" rx="3.2" ry="2.5" fill="#111133" />
+      <path d="M25 22.5 Q28 22 31 22.5" stroke="#D8C8F8" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <ellipse cx="19.5" cy="23.5" rx="1" ry="0.9" fill="#FFFFFF" opacity="0.7" />
+      <ellipse cx="27.5" cy="23.5" rx="1" ry="0.9" fill="#FFFFFF" opacity="0.7" />
+      {/* zzz floating above */}
+      <text x="33" y="14" fontSize="5" fill="#B0A0E8" opacity="0.9" fontFamily="Arial" fontWeight="bold">Z</text>
+      <text x="36" y="10" fontSize="4" fill="#B0A0E8" opacity="0.7" fontFamily="Arial" fontWeight="bold">z</text>
+      <text x="38" y="7" fontSize="3" fill="#B0A0E8" opacity="0.5" fontFamily="Arial" fontWeight="bold">z</text>
+      {/* blush */}
+      <ellipse cx="14.5" cy="27.5" rx="2.5" ry="1.3" fill="#C8AAEE" opacity="0.5" />
+      <ellipse cx="33.5" cy="27.5" rx="2.5" ry="1.3" fill="#C8AAEE" opacity="0.5" />
+      {/* tiny smile */}
+      <path d="M21 28.5 Q24 31 27 28.5" stroke="#9988BB" strokeWidth="1.3" fill="none" strokeLinecap="round" />
+      {/* base */}
+      <ellipse cx="18" cy="38" rx="4.5" ry="2" fill="#B8A8E8" />
+      <ellipse cx="30" cy="38" rx="4.5" ry="2" fill="#B8A8E8" />
+    </SpriteFrame>
+  );
+}
+
+export function SlumbearSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* cloud bear body */}
+      <ellipse cx="24" cy="30" rx="14" ry="12" fill="#C8B8F0" />
+      <ellipse cx="16" cy="27" rx="7.5" ry="7" fill="#D8CCFE" />
+      <ellipse cx="32" cy="27" rx="7.5" ry="7" fill="#D8CCFE" />
+      <ellipse cx="24" cy="22" rx="9.5" ry="8" fill="#DDD4FF" />
+      {/* bear ears (cloud puffs) */}
+      <circle cx="15" cy="14" r="5.5" fill="#C8B8F0" />
+      <circle cx="33" cy="14" r="5.5" fill="#C8B8F0" />
+      <circle cx="15" cy="14" r="3.5" fill="#DDD4FF" />
+      <circle cx="33" cy="14" r="3.5" fill="#DDD4FF" />
+      {/* belly cloud */}
+      <ellipse cx="24" cy="33" rx="8" ry="6.5" fill="#EDE8FF" />
+      {/* Zzz floating */}
+      <text x="30" y="10" fontSize="6" fill="#9988CC" opacity="0.9" fontFamily="Arial" fontWeight="bold">Z</text>
+      <text x="34" y="6" fontSize="5" fill="#9988CC" opacity="0.7" fontFamily="Arial" fontWeight="bold">z</text>
+      <text x="37" y="3" fontSize="4" fill="#9988CC" opacity="0.5" fontFamily="Arial" fontWeight="bold">z</text>
+      {/* sleepy face */}
+      <ellipse cx="19" cy="24" rx="3.5" ry="2.8" fill="#221144" />
+      <path d="M15.8 22 Q19 21.5 22.2 22" stroke="#DDD4FF" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+      <ellipse cx="29" cy="24" rx="3.5" ry="2.8" fill="#221144" />
+      <path d="M25.8 22 Q29 21.5 32.2 22" stroke="#DDD4FF" strokeWidth="2.8" fill="none" strokeLinecap="round" />
+      <ellipse cx="18.5" cy="23.2" rx="1" ry="1" fill="#FFFFFF" opacity="0.7" />
+      <ellipse cx="28.5" cy="23.2" rx="1" ry="1" fill="#FFFFFF" opacity="0.7" />
+      {/* nose */}
+      <ellipse cx="24" cy="27" rx="2.5" ry="1.8" fill="#9977BB" opacity="0.9" />
+      {/* soft smile */}
+      <path d="M21 30 Q24 32.5 27 30" stroke="#9977BB" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      {/* blush */}
+      <ellipse cx="14" cy="27" rx="2.8" ry="1.4" fill="#C0A8EE" opacity="0.5" />
+      <ellipse cx="34" cy="27" rx="2.8" ry="1.4" fill="#C0A8EE" opacity="0.5" />
+      {/* paws */}
+      <ellipse cx="15" cy="41" rx="5.5" ry="2.2" fill="#9977CC" />
+      <ellipse cx="33" cy="41" rx="5.5" ry="2.2" fill="#9977CC" />
+    </SpriteFrame>
+  );
+}
+
+export function DreamonSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000028">
+      {/* celestial glow aura */}
+      <ellipse cx="24" cy="26" rx="21" ry="18" fill="#6644BB" opacity="0.15" />
+      {/* moon accessory */}
+      <path d="M38 8 Q34 6 34 10 Q36 14 40 12 Q44 8 38 8 Z" fill="#FFD870" />
+      {/* star accessories floating */}
+      <Sparkle x={8} y={10} size={2.6} color="#FFD870" opacity={0.85} />
+      <Sparkle x={40} y={15} size={2.2} color="#C8B0FF" opacity={0.8} />
+      <Sparkle x={6} y={24} size={2} color="#FFD870" opacity={0.75} />
+      {/* large cloud bear body */}
+      <ellipse cx="24" cy="30" rx="15" ry="13" fill="#8866CC" />
+      <ellipse cx="15" cy="27" rx="8.5" ry="8" fill="#9977DD" />
+      <ellipse cx="33" cy="27" rx="8.5" ry="8" fill="#9977DD" />
+      <ellipse cx="24" cy="22" rx="11" ry="9" fill="#AA88EE" />
+      {/* cloud bear ears */}
+      <circle cx="14" cy="12" r="6" fill="#8866CC" />
+      <circle cx="34" cy="12" r="6" fill="#8866CC" />
+      <circle cx="14" cy="12" r="4" fill="#AA88EE" />
+      <circle cx="34" cy="12" r="4" fill="#AA88EE" />
+      {/* dream star pattern on body */}
+      <Sparkle x={20} y={28} size={2} color="#FFD870" opacity={0.8} />
+      <Sparkle x={28} y={26} size={1.8} color="#FFD870" opacity={0.75} />
+      <Sparkle x={24} y={33} size={2.2} color="#C8B0FF" opacity={0.85} />
+      {/* belly glow */}
+      <ellipse cx="24" cy="34" rx="9" ry="7.5" fill="#CCB8FF" opacity="0.6" />
+      {/* large expressive eyes */}
+      <Face eyeY={22} eyeDx={6} eyeRx={4} eyeRy={4.5} iris="#220044" blush="#C8B0FF" nose="#8855CC" />
+      {/* paws */}
+      <ellipse cx="14" cy="42" rx="6" ry="2.4" fill="#5533AA" />
+      <ellipse cx="34" cy="42" rx="6" ry="2.4" fill="#5533AA" />
+    </SpriteFrame>
+  );
+}
+
+// ─── DINO LINE ───────────────────────────────────────────────────────────────
+
+export function DinkitSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* chubby baby dino body */}
+      <ellipse cx="24" cy="30" rx="13" ry="12" fill="#55AA44" />
+      <ellipse cx="24" cy="31" rx="10.5" ry="9.5" fill="#77CC55" />
+      {/* belly */}
+      <ellipse cx="24" cy="34" rx="6.5" ry="5.5" fill="#BBEEAA" />
+      {/* stubby spines on head */}
+      <path d="M19 17 L17 11 L21 14 Z" fill="#33883A" />
+      <path d="M24 16 L23 10 L27 13 Z" fill="#55AA44" />
+      <path d="M29 17 L31 11 L27 14 Z" fill="#33883A" />
+      {/* round head */}
+      <ellipse cx="24" cy="20" rx="11" ry="10" fill="#55AA44" />
+      <ellipse cx="24" cy="21" rx="9" ry="8.5" fill="#77CC55" />
+      {/* stubby tiny arms */}
+      <path d="M12 29 Q7 27 7 32 Q10 34 13 32 Z" fill="#55AA44" />
+      <path d="M36 29 Q41 27 41 32 Q38 34 35 32 Z" fill="#55AA44" />
+      {/* stub tail */}
+      <path d="M33 36 Q38 33 39 29 Q37 28 35 30 Q34 33 33 36 Z" fill="#44993A" />
+      {/* feet */}
+      <ellipse cx="17" cy="41" rx="4.5" ry="2" fill="#33883A" />
+      <ellipse cx="31" cy="41" rx="4.5" ry="2" fill="#33883A" />
+      <Face eyeY={19} eyeDx={4.8} eyeRx={3.2} eyeRy={3.8} iris="#1A3A10" blush="#99DD77" nose="#336A2A" />
+    </SpriteFrame>
+  );
+}
+
+export function RoarexSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000022">
+      {/* tiny wings (teen dino) */}
+      <path d="M14 20 Q8 16 8 10 Q12 12 14 18 Z" fill="#3A9930" opacity="0.85" />
+      <path d="M34 20 Q40 16 40 10 Q36 12 34 18 Z" fill="#3A9930" opacity="0.85" />
+      {/* spine row on back */}
+      <path d="M16 12 L14 6 L19 10 Z" fill="#2A7722" />
+      <path d="M21 10 L20 4 L25 8 Z" fill="#3A9930" />
+      <path d="M27 10 L27 3 L31 8 Z" fill="#2A7722" />
+      <path d="M32 12 L34 6 L29 10 Z" fill="#3A9930" />
+      {/* body */}
+      <path d="M11 24 C11 14 16 9 24 9 C32 9 37 14 37 24 L37 34 C37 41 32 44 24 44 C16 44 11 41 11 34 Z" fill="#3A9930" />
+      <path d="M14 25 C14 17 18 13 24 13 C30 13 34 17 34 25 L34 33 C34 39 30 42 24 42 C18 42 14 39 14 33 Z" fill="#5ABB44" />
+      {/* belly */}
+      <ellipse cx="24" cy="34" rx="8.5" ry="7" fill="#AADDAA" />
+      {/* tail */}
+      <path d="M33 38 Q42 34 44 26 L42 24 Q40 30 36 37 L33 40 Z" fill="#3A9930" />
+      {/* feet */}
+      <ellipse cx="16" cy="42.5" rx="5" ry="2.2" fill="#2A7722" />
+      <ellipse cx="32" cy="42.5" rx="5" ry="2.2" fill="#2A7722" />
+      <Face eyeY={21} eyeDx={5.8} eyeRx={3.8} eyeRy={4.2} iris="#152808" blush="#88CC66" mouth="fang" nose="#2A6622" />
+    </SpriteFrame>
+  );
+}
+
+export function TerrexSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000030">
+      {/* massive spine fins */}
+      <path d="M14 12 L12 3 L17 7 L19 2 L22 7 L24 3 L26 7 L29 2 L31 7 L35 3 L33 12 Z" fill="#2A7722" />
+      <path d="M16 11 L15 5 L18.5 8 L20.5 4 L22.5 8 L24 5 L25.5 8 L27.5 4 L29.5 8 L33 5 L31 11 Z" fill="#5ABB44" opacity="0.6" />
+      {/* powerful body */}
+      <path d="M11 23 C11 12 16 7 24 7 C32 7 37 12 37 23 L37 35 C37 43 32 46 24 46 C16 46 11 43 11 35 Z" fill="#2A7722" />
+      <path d="M14 24 C14 15 18 11 24 11 C30 11 34 15 34 24 L34 34 C34 41 30 44 24 44 C18 44 14 41 14 34 Z" fill="#3A9930" />
+      {/* belly */}
+      <ellipse cx="24" cy="35" rx="9.5" ry="8" fill="#99CC88" />
+      {/* tiny arms */}
+      <path d="M13 22 Q8 18 7 12 Q11 13 13 18 Z" fill="#2A7722" />
+      <path d="M8 12 L7 9 L10 11 Z" fill="#AADDAA" opacity="0.6" />
+      {/* powerful legs and tail */}
+      <path d="M32 40 Q42 36 46 26 L44 24 Q42 30 38 37 L33 41 Z" fill="#2A7722" />
+      <ellipse cx="15" cy="44" rx="6" ry="2.5" fill="#1A5514" />
+      <ellipse cx="33" cy="44" rx="6" ry="2.5" fill="#1A5514" />
+      <Face eyeY={21} eyeDx={6.5} eyeRx={4.5} eyeRy={5} iris="#0E2208" blush="#88CC66" mouth="fang" nose="#1A5514" />
+      <Sparkle x={6} y={8} size={2.4} color="#AADDAA" opacity={0.7} />
+    </SpriteFrame>
+  );
+}
+
+// ─── ANGEL LINE ──────────────────────────────────────────────────────────────
+
+export function HalowingSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* halo */}
+      <ellipse cx="24" cy="10" rx="9" ry="3" fill="none" stroke="#FFD700" strokeWidth="2.2" opacity="0.9" />
+      <ellipse cx="24" cy="10" rx="9" ry="3" fill="none" stroke="#FFF0A0" strokeWidth="1" opacity="0.7" />
+      {/* tiny wings */}
+      <path d="M17 24 Q8 20 8 12 Q13 14 16 20 Z" fill="#F8F8FF" opacity="0.9" />
+      <path d="M31 24 Q40 20 40 12 Q35 14 32 20 Z" fill="#F8F8FF" opacity="0.9" />
+      <path d="M15 22 Q9 16 10 12 Q13 15 14 20 Z" fill="#FFD700" opacity="0.3" />
+      <path d="M33 22 Q39 16 38 12 Q35 15 34 20 Z" fill="#FFD700" opacity="0.3" />
+      {/* white bird body */}
+      <ellipse cx="24" cy="30" rx="12" ry="11" fill="#F0F0FF" />
+      <ellipse cx="24" cy="31" rx="9.5" ry="9" fill="#FFFFFF" />
+      {/* belly gold tint */}
+      <ellipse cx="24" cy="34" rx="6" ry="5" fill="#FFF8E0" />
+      {/* beak */}
+      <path d="M24 26 L22 29 L26 29 Z" fill="#FFB844" />
+      {/* tiny feet */}
+      <ellipse cx="19" cy="41" rx="4" ry="1.8" fill="#FFD700" opacity="0.9" />
+      <ellipse cx="29" cy="41" rx="4" ry="1.8" fill="#FFD700" opacity="0.9" />
+      <Face eyeY={25} eyeDx={4.5} eyeRx={3} eyeRy={3.5} iris="#2A2A5A" blush="#FFD9A0" nose="#CC9922" />
+      <Sparkle x={7} y={8} size={2.2} color="#FFD700" opacity={0.8} />
+      <Sparkle x={41} y={8} size={2} color="#FFD700" opacity={0.75} />
+    </SpriteFrame>
+  );
+}
+
+export function WingardSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* halo — larger */}
+      <ellipse cx="24" cy="9" rx="12" ry="3.5" fill="none" stroke="#FFD700" strokeWidth="2.5" opacity="0.9" />
+      <ellipse cx="24" cy="9" rx="12" ry="3.5" fill="none" stroke="#FFF0A0" strokeWidth="1.2" opacity="0.65" />
+      <Sparkle x={16} y={9} size={1.8} color="#FFD700" opacity={0.8} />
+      <Sparkle x={32} y={9} size={1.8} color="#FFD700" opacity={0.8} />
+      {/* full wings spread */}
+      <path d="M17 22 Q6 16 5 7 Q11 9 16 17 Z" fill="#E8E8FF" opacity="0.92" />
+      <path d="M14 18 Q7 12 8 8 Q12 10 13 16 Z" fill="#FFD700" opacity="0.3" />
+      <path d="M31 22 Q42 16 43 7 Q37 9 32 17 Z" fill="#E8E8FF" opacity="0.92" />
+      <path d="M34 18 Q41 12 40 8 Q36 10 35 16 Z" fill="#FFD700" opacity="0.3" />
+      {/* body */}
+      <path d="M13 24 C13 15 17 10 24 10 C31 10 35 15 35 24 L35 34 C35 40 31 43 24 43 C17 43 13 40 13 34 Z" fill="#E8E8FF" />
+      <path d="M16 25 C16 18 19 14 24 14 C29 14 32 18 32 25 L32 33 C32 38 29 41 24 41 C19 41 16 38 16 33 Z" fill="#FFFFFF" />
+      {/* belly gold tint */}
+      <ellipse cx="24" cy="34" rx="7" ry="6" fill="#FFF4CC" />
+      {/* beak */}
+      <path d="M24 24 L22 27 L26 27 Z" fill="#FFB844" />
+      {/* feet */}
+      <ellipse cx="17" cy="42" rx="5" ry="2.2" fill="#FFD700" opacity="0.9" />
+      <ellipse cx="31" cy="42" rx="5" ry="2.2" fill="#FFD700" opacity="0.9" />
+      <Face eyeY={22} eyeDx={5} eyeRx={3.4} eyeRy={4} iris="#1A1A4A" blush="#FFD9A0" nose="#CC9922" />
+    </SpriteFrame>
+  );
+}
+
+export function SeraphonSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000028">
+      {/* massive golden halo */}
+      <ellipse cx="24" cy="8" rx="17" ry="4.5" fill="none" stroke="#FFD700" strokeWidth="3" opacity="0.9" />
+      <ellipse cx="24" cy="8" rx="17" ry="4.5" fill="none" stroke="#FFF0A0" strokeWidth="1.5" opacity="0.7" />
+      <Sparkle x={8} y={8} size={2.4} color="#FFD700" opacity={0.9} />
+      <Sparkle x={40} y={8} size={2.4} color="#FFD700" opacity={0.9} />
+      <Sparkle x={24} y={4} size={2} color="#FFFFFF" opacity={0.85} />
+      {/* multiple wings — three pairs */}
+      <path d="M15 22 Q3 14 2 5 Q9 8 14 18 Z" fill="#D8D8FF" opacity="0.88" />
+      <path d="M17 28 Q5 26 4 36 Q10 34 16 30 Z" fill="#E8E8FF" opacity="0.85" />
+      <path d="M33 22 Q45 14 46 5 Q39 8 34 18 Z" fill="#D8D8FF" opacity="0.88" />
+      <path d="M31 28 Q43 26 44 36 Q38 34 32 30 Z" fill="#E8E8FF" opacity="0.85" />
+      {/* gold trim on wings */}
+      <path d="M15 22 Q7 15 6 9 Q10 12 14 19 Z" fill="#FFD700" opacity="0.25" />
+      <path d="M33 22 Q41 15 42 9 Q38 12 34 19 Z" fill="#FFD700" opacity="0.25" />
+      {/* body */}
+      <path d="M14 23 C14 14 18 9 24 9 C30 9 34 14 34 23 L34 34 C34 41 30 44 24 44 C18 44 14 41 14 34 Z" fill="#D8D8FF" />
+      <path d="M17 24 C17 17 20 13 24 13 C28 13 31 17 31 24 L31 33 C31 38 28 41 24 41 C20 41 17 38 17 33 Z" fill="#F5F5FF" />
+      {/* belly gold */}
+      <ellipse cx="24" cy="34" rx="7.5" ry="6.5" fill="#FFF4CC" />
+      {/* gold chest emblem */}
+      <Sparkle x={24} y={25} size={3.2} color="#FFD700" opacity={0.9} />
+      {/* beak */}
+      <path d="M24 22 L22 25 L26 25 Z" fill="#FFB844" />
+      {/* feet */}
+      <ellipse cx="16" cy="42.5" rx="5.5" ry="2.2" fill="#FFD700" opacity="0.9" />
+      <ellipse cx="32" cy="42.5" rx="5.5" ry="2.2" fill="#FFD700" opacity="0.9" />
+      <Face eyeY={20} eyeDx={5} eyeRx={3.5} eyeRy={4} iris="#0A0A2A" blush="#FFD9A0" mouth="serious" nose="#BB8811" />
+    </SpriteFrame>
+  );
+}
+
+// ─── CANDY LINE ──────────────────────────────────────────────────────────────
+
+export function SweetletSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* candy swirl blob */}
+      <ellipse cx="24" cy="29" rx="13.5" ry="12.5" fill="#FF99CC" />
+      <ellipse cx="24" cy="30" rx="11" ry="10.5" fill="#FFBBDD" />
+      {/* candy swirl pattern */}
+      <path d="M20 24 Q24 21 28 24 Q26 28 24 30 Q22 28 20 24 Z" fill="#FF77AA" opacity="0.5" />
+      <path d="M21 25 Q24 23 27 25" stroke="#FF55AA" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M21 27 Q24 26 27 27" stroke="#FF55AA" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.5" />
+      {/* candy swirl on top */}
+      <path d="M24 16 Q20 12 22 8 Q26 7 27 11 Q25 14 24 16 Z" fill="#FF77AA" opacity="0.8" />
+      <path d="M24 16 Q28 12 26 8" stroke="#FF55AA" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* tiny candy sprinkles */}
+      <rect x="16" y="24" width="2.5" height="1" rx="0.5" fill="#FF4488" opacity="0.8" transform="rotate(-20 16 24)" />
+      <rect x="30" y="22" width="2.5" height="1" rx="0.5" fill="#55AAFF" opacity="0.8" transform="rotate(15 30 22)" />
+      <rect x="19" y="34" width="2.5" height="1" rx="0.5" fill="#FFEE44" opacity="0.8" transform="rotate(-10 19 34)" />
+      <rect x="29" y="33" width="2.5" height="1" rx="0.5" fill="#44DDAA" opacity="0.8" transform="rotate(25 29 33)" />
+      {/* nubby arms */}
+      <ellipse cx="12" cy="31" rx="4" ry="3" fill="#FF99CC" />
+      <ellipse cx="36" cy="31" rx="4" ry="3" fill="#FF99CC" />
+      {/* base */}
+      <ellipse cx="18" cy="41" rx="4.5" ry="2" fill="#FF77AA" />
+      <ellipse cx="30" cy="41" rx="4.5" ry="2" fill="#FF77AA" />
+      <Face eyeY={26} eyeDx={4.5} eyeRx={3} eyeRy={3.5} iris="#552233" blush="#FFBBCC" nose="#CC4488" />
+    </SpriteFrame>
+  );
+}
+
+export function SugarpawSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* lollipop tail */}
+      <path d="M33 35 Q40 30 42 24" stroke="#FF5599" strokeWidth="2.5" fill="none" strokeLinecap="round" />
+      <circle cx="42" cy="23" r="4.5" fill="#FF77BB" />
+      <circle cx="42" cy="23" r="3" fill="#FF99CC" />
+      <path d="M40 21 Q42 23 44 21" stroke="#FF5599" strokeWidth="1" fill="none" strokeLinecap="round" opacity="0.7" />
+      {/* candy cat body */}
+      <path d="M12 24 C12 15 17 10 24 10 C31 10 36 15 36 24 L36 33 C36 39 31 42 24 42 C17 42 12 39 12 33 Z" fill="#FF99CC" />
+      <path d="M15 25 C15 18 18 14 24 14 C30 14 33 18 33 25 L33 32 C33 37 30 40 24 40 C18 40 15 37 15 32 Z" fill="#FFBBDD" />
+      {/* rainbow pastel belly */}
+      <ellipse cx="24" cy="32" rx="7.5" ry="6.5" fill="#FFE8F4" />
+      {/* candy stripe pattern on body */}
+      <path d="M16 24 Q17 28 16 32" stroke="#FF5599" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5" />
+      <path d="M32 24 Q31 28 32 32" stroke="#FF5599" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.5" />
+      {/* cat ears */}
+      <path d="M14 14 L11 5 L18 8 L17 14 Z" fill="#FF88BB" />
+      <path d="M34 14 L37 5 L30 8 L31 14 Z" fill="#FF88BB" />
+      <path d="M14.5 13 L12.5 7 L16.5 9.5 L16 13 Z" fill="#FFD0E8" />
+      <path d="M33.5 13 L35.5 7 L31.5 9.5 L32 13 Z" fill="#FFD0E8" />
+      {/* sprinkle marks */}
+      <rect x="18" y="26" width="2" height="0.9" rx="0.45" fill="#55AAFF" opacity="0.8" transform="rotate(-15 18 26)" />
+      <rect x="28" y="24" width="2" height="0.9" rx="0.45" fill="#FFEE44" opacity="0.8" transform="rotate(20 28 24)" />
+      <rect x="22" y="31" width="2" height="0.9" rx="0.45" fill="#44DDAA" opacity="0.8" transform="rotate(-5 22 31)" />
+      {/* paws */}
+      <ellipse cx="16" cy="41" rx="5" ry="2.2" fill="#FF66AA" />
+      <ellipse cx="32" cy="41" rx="5" ry="2.2" fill="#FF66AA" />
+      <Face eyeY={22} eyeDx={5.2} eyeRx={3.4} eyeRy={4} iris="#441122" blush="#FFCCDD" nose="#CC3377" />
+    </SpriteFrame>
+  );
+}
+
+export function CandrixSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000028">
+      {/* rainbow scale aura */}
+      <ellipse cx="24" cy="26" rx="21" ry="18" fill="#FF88CC" opacity="0.1" />
+      {/* candy wings */}
+      <path d="M16 22 Q5 14 4 6 Q10 8 15 16 Z" fill="#FF99CC" opacity="0.85" />
+      <path d="M12 16 Q6 10 7 6 Q11 9 12 14 Z" fill="#FF55AA" opacity="0.5" />
+      <path d="M32 22 Q43 14 44 6 Q38 8 33 16 Z" fill="#FF99CC" opacity="0.85" />
+      <path d="M36 16 Q42 10 41 6 Q37 9 36 14 Z" fill="#55BBFF" opacity="0.5" />
+      {/* rainbow wing highlights */}
+      <path d="M8 8 Q11 12 13 16" stroke="#FFEE44" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.6" />
+      <path d="M40 8 Q37 12 35 16" stroke="#44DDAA" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.6" />
+      {/* dragon body — candy rainbow scales */}
+      <path d="M12 23 C12 13 17 8 24 8 C31 8 36 13 36 23 L36 34 C36 41 31 44 24 44 C17 44 12 41 12 34 Z" fill="#CC2277" />
+      <path d="M15 24 C15 16 18 12 24 12 C30 12 33 16 33 24 L33 33 C33 39 30 42 24 42 C18 42 15 39 15 33 Z" fill="#FF66AA" />
+      {/* rainbow scale pattern */}
+      <path d="M18 20 L21 17 L24 20 L21 23 Z" fill="#FF5599" opacity="0.7" />
+      <path d="M22 18 L25 15 L28 18 L25 21 Z" fill="#55BBFF" opacity="0.6" />
+      <path d="M26 20 L29 17 L32 20 L29 23 Z" fill="#FFEE44" opacity="0.6" />
+      <path d="M19 24 L22 21 L25 24 L22 27 Z" fill="#44DDAA" opacity="0.6" />
+      <path d="M25 24 L28 21 L31 24 L28 27 Z" fill="#CC88FF" opacity="0.6" />
+      {/* belly — rainbow */}
+      <ellipse cx="24" cy="34" rx="8.5" ry="7" fill="#FFE0F0" />
+      {/* horns */}
+      <path d="M18 10 L15 3 L20 7 Z" fill="#FFEE44" />
+      <path d="M30 10 L33 3 L28 7 Z" fill="#55BBFF" />
+      {/* candy tail */}
+      <path d="M32 38 Q40 33 44 26 Q42 24 40 26 Q38 32 34 37 Z" fill="#CC2277" />
+      <path d="M42 25 L44 21 L46 26 Z" fill="#FF99CC" opacity="0.8" />
+      {/* paws */}
+      <ellipse cx="15" cy="42" rx="5.5" ry="2.2" fill="#991155" />
+      <ellipse cx="33" cy="42" rx="5.5" ry="2.2" fill="#991155" />
+      <Face eyeY={21} eyeDx={5.8} eyeRx={3.8} eyeRy={4.3} iris="#330011" blush="#FFBBCC" mouth="fang" nose="#992255" />
+      <Sparkle x={7} y={10} size={2.4} color="#FFEE44" opacity={0.85} />
+      <Sparkle x={41} y={10} size={2.4} color="#55BBFF" opacity={0.8} />
+    </SpriteFrame>
+  );
+}
+
+// ─── MUSIC LINE ──────────────────────────────────────────────────────────────
+
+export function LyritoSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* note-shaped body */}
+      <ellipse cx="22" cy="30" rx="11" ry="10" fill="#5588FF" />
+      <ellipse cx="22" cy="31" rx="8.5" ry="8" fill="#77AAFF" />
+      {/* note stem */}
+      <rect x="31.5" y="12" width="2.5" height="18" rx="1.2" fill="#4466DD" />
+      {/* note flag */}
+      <path d="M34 12 Q40 14 38 20 Q36 18 34 20 Z" fill="#4466DD" />
+      {/* note head */}
+      <ellipse cx="32" cy="30" rx="5" ry="4" fill="#5588FF" transform="rotate(-15 32 30)" />
+      <ellipse cx="32" cy="30" rx="3.5" ry="2.8" fill="#77AAFF" opacity="0.7" transform="rotate(-15 32 30)" />
+      {/* round ear nubs */}
+      <circle cx="13" cy="22" r="4" fill="#5588FF" />
+      <circle cx="13" cy="22" r="2.5" fill="#99CCFF" />
+      {/* belly glow */}
+      <ellipse cx="22" cy="33" rx="5.5" ry="4.5" fill="#C0D8FF" />
+      {/* tiny musical notes floating */}
+      <text x="7" y="14" fontSize="5" fill="#7799EE" opacity="0.75" fontFamily="Arial">♪</text>
+      <text x="39" y="10" fontSize="4" fill="#7799EE" opacity="0.65" fontFamily="Arial">♩</text>
+      {/* paws */}
+      <ellipse cx="16" cy="40" rx="4.5" ry="2" fill="#3355CC" />
+      <ellipse cx="28" cy="40" rx="4.5" ry="2" fill="#3355CC" />
+      <Face eyeY={26} eyeDx={4.5} eyeRx={3} eyeRy={3.5} iris="#1A224A" blush="#99CCFF" nose="#3355CC" />
+    </SpriteFrame>
+  );
+}
+
+export function MelodewSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000022">
+      {/* musical note wings */}
+      <path d="M17 22 Q7 15 7 7 Q12 10 16 18 Z" fill="#4466DD" opacity="0.85" />
+      <path d="M12 14 Q8 9 9 6 Q12 9 13 14 Z" fill="#99CCFF" opacity="0.6" />
+      <path d="M31 22 Q41 15 41 7 Q36 10 32 18 Z" fill="#4466DD" opacity="0.85" />
+      <path d="M36 14 Q40 9 39 6 Q36 9 35 14 Z" fill="#99CCFF" opacity="0.6" />
+      {/* note pattern on wings */}
+      <text x="7" y="13" fontSize="4" fill="#99CCFF" opacity="0.7" fontFamily="Arial">♪</text>
+      <text x="36" y="13" fontSize="4" fill="#99CCFF" opacity="0.7" fontFamily="Arial">♩</text>
+      {/* bird body */}
+      <path d="M13 24 C13 15 17 10 24 10 C31 10 35 15 35 24 L35 33 C35 39 31 42 24 42 C17 42 13 39 13 33 Z" fill="#3355BB" />
+      <path d="M16 25 C16 18 19 14 24 14 C29 14 32 18 32 25 L32 32 C32 37 29 40 24 40 C19 40 16 37 16 32 Z" fill="#5588FF" />
+      {/* belly */}
+      <ellipse cx="24" cy="33" rx="7" ry="6" fill="#AACCFF" />
+      {/* beak */}
+      <path d="M24 23 L22 26 L26 26 Z" fill="#FFB844" />
+      {/* tail feathers with note shapes */}
+      <path d="M19 40 Q16 46 14 45 Q15 42 18 40 Z" fill="#4466DD" />
+      <path d="M24 41 Q24 47 21 46 Q22 43 24 41 Z" fill="#3355BB" />
+      <path d="M29 40 Q32 46 34 45 Q33 42 30 40 Z" fill="#4466DD" />
+      {/* floating notes around body */}
+      <text x="8" y="26" fontSize="5" fill="#7799EE" opacity="0.7" fontFamily="Arial">♫</text>
+      <text x="39" y="30" fontSize="4" fill="#7799EE" opacity="0.65" fontFamily="Arial">♪</text>
+      {/* feet */}
+      <ellipse cx="17" cy="42" rx="4.5" ry="2" fill="#2244AA" />
+      <ellipse cx="31" cy="42" rx="4.5" ry="2" fill="#2244AA" />
+      <Face eyeY={22} eyeDx={5} eyeRx={3.3} eyeRy={3.8} iris="#0A1A3A" blush="#AACCFF" nose="#3355BB" />
+    </SpriteFrame>
+  );
+}
+
+export function SymphoxSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002C">
+      {/* sound wave mane rings */}
+      <ellipse cx="24" cy="20" rx="18" ry="6" fill="none" stroke="#7799FF" strokeWidth="1.5" opacity="0.5" />
+      <ellipse cx="24" cy="20" rx="14" ry="4.5" fill="none" stroke="#AACCFF" strokeWidth="1.2" opacity="0.4" />
+      {/* large wings */}
+      <path d="M15 22 Q3 14 2 5 Q9 8 14 18 Z" fill="#2244AA" opacity="0.9" />
+      <path d="M11 15 Q5 9 5 5 Q9 8 11 14 Z" fill="#7799FF" opacity="0.5" />
+      <path d="M33 22 Q45 14 46 5 Q39 8 34 18 Z" fill="#2244AA" opacity="0.9" />
+      <path d="M37 15 Q43 9 43 5 Q39 8 37 14 Z" fill="#7799FF" opacity="0.5" />
+      {/* majestic fox body */}
+      <path d="M13 23 C13 13 17 8 24 8 C31 8 35 13 35 23 L35 34 C35 41 31 44 24 44 C17 44 13 41 13 34 Z" fill="#2244AA" />
+      <path d="M16 24 C16 16 19 12 24 12 C29 12 32 16 32 24 L32 33 C32 39 29 42 24 42 C18 42 16 39 16 33 Z" fill="#5588EE" />
+      {/* sound wave mane on chest */}
+      <ellipse cx="24" cy="28" rx="8" ry="4" fill="none" stroke="#AACCFF" strokeWidth="1.3" opacity="0.6" />
+      <ellipse cx="24" cy="28" rx="5.5" ry="2.5" fill="none" stroke="#7799FF" strokeWidth="1" opacity="0.5" />
+      <ellipse cx="24" cy="28" rx="3" ry="1.5" fill="#CCDDFF" opacity="0.7" />
+      {/* belly */}
+      <ellipse cx="24" cy="34" rx="8" ry="6.5" fill="#AACCFF" opacity="0.7" />
+      {/* fox ears with note tips */}
+      <path d="M14 13 L11 4 L18 7 L17 13 Z" fill="#2244AA" />
+      <path d="M34 13 L37 4 L30 7 L31 13 Z" fill="#2244AA" />
+      <path d="M14.5 12 L12.5 6 L16.5 8.5 L16 12 Z" fill="#7799FF" opacity="0.7" />
+      <path d="M33.5 12 L35.5 6 L31.5 8.5 L32 12 Z" fill="#7799FF" opacity="0.7" />
+      {/* musical tail — multi-note */}
+      <path d="M32 38 Q40 33 44 25 Q42 23 40 25 Q39 31 35 37 Z" fill="#2244AA" />
+      <text x="39" y="23" fontSize="4.5" fill="#AACCFF" opacity="0.85" fontFamily="Arial">♫</text>
+      {/* floating notes */}
+      <text x="5" y="15" fontSize="5" fill="#7799FF" opacity="0.75" fontFamily="Arial">♪</text>
+      <text x="42" y="19" fontSize="4" fill="#7799FF" opacity="0.7" fontFamily="Arial">♩</text>
+      {/* paws */}
+      <ellipse cx="16" cy="42.5" rx="5.5" ry="2.2" fill="#1A3388" />
+      <ellipse cx="32" cy="42.5" rx="5.5" ry="2.2" fill="#1A3388" />
+      <Face eyeY={22} eyeDx={5.8} eyeRx={3.8} eyeRy={4.3} iris="#0A1830" blush="#AACCFF" mouth="serious" nose="#3366BB" />
+    </SpriteFrame>
+  );
+}
+
+// ─── DARK LINE ───────────────────────────────────────────────────────────────
+
+export function ShadaowolfSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* small black wolf pup body */}
+      <ellipse cx="24" cy="30" rx="13" ry="12" fill="#1A1A2A" />
+      <ellipse cx="24" cy="31" rx="10.5" ry="9.5" fill="#2A2A3A" />
+      {/* belly — dark gray */}
+      <ellipse cx="24" cy="34" rx="6.5" ry="5.5" fill="#3A3A4A" />
+      {/* wolf ears */}
+      <path d="M14 17 L11 8 L18 11 L17 17 Z" fill="#1A1A2A" />
+      <path d="M34 17 L37 8 L30 11 L31 17 Z" fill="#1A1A2A" />
+      <path d="M14.5 16 L12.5 10 L16.5 12 L16 16 Z" fill="#2A2A3A" />
+      <path d="M33.5 16 L35.5 10 L31.5 12 L32 16 Z" fill="#2A2A3A" />
+      {/* silver eyes */}
+      <ellipse cx="19" cy="26" rx="3.2" ry="3.6" fill="#050510" />
+      <ellipse cx="29" cy="26" rx="3.2" ry="3.6" fill="#050510" />
+      <ellipse cx="19" cy="26" rx="2" ry="2.3" fill="#CCCCFF" opacity="0.95" />
+      <ellipse cx="29" cy="26" rx="2" ry="2.3" fill="#CCCCFF" opacity="0.95" />
+      <ellipse cx="18.5" cy="25" rx="0.8" ry="0.8" fill="#FFFFFF" opacity="0.8" />
+      <ellipse cx="28.5" cy="25" rx="0.8" ry="0.8" fill="#FFFFFF" opacity="0.8" />
+      {/* pup snout */}
+      <ellipse cx="24" cy="30.5" rx="2.2" ry="1.5" fill="#111120" opacity="0.9" />
+      {/* tiny smile */}
+      <path d="M22 32.5 Q24 34.5 26 32.5" stroke="#444460" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      {/* blush */}
+      <ellipse cx="15" cy="29" rx="2.4" ry="1.2" fill="#6666AA" opacity="0.4" />
+      <ellipse cx="33" cy="29" rx="2.4" ry="1.2" fill="#6666AA" opacity="0.4" />
+      {/* paws */}
+      <ellipse cx="16" cy="41" rx="4.5" ry="2" fill="#111120" />
+      <ellipse cx="32" cy="41" rx="4.5" ry="2" fill="#111120" />
+      {/* shadow tail */}
+      <path d="M33 36 Q40 32 41 26 Q39 25 37 27 Q36 31 33 36 Z" fill="#1A1A2A" />
+    </SpriteFrame>
+  );
+}
+
+export function NightfangSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000025">
+      {/* star pattern fur markings */}
+      <Sparkle x={19} y={26} size={1.8} color="#8888CC" opacity={0.7} />
+      <Sparkle x={29} y={24} size={1.5} color="#AAAADD" opacity={0.65} />
+      <Sparkle x={24} y={30} size={1.6} color="#8888CC" opacity={0.65} />
+      {/* body */}
+      <path d="M12 25 C12 15 17 10 24 10 C31 10 36 15 36 25 L36 34 C36 40 31 43 24 43 C17 43 12 40 12 34 Z" fill="#111122" />
+      <path d="M15 26 C15 18 18 14 24 14 C30 14 33 18 33 26 L33 33 C33 38 30 41 24 41 C18 41 15 38 15 33 Z" fill="#22223A" />
+      {/* belly */}
+      <ellipse cx="24" cy="33" rx="7.5" ry="6.5" fill="#333344" />
+      {/* wolf ears */}
+      <path d="M13 14 L10 4 L18 8 L17 14 Z" fill="#111122" />
+      <path d="M35 14 L38 4 L30 8 L31 14 Z" fill="#111122" />
+      <path d="M13.5 13 L11.5 6 L16.5 9 L16 13 Z" fill="#334488" opacity="0.7" />
+      <path d="M34.5 13 L36.5 6 L31.5 9 L32 13 Z" fill="#334488" opacity="0.7" />
+      {/* constellation body spots */}
+      <circle cx="18" cy="24" r="1" fill="#8888CC" opacity="0.8" />
+      <circle cx="30" cy="22" r="0.9" fill="#AAAAEE" opacity="0.75" />
+      <circle cx="23" cy="20" r="0.8" fill="#8888CC" opacity="0.7" />
+      <circle cx="26" cy="28" r="0.9" fill="#AAAAEE" opacity="0.7" />
+      {/* star tail */}
+      <path d="M33 37 Q41 33 44 26 Q42 24 40 26 Q38 32 34 37 Z" fill="#111122" />
+      <Sparkle x={41} y={25} size={1.8} color="#8888CC" opacity={0.75} />
+      {/* paws */}
+      <ellipse cx="16" cy="41.5" rx="5" ry="2.2" fill="#0A0A18" />
+      <ellipse cx="32" cy="41.5" rx="5" ry="2.2" fill="#0A0A18" />
+      {/* silver glowing eyes */}
+      <ellipse cx="18" cy="22" rx="3.8" ry="4.2" fill="#05050F" />
+      <ellipse cx="30" cy="22" rx="3.8" ry="4.2" fill="#05050F" />
+      <ellipse cx="18" cy="22" rx="2.3" ry="2.7" fill="#BBBBFF" opacity="0.95" />
+      <ellipse cx="30" cy="22" rx="2.3" ry="2.7" fill="#BBBBFF" opacity="0.95" />
+      <ellipse cx="17.5" cy="20.8" rx="0.9" ry="0.9" fill="#FFFFFF" opacity="0.8" />
+      <ellipse cx="29.5" cy="20.8" rx="0.9" ry="0.9" fill="#FFFFFF" opacity="0.8" />
+      <path d="M21 29 Q24 31 27 29" stroke="#445588" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+    </SpriteFrame>
+  );
+}
+
+export function VoidhowlSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002E">
+      {/* constellation body — stars connected by lines */}
+      <Sparkle x={17} y={24} size={2.2} color="#AAAAFF" opacity={0.85} />
+      <Sparkle x={31} y={22} size={2} color="#8888CC" opacity={0.8} />
+      <Sparkle x={24} y={30} size={2.4} color="#CCCCFF" opacity={0.9} />
+      <Sparkle x={15} y={31} size={1.8} color="#AAAAFF" opacity={0.75} />
+      <Sparkle x={33} y={31} size={1.8} color="#8888CC" opacity={0.75} />
+      <path d="M17 24 L24 30 L31 22" stroke="#6666AA" strokeWidth="0.8" fill="none" opacity="0.5" />
+      <path d="M24 30 L15 31 L33 31" stroke="#6666AA" strokeWidth="0.8" fill="none" opacity="0.4" />
+      {/* crescent moon collar */}
+      <path d="M18 22 Q24 18 30 22 Q28 25 24 26 Q20 25 18 22 Z" fill="none" stroke="#FFD700" strokeWidth="1.5" opacity="0.9" />
+      <Sparkle x={24} y={22} size={1.8} color="#FFD700" opacity={0.9} />
+      {/* wings of shadow */}
+      <path d="M12 24 Q4 17 3 9 Q9 11 13 20 Z" fill="#0A0A1A" />
+      <path d="M36 24 Q44 17 45 9 Q39 11 35 20 Z" fill="#0A0A1A" />
+      {/* large body */}
+      <path d="M12 23 C12 12 17 7 24 7 C31 7 36 12 36 23 L36 35 C36 42 31 45 24 45 C17 45 12 42 12 35 Z" fill="#0A0A1A" />
+      <path d="M15 24 C15 15 18 11 24 11 C30 11 33 15 33 24 L33 34 C33 40 30 43 24 43 C18 43 15 40 15 34 Z" fill="#18183A" />
+      {/* belly void */}
+      <ellipse cx="24" cy="35" rx="8.5" ry="7" fill="#111128" />
+      {/* large ears */}
+      <path d="M13 13 L10 3 L18 7 L17 13 Z" fill="#0A0A1A" />
+      <path d="M35 13 L38 3 L30 7 L31 13 Z" fill="#0A0A1A" />
+      <path d="M13.5 12 L11.5 5 L16.5 8 L16 12 Z" fill="#3333AA" opacity="0.6" />
+      <path d="M34.5 12 L36.5 5 L31.5 8 L32 12 Z" fill="#3333AA" opacity="0.6" />
+      {/* constellation tail */}
+      <path d="M32 39 Q42 35 46 25 L44 23 Q42 30 38 37 L32 41 Z" fill="#0A0A1A" />
+      <Sparkle x={42} y={26} size={2} color="#AAAAFF" opacity={0.8} />
+      {/* powerful legs */}
+      <ellipse cx="16" cy="43.5" rx="6" ry="2.4" fill="#050510" />
+      <ellipse cx="32" cy="43.5" rx="6" ry="2.4" fill="#050510" />
+      {/* vivid glowing silver eyes */}
+      <ellipse cx="18" cy="21" rx="4.5" ry="5" fill="#02020A" />
+      <ellipse cx="30" cy="21" rx="4.5" ry="5" fill="#02020A" />
+      <ellipse cx="18" cy="21" rx="3" ry="3.5" fill="#DDDDFF" opacity="0.95" />
+      <ellipse cx="30" cy="21" rx="3" ry="3.5" fill="#DDDDFF" opacity="0.95" />
+      <ellipse cx="17.5" cy="19.8" rx="1.1" ry="1.1" fill="#FFFFFF" opacity="0.85" />
+      <ellipse cx="29.5" cy="19.8" rx="1.1" ry="1.1" fill="#FFFFFF" opacity="0.85" />
+      <ellipse cx="18" cy="21" rx="5" ry="5.5" fill="#BBBBFF" opacity="0.18" />
+      <ellipse cx="30" cy="21" rx="5" ry="5.5" fill="#BBBBFF" opacity="0.18" />
+      <path d="M21 31 L27 31" stroke="#445588" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </SpriteFrame>
+  );
+}
+
+// ─── MECH LINE ───────────────────────────────────────────────────────────────
+
+export function BoltchickSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* small robot bird body */}
+      <ellipse cx="24" cy="30" rx="12" ry="11" fill="#8899AA" />
+      <ellipse cx="24" cy="31" rx="9.5" ry="8.5" fill="#AABBCC" />
+      {/* belly panel */}
+      <rect x="19" y="28" width="10" height="9" rx="2.5" fill="#778899" />
+      <rect x="20" y="29" width="8" height="7" rx="2" fill="#99AABB" opacity="0.7" />
+      {/* LED eyes */}
+      <ellipse cx="20" cy="25" rx="3" ry="3" fill="#001122" />
+      <ellipse cx="28" cy="25" rx="3" ry="3" fill="#001122" />
+      <ellipse cx="20" cy="25" rx="2" ry="2" fill="#00FFCC" opacity="0.95" />
+      <ellipse cx="28" cy="25" rx="2" ry="2" fill="#00FFCC" opacity="0.95" />
+      <ellipse cx="19.5" cy="24.3" rx="0.7" ry="0.7" fill="#FFFFFF" opacity="0.7" />
+      <ellipse cx="27.5" cy="24.3" rx="0.7" ry="0.7" fill="#FFFFFF" opacity="0.7" />
+      {/* glow */}
+      <ellipse cx="20" cy="25" rx="3.5" ry="3.5" fill="#00FFCC" opacity="0.2" />
+      <ellipse cx="28" cy="25" rx="3.5" ry="3.5" fill="#00FFCC" opacity="0.2" />
+      {/* beak */}
+      <path d="M24 29 L22 32 L26 32 Z" fill="#FFCC44" />
+      {/* robot ear-wings */}
+      <rect x="10" y="22" width="6" height="4" rx="1.5" fill="#667788" />
+      <rect x="38" y="22" width="6" height="4" rx="1.5" fill="#667788" />
+      <rect x="11" y="23" width="4" height="2" rx="1" fill="#00FFCC" opacity="0.5" />
+      <rect x="39" y="23" width="4" height="2" rx="1" fill="#00FFCC" opacity="0.5" />
+      {/* tiny feet */}
+      <rect x="18" y="40" width="5" height="2.5" rx="1" fill="#556677" />
+      <rect x="27" y="40" width="5" height="2.5" rx="1" fill="#556677" />
+    </SpriteFrame>
+  );
+}
+
+export function GearbotSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000022">
+      {/* gear chest */}
+      <circle cx="24" cy="29" r="8.5" fill="#556677" />
+      <circle cx="24" cy="29" r="6.5" fill="#7A8890" />
+      {/* gear teeth */}
+      {[0,45,90,135,180,225,270,315].map((angle, i) => {
+        const rad = angle * Math.PI / 180;
+        return <rect key={i} x={24 + Math.cos(rad)*8 - 1.2} y={29 + Math.sin(rad)*8 - 1.2} width="2.4" height="2.4" fill="#556677" transform={`rotate(${angle} ${24 + Math.cos(rad)*8} ${29 + Math.sin(rad)*8})`} />;
+      })}
+      <circle cx="24" cy="29" r="4" fill="#445566" />
+      <circle cx="24" cy="29" r="2.5" fill="#00FFCC" opacity="0.9" />
+      <ellipse cx="24" cy="29" r="8.5" fill="#00FFCC" opacity="0.12" />
+      {/* robot body */}
+      <path d="M13 22 C13 13 17 8 24 8 C31 8 35 13 35 22 L35 32 C35 39 31 42 24 42 C17 42 13 39 13 32 Z" fill="#667788" />
+      <path d="M16 23 C16 16 19 12 24 12 C29 12 32 16 32 23 L32 32 C32 37 29 40 24 40 C19 40 16 37 16 32 Z" fill="#8899AA" />
+      {/* shoulder armor plates */}
+      <rect x="9" y="20" width="7" height="5" rx="2" fill="#556677" />
+      <rect x="38" y="20" width="7" height="5" rx="2" fill="#556677" />
+      {/* forearm */}
+      <rect x="8" y="24" width="5" height="8" rx="2" fill="#7A8890" />
+      <rect x="41" y="24" width="5" height="8" rx="2" fill="#7A8890" />
+      {/* claw fingers */}
+      <path d="M8 31 L6 34" stroke="#445566" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M10 32 L9 35" stroke="#445566" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12 31 L12 34" stroke="#445566" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M40 31 L42 34" stroke="#445566" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M43 32 L44 35" stroke="#445566" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M44 31 L44 34" stroke="#445566" strokeWidth="1.5" strokeLinecap="round" />
+      {/* head */}
+      <rect x="15" y="9" width="18" height="14" rx="4" fill="#667788" />
+      <rect x="17" y="11" width="14" height="10" rx="3" fill="#8899AA" />
+      {/* LED eyes */}
+      <rect x="18" y="13" width="5" height="4" rx="1.5" fill="#001122" />
+      <rect x="27" y="13" width="5" height="4" rx="1.5" fill="#001122" />
+      <rect x="19" y="14" width="3" height="2.5" rx="0.8" fill="#00FFCC" opacity="0.95" />
+      <rect x="28" y="14" width="3" height="2.5" rx="0.8" fill="#00FFCC" opacity="0.95" />
+      {/* antenna */}
+      <path d="M24 9 L24 5" stroke="#556677" strokeWidth="1.8" strokeLinecap="round" />
+      <circle cx="24" cy="4.5" r="1.8" fill="#00FFCC" opacity="0.9" />
+      {/* feet */}
+      <rect x="15" y="40" width="6" height="3.5" rx="1.5" fill="#445566" />
+      <rect x="27" y="40" width="6" height="3.5" rx="1.5" fill="#445566" />
+    </SpriteFrame>
+  );
+}
+
+export function TitanmechSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002E">
+      {/* propulsion jets */}
+      <path d="M14 40 L10 46 L18 44 Z" fill="#FF7722" opacity="0.8" />
+      <path d="M34 40 L38 46 L30 44 Z" fill="#FF7722" opacity="0.8" />
+      <path d="M14 40 L11 45 L16 44 Z" fill="#FFCC44" opacity="0.6" />
+      <path d="M34 40 L37 45 L32 44 Z" fill="#FFCC44" opacity="0.6" />
+      {/* massive shoulder pauldrons */}
+      <path d="M7 18 L5 12 L12 14 L14 22 Z" fill="#445566" />
+      <path d="M8 18 L7 14 L12 15 L13 21 Z" fill="#6677AA" opacity="0.6" />
+      <path d="M41 18 L43 12 L36 14 L34 22 Z" fill="#445566" />
+      <path d="M40 18 L41 14 L36 15 L35 21 Z" fill="#6677AA" opacity="0.6" />
+      {/* weapon arms */}
+      <rect x="5" y="22" width="8" height="12" rx="2" fill="#556677" />
+      <rect x="39" y="22" width="8" height="12" rx="2" fill="#556677" />
+      {/* cannons on arms */}
+      <rect x="3" y="25" width="5" height="4" rx="1.5" fill="#334455" />
+      <rect x="3.5" y="26" width="3" height="2" rx="0.8" fill="#00FFCC" opacity="0.6" />
+      <rect x="44" y="25" width="5" height="4" rx="1.5" fill="#334455" />
+      <rect x="44.5" y="26" width="3" height="2" rx="0.8" fill="#00FFCC" opacity="0.6" />
+      {/* massive body */}
+      <path d="M13 22 C13 11 17 6 24 6 C31 6 35 11 35 22 L35 38 C35 44 31 47 24 47 C17 47 13 44 13 38 Z" fill="#445566" />
+      <path d="M16 23 C16 14 19 10 24 10 C29 10 32 14 32 23 L32 37 C32 42 29 45 24 45 C19 45 16 42 16 37 Z" fill="#667788" />
+      {/* chest reactor */}
+      <ellipse cx="24" cy="29" rx="8" ry="7" fill="#334455" />
+      <ellipse cx="24" cy="29" rx="5.5" ry="5" fill="#445566" />
+      <ellipse cx="24" cy="29" rx="3.5" ry="3.2" fill="#00FFCC" opacity="0.85" />
+      <ellipse cx="24" cy="29" rx="8.5" ry="7.5" fill="#00FFCC" opacity="0.15" />
+      {/* head — visor */}
+      <rect x="14" y="7" width="20" height="15" rx="4" fill="#445566" />
+      <rect x="16" y="9" width="16" height="11" rx="3" fill="#334455" />
+      {/* visor strip */}
+      <rect x="15" y="12" width="18" height="5" rx="1.5" fill="#001122" />
+      <rect x="16" y="12.5" width="16" height="4" rx="1" fill="#00FFCC" opacity="0.7" />
+      <ellipse cx="24" cy="14.5" rx="8" ry="2" fill="#00FFCC" opacity="0.25" />
+      {/* jet boots */}
+      <rect x="14" y="42" width="8" height="4" rx="2" fill="#334455" />
+      <rect x="30" y="42" width="8" height="4" rx="2" fill="#334455" />
+      <Sparkle x={6} y={9} size={2.4} color="#00FFCC" opacity={0.8} />
+      <Sparkle x={42} y={9} size={2.4} color="#00FFCC" opacity={0.8} />
+    </SpriteFrame>
+  );
+}
+
+// ─── CORAL LINE ──────────────────────────────────────────────────────────────
+
+export function SpikletSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* spiny sea urchin body */}
+      {/* spines radiating outward */}
+      {[0,30,60,90,120,150,180,210,240,270,300,330].map((angle, i) => {
+        const rad = angle * Math.PI / 180;
+        const r1 = 12;
+        const r2 = 17;
+        return (
+          <line key={i}
+            x1={24 + Math.cos(rad) * r1}
+            y1={29 + Math.sin(rad) * r1}
+            x2={24 + Math.cos(rad) * r2}
+            y2={29 + Math.sin(rad) * r2}
+            stroke="#FF7744"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+          />
+        );
+      })}
+      {/* round body */}
+      <circle cx="24" cy="29" r="11" fill="#FF8844" />
+      <circle cx="24" cy="29" r="8.5" fill="#FFAA66" />
+      {/* belly */}
+      <ellipse cx="24" cy="31" rx="5.5" ry="5" fill="#FFCC99" />
+      {/* tiny cute face */}
+      <Face eyeY={27} eyeDx={3.5} eyeRx={2.4} eyeRy={2.8} iris="#441100" blush="#FFAA66" nose="#BB4422" />
+    </SpriteFrame>
+  );
+}
+
+export function StarfishSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* star-shaped body */}
+      <path d="M24 10 L27 20 L37 17 L30 25 L36 34 L24 29 L12 34 L18 25 L11 17 L21 20 Z" fill="#FF7733" />
+      <path d="M24 13 L26.5 21 L34 19 L28.5 25.5 L33 32 L24 28 L15 32 L19.5 25.5 L14 19 L21.5 21 Z" fill="#FF9955" />
+      {/* center cute face */}
+      <circle cx="24" cy="26" r="7.5" fill="#FFBB77" />
+      <Face eyeY={24} eyeDx={3.2} eyeRx={2.2} eyeRy={2.6} iris="#3A1A00" blush="#FFAA55" nose="#CC5522" />
+      {/* star tip spines */}
+      {[0,72,144,216,288].map((angle, i) => {
+        const rad = angle * Math.PI / 180;
+        const r = 17;
+        return <circle key={i} cx={24 + Math.cos(rad - Math.PI/2) * r} cy={26 + Math.sin(rad - Math.PI/2) * r} r="1.5" fill="#FF9955" />;
+      })}
+    </SpriteFrame>
+  );
+}
+
+export function ReefqueenSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002A">
+      {/* sea anemone mane tentacles */}
+      <path d="M14 16 Q10 8 12 4 Q15 7 15 14 Z" fill="#FF5588" />
+      <path d="M18 13 Q16 5 19 2 Q22 5 20 12 Z" fill="#FF7799" />
+      <path d="M24 12 Q24 4 27 2 Q28 5 26 12 Z" fill="#FF5588" />
+      <path d="M30 13 Q32 5 29 2 Q26 5 28 12 Z" fill="#FF7799" />
+      <path d="M34 16 Q38 8 36 4 Q33 7 33 14 Z" fill="#FF5588" />
+      {/* tentacle tips */}
+      <circle cx="12" cy="4" r="2" fill="#FFAA33" />
+      <circle cx="19" cy="2" r="2" fill="#FFCC44" />
+      <circle cx="27" cy="2" r="2" fill="#FFAA33" />
+      <circle cx="29" cy="2" r="2" fill="#FFCC44" />
+      <circle cx="36" cy="4" r="2" fill="#FFAA33" />
+      {/* crown gem */}
+      <path d="M22 10 L24 6 L26 10 Z" fill="#FF99AA" />
+      <circle cx="24" cy="6" r="2.2" fill="#FFFFFF" opacity="0.9" />
+      {/* coral dragon body */}
+      <path d="M12 24 C12 14 16 9 24 9 C32 9 36 14 36 24 L36 36 C36 42 32 45 24 45 C16 45 12 42 12 36 Z" fill="#CC3366" />
+      <path d="M15 25 C15 17 18 13 24 13 C30 13 33 17 33 25 L33 35 C33 40 30 43 24 43 C18 43 15 40 15 35 Z" fill="#EE5588" />
+      {/* belly scales */}
+      <ellipse cx="24" cy="36" rx="9" ry="7.5" fill="#FFAABB" />
+      {/* coral scale pattern */}
+      <path d="M18 22 L21 19 L24 22 L21 25 Z" fill="#CC3366" opacity="0.7" />
+      <path d="M24 20 L27 17 L30 20 L27 23 Z" fill="#AA2244" opacity="0.7" />
+      <path d="M20 27 L23 24 L26 27 L23 30 Z" fill="#CC3366" opacity="0.6" />
+      {/* coral fin tail */}
+      <path d="M32 38 Q40 34 42 27 Q40 25 38 27 Q37 33 32 38 Z" fill="#CC3366" />
+      {/* fins */}
+      <path d="M11 26 Q5 22 5 27 Q8 31 12 29 Z" fill="#EE5588" opacity="0.85" />
+      <path d="M37 26 Q43 22 43 27 Q40 31 36 29 Z" fill="#EE5588" opacity="0.85" />
+      {/* feet */}
+      <ellipse cx="16" cy="43.5" rx="5.5" ry="2.2" fill="#991144" />
+      <ellipse cx="32" cy="43.5" rx="5.5" ry="2.2" fill="#991144" />
+      <Face eyeY={22} eyeDx={5.8} eyeRx={3.8} eyeRy={4.3} iris="#220011" blush="#FFAABB" mouth="serious" nose="#AA2244" />
+      <Sparkle x={7} y={12} size={2.4} color="#FFCC44" opacity={0.8} />
+      <Sparkle x={41} y={12} size={2.4} color="#FFAA33" opacity={0.75} />
+    </SpriteFrame>
+  );
+}
+
+// ─── CLOUD LINE ──────────────────────────────────────────────────────────────
+
+export function PuffletSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* tiny round cloud body */}
+      <ellipse cx="24" cy="29" rx="13.5" ry="11.5" fill="#EEF4FF" />
+      <ellipse cx="17" cy="27" rx="7" ry="6.5" fill="#F5F8FF" />
+      <ellipse cx="31" cy="27" rx="7" ry="6.5" fill="#F5F8FF" />
+      <ellipse cx="24" cy="23" rx="9" ry="7.5" fill="#FFFFFF" />
+      {/* cloud puff top */}
+      <circle cx="18" cy="22" r="5" fill="#F0F4FF" />
+      <circle cx="24" cy="19" r="5.5" fill="#FFFFFF" />
+      <circle cx="30" cy="22" r="5" fill="#F0F4FF" />
+      {/* tiny cute face */}
+      <Face eyeY={25} eyeDx={3.8} eyeRx={2.5} eyeRy={3} iris="#3355AA" blush="#CCDDFF" nose="#6688CC" />
+      {/* base puff feet */}
+      <ellipse cx="18" cy="40" rx="4.5" ry="2.2" fill="#D8E8FF" />
+      <ellipse cx="30" cy="40" rx="4.5" ry="2.2" fill="#D8E8FF" />
+    </SpriteFrame>
+  );
+}
+
+export function NimbusSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000018">
+      {/* storm cloud body — darker */}
+      <ellipse cx="24" cy="30" rx="14.5" ry="12.5" fill="#C8D8F8" />
+      <ellipse cx="16" cy="28" rx="8" ry="7.5" fill="#D8E8FF" />
+      <ellipse cx="32" cy="28" rx="8" ry="7.5" fill="#D8E8FF" />
+      <ellipse cx="24" cy="23" rx="10" ry="8.5" fill="#E4EEFF" />
+      {/* lightning bolt ears */}
+      <path d="M14 17 L12 10 L16 13 L15 9 L19 14 L16 14 L17 18 Z" fill="#FFDD33" />
+      <path d="M34 17 L36 10 L32 13 L33 9 L29 14 L32 14 L31 18 Z" fill="#FFDD33" />
+      {/* cloud puff top */}
+      <circle cx="17" cy="21" r="5.5" fill="#C8D8F8" />
+      <circle cx="24" cy="18" r="6" fill="#D8E8FF" />
+      <circle cx="31" cy="21" r="5.5" fill="#C8D8F8" />
+      {/* face */}
+      <Face eyeY={26} eyeDx={4.5} eyeRx={3} eyeRy={3.5} iris="#1A2A5A" blush="#B8CCEE" nose="#5577AA" />
+      {/* small lightning bolt on belly */}
+      <path d="M23 30 L21 35 L25 34 L23 40 L27 34 L23 35 Z" fill="#FFDD33" opacity="0.8" />
+      {/* puff feet */}
+      <ellipse cx="17" cy="42" rx="5" ry="2.2" fill="#AABBD0" />
+      <ellipse cx="31" cy="42" rx="5" ry="2.2" fill="#AABBD0" />
+    </SpriteFrame>
+  );
+}
+
+export function StormcloudSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000025">
+      {/* lightning crown */}
+      <path d="M14 13 L12 5 L17 9 L16 4 L21 10 L18 10 L20 14 Z" fill="#FFDD33" />
+      <path d="M34 13 L36 5 L31 9 L32 4 L27 10 L30 10 L28 14 Z" fill="#FFDD33" />
+      <path d="M24 10 L22 3 L27 7 L26 2 L24 8 Z" fill="#FFEE66" opacity="0.9" />
+      {/* dramatic storm cloud body */}
+      <ellipse cx="24" cy="30" rx="16" ry="14" fill="#8899BB" />
+      <ellipse cx="14" cy="28" rx="9" ry="8.5" fill="#99AABB" />
+      <ellipse cx="34" cy="28" rx="9" ry="8.5" fill="#99AABB" />
+      <ellipse cx="24" cy="22" rx="12" ry="10" fill="#AABBCC" />
+      {/* cloud top puffs — darker storm */}
+      <circle cx="16" cy="20" r="7" fill="#8899BB" />
+      <circle cx="24" cy="16" r="8" fill="#99AABB" />
+      <circle cx="32" cy="20" r="7" fill="#8899BB" />
+      {/* face — serious storm expression */}
+      <Face eyeY={26} eyeDx={5.5} eyeRx={3.8} eyeRy={4.2} iris="#112233" blush="#88AACC" mouth="serious" nose="#445577" />
+      {/* lightning bolts on body */}
+      <path d="M17 29 L15 34 L19 33 L17 38 L21 33 L17 34 Z" fill="#FFDD33" opacity="0.85" />
+      <path d="M30 28 L28 33 L32 32 L30 37 L34 32 L30 33 Z" fill="#FFDD33" opacity="0.8" />
+      {/* cloud feet */}
+      <ellipse cx="16" cy="44" rx="6" ry="2.5" fill="#667788" />
+      <ellipse cx="32" cy="44" rx="6" ry="2.5" fill="#667788" />
+      <Sparkle x={8} y={10} size={2.4} color="#FFDD33" opacity={0.85} />
+      <Sparkle x={40} y={8} size={2} color="#FFEE66" opacity={0.8} />
+    </SpriteFrame>
+  );
+}
+
+// ─── LAVA2 LINE ──────────────────────────────────────────────────────────────
+
+export function MagpupSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000028">
+      {/* magma drip at base */}
+      <path d="M20 41 Q19 46 21 47 Q22 45 22 41 Z" fill="#FF4400" opacity="0.8" />
+      <path d="M27 41 Q27 46 29 47 Q30 44 29 41 Z" fill="#FF6611" opacity="0.7" />
+      {/* cute puppy body — lava red */}
+      <ellipse cx="24" cy="30" rx="13" ry="12" fill="#881100" />
+      <ellipse cx="24" cy="31" rx="10.5" ry="9.5" fill="#AA2200" />
+      {/* lava glow belly */}
+      <ellipse cx="24" cy="34" rx="6.5" ry="5.5" fill="#FF4400" opacity="0.7" />
+      {/* lava crack belly glow */}
+      <path d="M21 31 Q24 29 27 31 Q26 34 24 35 Q22 34 21 31 Z" fill="#FFAA00" opacity="0.5" />
+      {/* floppy puppy ears with lava drips */}
+      <ellipse cx="13" cy="20" rx="5" ry="8" fill="#881100" transform="rotate(-10 13 20)" />
+      <ellipse cx="35" cy="20" rx="5" ry="8" fill="#881100" transform="rotate(10 35 20)" />
+      <path d="M10 25 Q9 29 11 31" stroke="#FF4400" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.8" />
+      <path d="M38 25 Q39 29 37 31" stroke="#FF4400" strokeWidth="1.5" fill="none" strokeLinecap="round" opacity="0.8" />
+      {/* tiny stub tail */}
+      <path d="M34 36 Q40 32 40 27 Q38 27 36 30 Q35 33 34 36 Z" fill="#881100" />
+      <circle cx="40" cy="27" r="2" fill="#FF4400" opacity="0.7" />
+      {/* tiny paws */}
+      <ellipse cx="16" cy="41" rx="4.5" ry="2" fill="#661100" />
+      <ellipse cx="32" cy="41" rx="4.5" ry="2" fill="#661100" />
+      {/* glowing lava eyes */}
+      <ellipse cx="19" cy="26" rx="3.2" ry="3.6" fill="#330000" />
+      <ellipse cx="29" cy="26" rx="3.2" ry="3.6" fill="#330000" />
+      <ellipse cx="19" cy="26" rx="2" ry="2.3" fill="#FF4400" opacity="0.95" />
+      <ellipse cx="29" cy="26" rx="2" ry="2.3" fill="#FF6611" opacity="0.95" />
+      <ellipse cx="18.5" cy="25" rx="0.8" ry="0.8" fill="#FFCC44" opacity="0.8" />
+      <ellipse cx="28.5" cy="25" rx="0.8" ry="0.8" fill="#FFCC44" opacity="0.8" />
+      {/* blush — ember glow */}
+      <ellipse cx="14" cy="29.5" rx="2.4" ry="1.3" fill="#FF4400" opacity="0.35" />
+      <ellipse cx="34" cy="29.5" rx="2.4" ry="1.3" fill="#FF4400" opacity="0.35" />
+      {/* nose */}
+      <ellipse cx="24" cy="30.2" rx="2" ry="1.4" fill="#441100" opacity="0.9" />
+      {/* smile */}
+      <path d="M22 32.5 Q24 34.5 26 32.5" stroke="#662200" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+    </SpriteFrame>
+  );
+}
+
+export function Moltenk9Sprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000030">
+      {/* lava armor plates on shoulder */}
+      <path d="M9 20 L6 14 L12 13 L14 22 Z" fill="#441100" />
+      <path d="M10 19 L8 15 L12 14.5 L13.5 20 Z" fill="#FF4400" opacity="0.5" />
+      <path d="M39 20 L42 14 L36 13 L34 22 Z" fill="#441100" />
+      <path d="M38 19 L40 15 L36 14.5 L34.5 20 Z" fill="#FF4400" opacity="0.5" />
+      {/* lava drips on legs */}
+      <path d="M17 41 Q16 46 18 47 Q19 44 19 41 Z" fill="#FF4400" opacity="0.75" />
+      <path d="M29 41 Q29 46 31 47 Q32 44 31 41 Z" fill="#FF6611" opacity="0.7" />
+      {/* wolf body */}
+      <path d="M11 24 C11 14 16 9 24 9 C32 9 37 14 37 24 L37 36 C37 42 32 45 24 45 C16 45 11 42 11 36 Z" fill="#661100" />
+      <path d="M14 25 C14 17 17 13 24 13 C31 13 34 17 34 25 L34 35 C34 40 30 43 24 43 C18 43 14 40 14 35 Z" fill="#882200" />
+      {/* lava crack network on body */}
+      <path d="M18 22 Q20 26 19 30 Q22 32 24 30 Q26 32 28 30 Q27 26 29 22" stroke="#FF4400" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      <path d="M15 28 Q17 28 19 30" stroke="#FF4400" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M33 28 Q31 28 29 30" stroke="#FF4400" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M22 22 Q23 25 22 27" stroke="#FFCC44" strokeWidth="1" fill="none" strokeLinecap="round" />
+      <path d="M26 23 Q25 26 26 28" stroke="#FFCC44" strokeWidth="1" fill="none" strokeLinecap="round" />
+      {/* belly lava glow */}
+      <ellipse cx="24" cy="36" rx="9" ry="7.5" fill="#FF3300" opacity="0.45" />
+      {/* wolf ears */}
+      <path d="M13 14 L10 5 L18 8 L17 14 Z" fill="#661100" />
+      <path d="M35 14 L38 5 L30 8 L31 14 Z" fill="#661100" />
+      <path d="M13.5 13 L11.5 7 L16.5 9.5 L16 13 Z" fill="#FF4400" opacity="0.5" />
+      <path d="M34.5 13 L36.5 7 L31.5 9.5 L32 13 Z" fill="#FF4400" opacity="0.5" />
+      {/* lava tail */}
+      <path d="M33 39 Q42 35 44 27 L42 25 Q40 31 36 38 L33 41 Z" fill="#661100" />
+      <path d="M41 26 Q43 22 44 24" stroke="#FF4400" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.8" />
+      {/* feet */}
+      <ellipse cx="16" cy="43.5" rx="5.5" ry="2.2" fill="#330800" />
+      <ellipse cx="32" cy="43.5" rx="5.5" ry="2.2" fill="#330800" />
+      {/* fierce glowing eyes */}
+      <ellipse cx="18" cy="21" rx="4" ry="4.5" fill="#220000" />
+      <ellipse cx="30" cy="21" rx="4" ry="4.5" fill="#220000" />
+      <ellipse cx="18" cy="21" rx="2.5" ry="2.8" fill="#FF4400" opacity="0.95" />
+      <ellipse cx="30" cy="21" rx="2.5" ry="2.8" fill="#FF6611" opacity="0.95" />
+      <ellipse cx="17.5" cy="19.8" rx="1" ry="1" fill="#FFCC44" opacity="0.9" />
+      <ellipse cx="29.5" cy="19.8" rx="1" ry="1" fill="#FFCC44" opacity="0.9" />
+      <path d="M21 29 Q24 32 27 29" stroke="#FF3300" strokeWidth="1.6" fill="none" strokeLinecap="round" />
+    </SpriteFrame>
+  );
+}
+
+export function VolcanovexSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000035">
+      {/* eruption mane — fire aura */}
+      <ellipse cx="24" cy="24" rx="23" ry="20" fill="#FF2200" opacity="0.1" />
+      {/* orbiting ember sparkles */}
+      <Sparkle x={5} y={16} size={3} color="#FFEE44" opacity={0.9} />
+      <Sparkle x={43} y={12} size={2.6} color="#FFB300" opacity={0.85} />
+      <Sparkle x={3} y={30} size={2.2} color="#FFEE44" opacity={0.75} />
+      <Sparkle x={45} y={29} size={2.4} color="#FFB300" opacity={0.8} />
+      <Sparkle x={8} y={6} size={2} color="#FF6622" opacity={0.75} />
+      <Sparkle x={40} y={5} size={2.2} color="#FF6622" opacity={0.75} />
+      {/* eruption mane — lava spikes */}
+      <path d="M18 10 L16 4 L20 8 L22 3 L24 8 L26 3 L28 8 L32 4 L30 10 Z" fill="#AA1100" />
+      <path d="M19 9 L18 5 L21 8 L23 5 L24 8.5 L25 5 L27 8 L30 5 L29 9 Z" fill="#FF3300" opacity="0.85" />
+      <path d="M21 8 L22 5 L24 8 L26 5 L27 8 Z" fill="#FFAA00" opacity="0.9" />
+      {/* wings — lava streams */}
+      <path d="M16 22 Q5 16 3 8 Q8 7 13 13 Q10 17 13 21 Z" fill="#771100" />
+      <path d="M12 16 Q7 10 7 7 Q11 9 12 14 Z" fill="#FF3300" opacity="0.6" />
+      <path d="M36 22 Q43 16 45 8 Q40 7 35 13 Q38 17 35 21 Z" fill="#771100" />
+      <path d="M36 16 Q41 10 41 7 Q37 9 36 14 Z" fill="#FF3300" opacity="0.6" />
+      {/* lava stream veins on wings */}
+      <path d="M7 9 Q10 13 11 17" stroke="#FFCC00" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7" />
+      <path d="M41 9 Q38 13 37 17" stroke="#FFCC00" strokeWidth="1.2" fill="none" strokeLinecap="round" opacity="0.7" />
+      {/* giant dragon body */}
+      <path d="M12 23 C12 11 16 6 24 6 C32 6 36 11 36 23 L36 36 C36 44 32 47 24 47 C16 47 12 44 12 36 Z" fill="#661100" />
+      <path d="M15 24 C15 15 18 11 24 11 C30 11 33 15 33 24 L33 35 C33 42 30 45 24 45 C18 45 15 42 15 35 Z" fill="#882200" />
+      {/* volcano eruption lava network */}
+      <path d="M19 20 Q21 24 20 28 Q23 31 24 29 Q25 31 28 28 Q27 24 29 20" stroke="#FF3300" strokeWidth="2" fill="none" strokeLinecap="round" />
+      <path d="M15 27 Q18 27 20 28" stroke="#FF3300" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d="M33 27 Q30 27 28 28" stroke="#FF3300" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d="M20 28 Q20 34 19 39" stroke="#FFAA00" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M28 28 Q28 34 29 39" stroke="#FFAA00" strokeWidth="1.4" fill="none" strokeLinecap="round" />
+      <path d="M22 21 Q23 24 22 26" stroke="#FFEE44" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <path d="M26 22 Q25 25 26 27" stroke="#FFEE44" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      {/* lava drips off tail */}
+      <path d="M33 41 Q44 37 46 27 L44 25 Q42 31 38 38 L33 43 Z" fill="#661100" />
+      <path d="M43 26 Q45 22 46 25" stroke="#FF4400" strokeWidth="2" fill="none" strokeLinecap="round" opacity="0.9" />
+      {/* legs */}
+      <ellipse cx="16" cy="45" rx="5.5" ry="2.2" fill="#330800" />
+      <ellipse cx="32" cy="45" rx="5.5" ry="2.2" fill="#330800" />
+      {/* fierce glowing eyes */}
+      <ellipse cx="18" cy="20" rx="4.5" ry="5" fill="#110000" />
+      <ellipse cx="30" cy="20" rx="4.5" ry="5" fill="#110000" />
+      <ellipse cx="18" cy="20" rx="3" ry="3.5" fill="#FF2200" opacity="0.95" />
+      <ellipse cx="30" cy="20" rx="3" ry="3.5" fill="#FF4400" opacity="0.95" />
+      <ellipse cx="17.5" cy="18.8" rx="1.2" ry="1.2" fill="#FFEE44" opacity="0.9" />
+      <ellipse cx="29.5" cy="18.8" rx="1.2" ry="1.2" fill="#FFEE44" opacity="0.9" />
+      <ellipse cx="18" cy="20" rx="5" ry="5.5" fill="#FF2200" opacity="0.2" />
+      <ellipse cx="30" cy="20" rx="5" ry="5.5" fill="#FF2200" opacity="0.2" />
+      <path d="M21 29 Q24 32 27 29" stroke="#FF2200" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+    </SpriteFrame>
+  );
+}
+
+// ─── CRYSTAL2 LINE ───────────────────────────────────────────────────────────
+
+export function GemkitSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped}>
+      {/* tiny faceted crystal body */}
+      <path d="M24 12 L32 22 L30 34 L24 38 L18 34 L16 22 Z" fill="#AAEEFF" opacity="0.9" stroke="#66CCEE" strokeWidth="0.8" />
+      {/* crystal facets */}
+      <path d="M24 12 L32 22 L24 18 Z" fill="#66CCEE" opacity="0.6" />
+      <path d="M32 22 L30 34 L24 18 Z" fill="#AAEEFF" opacity="0.5" />
+      <path d="M30 34 L24 38 L24 18 Z" fill="#DDFEFF" opacity="0.55" />
+      <path d="M24 38 L18 34 L24 18 Z" fill="#66CCEE" opacity="0.45" />
+      <path d="M18 34 L16 22 L24 18 Z" fill="#AAEEFF" opacity="0.5" />
+      <path d="M16 22 L24 12 L24 18 Z" fill="#DDFEFF" opacity="0.6" />
+      {/* tiny bright eyes */}
+      <Face eyeY={26} eyeDx={3} eyeRx={2} eyeRy={2.5} iris="#1A5A7A" blush="#88DDFF" nose="#4499BB" />
+      {/* sparkle on tips */}
+      <Sparkle x={24} y={12} size={2} color="#FFFFFF" opacity={0.9} />
+      <Sparkle x={8} y={22} size={1.6} color="#AAEEFF" opacity={0.8} />
+      <Sparkle x={40} y={22} size={1.6} color="#88CCFF" opacity={0.75} />
+    </SpriteFrame>
+  );
+}
+
+export function PrismarkSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#00000020">
+      {/* crystal golem body — prism shaped */}
+      <path d="M16 12 L24 7 L32 12 L34 24 L32 36 L24 40 L16 36 L14 24 Z" fill="#55AABB" stroke="#33889A" strokeWidth="0.9" />
+      <path d="M16 12 L24 7 L24 18 Z" fill="#33AABB" opacity="0.6" />
+      <path d="M24 7 L32 12 L24 18 Z" fill="#99EEFF" opacity="0.55" />
+      <path d="M32 12 L34 24 L24 18 Z" fill="#55AABB" opacity="0.5" />
+      <path d="M34 24 L32 36 L24 18 Z" fill="#AAEEFF" opacity="0.55" />
+      <path d="M32 36 L24 40 L24 18 Z" fill="#33AABB" opacity="0.45" />
+      <path d="M24 40 L16 36 L24 18 Z" fill="#99EEFF" opacity="0.5" />
+      <path d="M16 36 L14 24 L24 18 Z" fill="#55AABB" opacity="0.5" />
+      <path d="M14 24 L16 12 L24 18 Z" fill="#AAEEFF" opacity="0.6" />
+      {/* glowing crystal core in chest */}
+      <ellipse cx="24" cy="24" rx="5.5" ry="5" fill="#22667A" />
+      <ellipse cx="24" cy="24" rx="3.5" ry="3.2" fill="#88EEFF" opacity="0.85" />
+      <ellipse cx="24" cy="24" rx="2" ry="1.8" fill="#DDFEFF" opacity="0.95" />
+      <ellipse cx="24" cy="24" rx="6" ry="5.5" fill="#88EEFF" opacity="0.2" />
+      {/* crystal arm extensions */}
+      <path d="M13 24 L8 20 L10 28 L14 26 Z" fill="#44AABB" stroke="#33889A" strokeWidth="0.7" />
+      <path d="M35 24 L40 20 L38 28 L34 26 Z" fill="#44AABB" stroke="#33889A" strokeWidth="0.7" />
+      {/* crystal eyes */}
+      <ellipse cx="20" cy="20" rx="3.2" ry="3.5" fill="#0A1A22" />
+      <ellipse cx="28" cy="20" rx="3.2" ry="3.5" fill="#0A1A22" />
+      <ellipse cx="20" cy="20" rx="2" ry="2.2" fill="#55EEFF" opacity="0.95" />
+      <ellipse cx="28" cy="20" rx="2" ry="2.2" fill="#55EEFF" opacity="0.95" />
+      <ellipse cx="19.5" cy="19" rx="0.8" ry="0.8" fill="#FFFFFF" opacity="0.8" />
+      <ellipse cx="27.5" cy="19" rx="0.8" ry="0.8" fill="#FFFFFF" opacity="0.8" />
+      {/* mouth */}
+      <path d="M21 28 L27 28" stroke="#44AABB" strokeWidth="1.8" fill="none" strokeLinecap="round" />
+      {/* crystal legs */}
+      <path d="M19 38 L18 44 L22 44 L21 38 Z" fill="#44AABB" stroke="#33889A" strokeWidth="0.7" />
+      <path d="M27 38 L26 44 L30 44 L29 38 Z" fill="#44AABB" stroke="#33889A" strokeWidth="0.7" />
+      <Sparkle x={8} y={14} size={2.4} color="#AAEEFF" opacity={0.85} />
+      <Sparkle x={40} y={14} size={2.4} color="#DDFEFF" opacity={0.8} />
+    </SpriteFrame>
+  );
+}
+
+export function DiamondraSprite({ w = 64, flipped = false }) {
+  return (
+    <SpriteFrame w={w} flipped={flipped} shadow="#0000002E">
+      {/* rainbow light effects */}
+      <Sparkle x={6} y={14} size={3} color="#FF99CC" opacity={0.85} />
+      <Sparkle x={42} y={10} size={2.8} color="#FFEE44" opacity={0.85} />
+      <Sparkle x={4} y={28} size={2.4} color="#44DDFF" opacity={0.8} />
+      <Sparkle x={44} y={28} size={2.4} color="#AAFFCC" opacity={0.8} />
+      <Sparkle x={8} y={40} size={2} color="#FF99CC" opacity={0.75} />
+      <Sparkle x={40} y={40} size={2} color="#FFEE44" opacity={0.75} />
+      <Sparkle x={24} y={4} size={2.8} color="#FFFFFF" opacity={0.9} />
+      {/* crystal empress wings — geometric */}
+      <path d="M16 22 L6 12 L8 24 L14 28 Z" fill="#99EEFF" opacity="0.85" stroke="#55CCDD" strokeWidth="0.8" />
+      <path d="M8 12 L6 6 L12 10 Z" fill="#FFCCEE" opacity="0.75" />
+      <path d="M32 22 L42 12 L40 24 L34 28 Z" fill="#99EEFF" opacity="0.85" stroke="#55CCDD" strokeWidth="0.8" />
+      <path d="M40 12 L42 6 L36 10 Z" fill="#AAFFCC" opacity="0.75" />
+      {/* lower crystal wings */}
+      <path d="M15 28 L6 36 L12 38 L17 32 Z" fill="#CCEEFF" opacity="0.8" stroke="#55CCDD" strokeWidth="0.7" />
+      <path d="M33 28 L42 36 L36 38 L31 32 Z" fill="#CCEEFF" opacity="0.8" stroke="#55CCDD" strokeWidth="0.7" />
+      {/* crown of tall crystal spires */}
+      <path d="M16 12 L14 4 L18 7 L20 2 L22 7 L24 3 L26 7 L28 2 L30 7 L34 4 L32 12 Z" fill="#2A6888" stroke="#44AABB" strokeWidth="0.7" />
+      <path d="M18 11 L17 6 L19.5 8 L21.5 4 L23 7.5 L24 4 L25 7.5 L26.5 4 L28.5 8 L31 6 L30 11 Z" fill="#AAEEFF" opacity="0.55" />
+      {/* empress body */}
+      <path d="M13 23 C13 12 17 7 24 7 C31 7 35 12 35 23 L35 35 C35 43 31 46 24 46 C17 46 13 43 13 35 Z" fill="#2A6888" stroke="#44AABB" strokeWidth="0.9" />
+      <path d="M16 24 C16 15 19 11 24 11 C29 11 32 15 32 24 L32 34 C32 41 29 44 24 44 C19 44 16 41 16 34 Z" fill="#55AABB" />
+      {/* facet body highlights */}
+      <path d="M16 24 L32 24" stroke="#99EEFF" strokeWidth="0.8" fill="none" opacity="0.5" />
+      <path d="M15 30 L33 30" stroke="#99EEFF" strokeWidth="0.8" fill="none" opacity="0.4" />
+      {/* rainbow core in chest */}
+      <ellipse cx="24" cy="28" rx="6" ry="5.5" fill="#1A4A5A" />
+      <ellipse cx="24" cy="28" rx="4" ry="3.8" fill="#99EEFF" opacity="0.85" />
+      <ellipse cx="24" cy="28" rx="2.2" ry="2" fill="#FFFFFF" opacity="0.95" />
+      <ellipse cx="24" cy="28" rx="6.5" ry="6" fill="#99EEFF" opacity="0.2" />
+      {/* prism rainbow rays */}
+      <path d="M24 28 L14 38" stroke="#FF99CC" strokeWidth="0.8" fill="none" opacity="0.4" />
+      <path d="M24 28 L34 38" stroke="#AAFFCC" strokeWidth="0.8" fill="none" opacity="0.4" />
+      <path d="M24 28 L10 25" stroke="#FFEE44" strokeWidth="0.8" fill="none" opacity="0.35" />
+      <path d="M24 28 L38 25" stroke="#44DDFF" strokeWidth="0.8" fill="none" opacity="0.35" />
+      {/* tail */}
+      <path d="M32 38 Q40 34 44 26 Q42 24 40 26 Q39 32 34 37 Z" fill="#2A6888" stroke="#44AABB" strokeWidth="0.7" />
+      <Sparkle x={39} y={26} size={2.2} color="#AAEEFF" opacity={0.85} />
+      {/* legs */}
+      <ellipse cx="16" cy="44.5" rx="5.5" ry="2.2" fill="#1A3A4A" />
+      <ellipse cx="32" cy="44.5" rx="5.5" ry="2.2" fill="#1A3A4A" />
+      {/* empress eyes */}
+      <ellipse cx="18" cy="21" rx="4" ry="4.5" fill="#08181E" />
+      <ellipse cx="30" cy="21" rx="4" ry="4.5" fill="#08181E" />
+      <ellipse cx="18" cy="21" rx="2.5" ry="3" fill="#88FFFF" opacity="0.95" />
+      <ellipse cx="30" cy="21" rx="2.5" ry="3" fill="#88FFFF" opacity="0.95" />
+      <ellipse cx="17.5" cy="19.8" rx="1" ry="1" fill="#FFFFFF" opacity="0.9" />
+      <ellipse cx="29.5" cy="19.8" rx="1" ry="1" fill="#FFFFFF" opacity="0.9" />
+      <ellipse cx="18" cy="21" rx="4.5" ry="5" fill="#88FFFF" opacity="0.2" />
+      <ellipse cx="30" cy="21" rx="4.5" ry="5" fill="#88FFFF" opacity="0.2" />
+      <path d="M21 29 L27 29" stroke="#44AABB" strokeWidth="2" fill="none" strokeLinecap="round" />
+    </SpriteFrame>
+  );
+}
+
 // ─── ANCIENT LINE ────────────────────────────────────────────────────────────
 
 export function FossiltSprite({ w = 64, flipped = false }) {
@@ -1890,15 +3535,271 @@ export const CATCH_MON_LINES = [
       { id: "titanwrex", name: "TITANWREX", Sprite: TitanwrexSprite, type: "ANCIENT", typeClr: "#EED8B8", color: "#9966FF", glow: "#9966FF", hp: 176, atk: 35, def: 26, evoLv: null, desc: "Ancient rex colossus.\nThe oldest known living creature." },
     ],
   },
+  {
+    lineId: "fairy",
+    type: "FAIRY",
+    typeClr: "#FF88CC",
+    typeBg: "#1A0010",
+    rarity: "common",
+    rarityLabel: "★ Common",
+    rarityClr: "#B9B9B9",
+    eggColor: "#FF88CC",
+    eggEmoji: "🌸",
+    stages: [
+      { id: "pinkpuff", name: "PINKPUFF", Sprite: PinkpuffSprite, type: "FAIRY", typeClr: "#FF88CC", color: "#FF99DD", glow: "#FF88CC", hp: 100, atk: 12, def: 10, evoLv: 12, desc: "Fluffy pink bunny.\nWarm hugs heal all worries." },
+      { id: "floppear", name: "FLOPPEAR", Sprite: FloppearSprite, type: "FAIRY", typeClr: "#FF88CC", color: "#FFAADD", glow: "#FF99CC", hp: 128, atk: 18, def: 16, evoLv: 25, desc: "Flower-crowned rabbit.\nDances in moonlit meadows." },
+      { id: "lunabun", name: "LUNABUN", Sprite: LunabunSprite, type: "FAIRY", typeClr: "#FF88CC", color: "#FFBBEE", glow: "#FFB3DD", hp: 160, atk: 25, def: 22, evoLv: null, desc: "Moon-horn rabbit queen.\nRules the night with grace." },
+    ],
+  },
+  {
+    lineId: "ghost",
+    type: "GHOST",
+    typeClr: "#66DDEE",
+    typeBg: "#000A10",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#44CCDD",
+    eggEmoji: "👻",
+    stages: [
+      { id: "spooka", name: "SPOOKA", Sprite: SpookaSprite, type: "GHOST", typeClr: "#66DDEE", color: "#CCEEEE", glow: "#66DDEE", hp: 98, atk: 15, def: 9, evoLv: 14, desc: "Tiny shy ghost.\nDisappears when you reach out." },
+      { id: "phantlet", name: "PHANTLET", Sprite: PhantletSprite, type: "GHOST", typeClr: "#66DDEE", color: "#AADDEE", glow: "#55CCDD", hp: 124, atk: 22, def: 14, evoLv: 28, desc: "Glowing eyed ghost.\nFloats through walls humming." },
+      { id: "hauntlord", name: "HAUNTLORD", Sprite: HauntlordSprite, type: "GHOST", typeClr: "#66DDEE", color: "#88CCDD", glow: "#44DDFF", hp: 152, atk: 30, def: 20, evoLv: null, desc: "Crowned ghost sovereign.\nRules all haunted places." },
+    ],
+  },
+  {
+    lineId: "sand",
+    type: "SAND",
+    typeClr: "#DDAA55",
+    typeBg: "#140E00",
+    rarity: "common",
+    rarityLabel: "★ Common",
+    rarityClr: "#B9B9B9",
+    eggColor: "#DDAA55",
+    eggEmoji: "🏜️",
+    stages: [
+      { id: "dustkit", name: "DUSTKIT", Sprite: DustkitSprite, type: "SAND", typeClr: "#DDAA55", color: "#EEC88A", glow: "#DDAA55", hp: 100, atk: 11, def: 11, evoLv: 12, desc: "Sand mouse pup.\nCurls its tail in the warmth." },
+      { id: "sandroll", name: "SANDROLL", Sprite: SandrollSprite, type: "SAND", typeClr: "#DDAA55", color: "#C8983C", glow: "#CCAA44", hp: 128, atk: 17, def: 18, evoLv: 25, desc: "Armadillo roller.\nCurls into a ball to escape." },
+      { id: "terradon", name: "TERRADON", Sprite: TerradonSprite, type: "SAND", typeClr: "#DDAA55", color: "#A87830", glow: "#CC8822", hp: 160, atk: 24, def: 26, evoLv: null, desc: "Desert king lizard.\nIts spines store heat all day." },
+    ],
+  },
+  {
+    lineId: "speed",
+    type: "SPEED",
+    typeClr: "#FF8833",
+    typeBg: "#1A0A00",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#FF7722",
+    eggEmoji: "💨",
+    stages: [
+      { id: "dashpup", name: "DASHPUP", Sprite: DashpupSprite, type: "SPEED", typeClr: "#FF8833", color: "#FF9944", glow: "#FF8833", hp: 98, atk: 15, def: 9, evoLv: 14, desc: "Speedy orange fox pup.\nLeaves wind streaks behind." },
+      { id: "zoomfox", name: "ZOOMFOX", Sprite: ZoomfoxSprite, type: "SPEED", typeClr: "#FF8833", color: "#EE6611", glow: "#FF7722", hp: 124, atk: 23, def: 14, evoLv: 28, desc: "Speed-line fox teen.\nIts fur blurs at full sprint." },
+      { id: "blazedash", name: "BLAZEDASH", Sprite: BlazedashSprite, type: "SPEED", typeClr: "#FF8833", color: "#CC4400", glow: "#FF8844", hp: 152, atk: 31, def: 20, evoLv: null, desc: "Afterimage fox racer.\nBreaks sound barriers mid-run." },
+    ],
+  },
+  {
+    lineId: "cosmic",
+    type: "COSMIC",
+    typeClr: "#AA66FF",
+    typeBg: "#0A0018",
+    rarity: "superrare",
+    rarityLabel: "★★★ Super Rare",
+    rarityClr: "#FF7DFF",
+    eggColor: "#8833FF",
+    eggEmoji: "🌌",
+    stages: [
+      { id: "voidpup", name: "VOIDPUP", Sprite: VoidpupSprite, type: "COSMIC", typeClr: "#AA66FF", color: "#9966CC", glow: "#AA66FF", hp: 106, atk: 16, def: 11, evoLv: 16, desc: "Alien blob pup.\nCuriously pokes at everything." },
+      { id: "nebulark", name: "NEBULARK", Sprite: NebularkSprite, type: "COSMIC", typeClr: "#AA66FF", color: "#6644BB", glow: "#BB77FF", hp: 134, atk: 24, def: 17, evoLv: 30, desc: "Galaxy pattern alien.\nSees with all its tiny eyes." },
+      { id: "cosmodrake", name: "COSMODRAKE", Sprite: CosmodrakeSprite, type: "COSMIC", typeClr: "#AA66FF", color: "#3311AA", glow: "#9966FF", hp: 164, atk: 32, def: 23, evoLv: null, desc: "Cosmic star dragon.\nIts body maps the universe." },
+    ],
+  },
+  {
+    lineId: "dream",
+    type: "DREAM",
+    typeClr: "#C8A0FF",
+    typeBg: "#100820",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#AA88EE",
+    eggEmoji: "💤",
+    stages: [
+      { id: "drowzee", name: "DROWZEE", Sprite: DrowzeeSprite, type: "DREAM", typeClr: "#C8A0FF", color: "#D8C8F8", glow: "#C8A0FF", hp: 98, atk: 14, def: 11, evoLv: 14, desc: "Sleepy cloud puff.\nAlways dreaming of sweet things." },
+      { id: "slumbear", name: "SLUMBEAR", Sprite: SlumbearSprite, type: "DREAM", typeClr: "#C8A0FF", color: "#C8B8F0", glow: "#BB99EE", hp: 124, atk: 21, def: 16, evoLv: 28, desc: "Dream cloud bear.\nZzz floats where it sleeps." },
+      { id: "dreamon", name: "DREAMON", Sprite: DreamonSprite, type: "DREAM", typeClr: "#C8A0FF", color: "#8866CC", glow: "#CC99FF", hp: 152, atk: 29, def: 22, evoLv: null, desc: "Celestial dream guardian.\nProtects all sleeping minds." },
+    ],
+  },
+  {
+    lineId: "dino",
+    type: "DINO",
+    typeClr: "#44BB33",
+    typeBg: "#001A00",
+    rarity: "common",
+    rarityLabel: "★ Common",
+    rarityClr: "#B9B9B9",
+    eggColor: "#44BB33",
+    eggEmoji: "🦕",
+    stages: [
+      { id: "dinkit", name: "DINKIT", Sprite: DinkitSprite, type: "DINO", typeClr: "#44BB33", color: "#77CC55", glow: "#44BB33", hp: 100, atk: 12, def: 10, evoLv: 12, desc: "Baby dino hatchling.\nStubby arms, huge appetite." },
+      { id: "roarex", name: "ROAREX", Sprite: RoarexSprite, type: "DINO", typeClr: "#44BB33", color: "#3A9930", glow: "#55CC44", hp: 128, atk: 18, def: 16, evoLv: 25, desc: "Teen dino with wings.\nRoar echoes through valleys." },
+      { id: "terrex", name: "TERREX", Sprite: TerrexSprite, type: "DINO", typeClr: "#44BB33", color: "#2A7722", glow: "#44AA22", hp: 160, atk: 25, def: 22, evoLv: null, desc: "Dino apex predator.\nSpine fins radiate power." },
+    ],
+  },
+  {
+    lineId: "angel",
+    type: "ANGEL",
+    typeClr: "#FFE066",
+    typeBg: "#1A1600",
+    rarity: "superrare",
+    rarityLabel: "★★★ Super Rare",
+    rarityClr: "#FF7DFF",
+    eggColor: "#FFFFFF",
+    eggEmoji: "😇",
+    stages: [
+      { id: "halowing", name: "HALOWING", Sprite: HalowingSprite, type: "ANGEL", typeClr: "#FFE066", color: "#F0F0FF", glow: "#FFD700", hp: 106, atk: 15, def: 13, evoLv: 16, desc: "Baby angel bird.\nHalo glows gold in sunlight." },
+      { id: "wingard", name: "WINGARD", Sprite: WingardSprite, type: "ANGEL", typeClr: "#FFE066", color: "#E8E8FF", glow: "#FFEE88", hp: 134, atk: 22, def: 19, evoLv: 30, desc: "Guardian angel bird.\nWings carry warmth and hope." },
+      { id: "seraphon", name: "SERAPHON", Sprite: SeraphonSprite, type: "ANGEL", typeClr: "#FFE066", color: "#D8D8FF", glow: "#FFD700", hp: 164, atk: 30, def: 26, evoLv: null, desc: "Six-winged seraph.\nIts halo lights the whole sky." },
+    ],
+  },
+  {
+    lineId: "candy",
+    type: "CANDY",
+    typeClr: "#FF66AA",
+    typeBg: "#1A000E",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#FF66AA",
+    eggEmoji: "🍬",
+    stages: [
+      { id: "sweetlet", name: "SWEETLET", Sprite: SweetletSprite, type: "CANDY", typeClr: "#FF66AA", color: "#FF99CC", glow: "#FF66AA", hp: 98, atk: 14, def: 11, evoLv: 14, desc: "Sweet candy blob.\nLeaves a sugary trail behind." },
+      { id: "sugarpaw", name: "SUGARPAW", Sprite: SugarpawSprite, type: "CANDY", typeClr: "#FF66AA", color: "#FFAADD", glow: "#FF88BB", hp: 124, atk: 21, def: 16, evoLv: 28, desc: "Candy cat with lollipop.\nPurrs in rainbow flavors." },
+      { id: "candrix", name: "CANDRIX", Sprite: CandrixSprite, type: "CANDY", typeClr: "#FF66AA", color: "#CC2277", glow: "#FF55AA", hp: 152, atk: 29, def: 22, evoLv: null, desc: "Rainbow candy dragon.\nScales taste like every flavor." },
+    ],
+  },
+  {
+    lineId: "music",
+    type: "MUSIC",
+    typeClr: "#7799FF",
+    typeBg: "#000A1A",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#5577DD",
+    eggEmoji: "🎵",
+    stages: [
+      { id: "lyrito", name: "LYRITO", Sprite: LyritoSprite, type: "MUSIC", typeClr: "#7799FF", color: "#5588FF", glow: "#7799FF", hp: 98, atk: 15, def: 9, evoLv: 14, desc: "Note-shaped creature.\nSings one pure tone always." },
+      { id: "melodew", name: "MELODEW", Sprite: MelodewSprite, type: "MUSIC", typeClr: "#7799FF", color: "#3355BB", glow: "#6688EE", hp: 124, atk: 22, def: 14, evoLv: 28, desc: "Musical note bird.\nWings beat in perfect rhythm." },
+      { id: "symphox", name: "SYMPHOX", Sprite: SymphoxSprite, type: "MUSIC", typeClr: "#7799FF", color: "#2244AA", glow: "#AACCFF", hp: 152, atk: 30, def: 20, evoLv: null, desc: "Sound wave fox-bird.\nMane resonates with all music." },
+    ],
+  },
+  {
+    lineId: "dark",
+    type: "DARK",
+    typeClr: "#AAAAFF",
+    typeBg: "#030310",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#444488",
+    eggEmoji: "🌑",
+    stages: [
+      { id: "shadaowolf", name: "SHADAOWOLF", Sprite: ShadaowolfSprite, type: "DARK", typeClr: "#AAAAFF", color: "#2A2A3A", glow: "#AAAAFF", hp: 98, atk: 15, def: 9, evoLv: 14, desc: "Shadow wolf pup.\nSilver eyes peer from the dark." },
+      { id: "nightfang", name: "NIGHTFANG", Sprite: NightfangSprite, type: "DARK", typeClr: "#AAAAFF", color: "#22223A", glow: "#9999EE", hp: 124, atk: 22, def: 14, evoLv: 28, desc: "Star-pattern wolf teen.\nConstellations dot its fur." },
+      { id: "voidhowl", name: "VOIDHOWL", Sprite: VoidhowlSprite, type: "DARK", typeClr: "#AAAAFF", color: "#18183A", glow: "#CCCCFF", hp: 152, atk: 30, def: 20, evoLv: null, desc: "Void wolf sovereign.\nHowls silence the cosmos." },
+    ],
+  },
+  {
+    lineId: "mech",
+    type: "MECH",
+    typeClr: "#00FFCC",
+    typeBg: "#001A14",
+    rarity: "rare",
+    rarityLabel: "★★ Rare",
+    rarityClr: "#63C0FF",
+    eggColor: "#00CCAA",
+    eggEmoji: "🤖",
+    stages: [
+      { id: "boltchick", name: "BOLTCHICK", Sprite: BoltchickSprite, type: "MECH", typeClr: "#00FFCC", color: "#8899AA", glow: "#00FFCC", hp: 98, atk: 14, def: 12, evoLv: 14, desc: "Robot bird hatchling.\nLED eyes blink in morse code." },
+      { id: "gearbot", name: "GEARBOT", Sprite: GearbotSprite, type: "MECH", typeClr: "#00FFCC", color: "#667788", glow: "#00DDAA", hp: 124, atk: 21, def: 18, evoLv: 28, desc: "Gear-chest robot.\nChest core spins with power." },
+      { id: "titanmech", name: "TITANMECH", Sprite: TitanmechSprite, type: "MECH", typeClr: "#00FFCC", color: "#445566", glow: "#00FFCC", hp: 152, atk: 29, def: 24, evoLv: null, desc: "Mega mech warrior.\nJet boots breach the sky." },
+    ],
+  },
+  {
+    lineId: "coral",
+    type: "CORAL",
+    typeClr: "#FF8855",
+    typeBg: "#1A0800",
+    rarity: "common",
+    rarityLabel: "★ Common",
+    rarityClr: "#B9B9B9",
+    eggColor: "#FF7744",
+    eggEmoji: "🪸",
+    stages: [
+      { id: "spiklet", name: "SPIKLET", Sprite: SpikletSprite, type: "CORAL", typeClr: "#FF8855", color: "#FFAA66", glow: "#FF8855", hp: 100, atk: 11, def: 11, evoLv: 12, desc: "Spiny sea urchin.\nSpines glow orange underwater." },
+      { id: "starfish", name: "STARFISH", Sprite: StarfishSprite, type: "CORAL", typeClr: "#FF8855", color: "#FF7733", glow: "#FF9944", hp: 128, atk: 17, def: 17, evoLv: 25, desc: "Star creature.\nEach tip senses ocean currents." },
+      { id: "reefqueen", name: "REEFQUEEN", Sprite: ReefqueenSprite, type: "CORAL", typeClr: "#FF8855", color: "#CC3366", glow: "#FF5588", hp: 160, atk: 24, def: 23, evoLv: null, desc: "Coral dragon queen.\nAnemone mane feeds the reef." },
+    ],
+  },
+  {
+    lineId: "cloud",
+    type: "CLOUD",
+    typeClr: "#AACCFF",
+    typeBg: "#080E18",
+    rarity: "common",
+    rarityLabel: "★ Common",
+    rarityClr: "#B9B9B9",
+    eggColor: "#AACCFF",
+    eggEmoji: "☁️",
+    stages: [
+      { id: "pufflet", name: "PUFFLET", Sprite: PuffletSprite, type: "CLOUD", typeClr: "#AACCFF", color: "#EEF4FF", glow: "#AACCFF", hp: 100, atk: 10, def: 13, evoLv: 12, desc: "Tiny cloud puff.\nDrifts on the gentlest breeze." },
+      { id: "nimbus", name: "NIMBUS", Sprite: NimbusSprite, type: "CLOUD", typeClr: "#AACCFF", color: "#C8D8F8", glow: "#99BBEE", hp: 128, atk: 16, def: 19, evoLv: 25, desc: "Storm cloud with bolts.\nLightning ears crackle in drizzle." },
+      { id: "stormcloud", name: "STORMCLOUD", Sprite: StormcloudSprite, type: "CLOUD", typeClr: "#AACCFF", color: "#8899BB", glow: "#FFDD33", hp: 160, atk: 22, def: 26, evoLv: null, desc: "Thunder cloud titan.\nLightning crown rules the skies." },
+    ],
+  },
+  {
+    lineId: "lava2",
+    type: "LAVA2",
+    typeClr: "#FF3300",
+    typeBg: "#1A0200",
+    rarity: "superrare",
+    rarityLabel: "★★★ Super Rare",
+    rarityClr: "#FF7DFF",
+    eggColor: "#CC1100",
+    eggEmoji: "🌋",
+    stages: [
+      { id: "magpup", name: "MAGPUP", Sprite: MagpupSprite, type: "LAVA2", typeClr: "#FF3300", color: "#AA2200", glow: "#FF4400", hp: 106, atk: 16, def: 10, evoLv: 16, desc: "Magma puppy.\nPaws leave lava prints on stone." },
+      { id: "moltenk9", name: "MOLTENK9", Sprite: Moltenk9Sprite, type: "LAVA2", typeClr: "#FF3300", color: "#661100", glow: "#FF3300", hp: 134, atk: 24, def: 16, evoLv: 30, desc: "Magma wolf with armor.\nLava seeps from its joints." },
+      { id: "volcanovex", name: "VOLCANOVEX", Sprite: VolcanovexSprite, type: "LAVA2", typeClr: "#FF3300", color: "#440800", glow: "#FF2200", hp: 164, atk: 32, def: 22, evoLv: null, desc: "Volcano overlord dragon.\nEruption mane burns forever." },
+    ],
+  },
+  {
+    lineId: "crystal2",
+    type: "CRYSTAL2",
+    typeClr: "#88FFFF",
+    typeBg: "#001818",
+    rarity: "legendary",
+    rarityLabel: "★★★★ Legendary",
+    rarityClr: "#FFD700",
+    eggColor: "#44EEFF",
+    eggEmoji: "💎",
+    stages: [
+      { id: "gemkit", name: "GEMKIT", Sprite: GemkitSprite, type: "CRYSTAL2", typeClr: "#88FFFF", color: "#AAEEFF", glow: "#88FFFF", hp: 110, atk: 18, def: 13, evoLv: 20, desc: "Crystal seed creature.\nRefracts light into tiny rainbows." },
+      { id: "prismark", name: "PRISMARK", Sprite: PrismarkSprite, type: "CRYSTAL2", typeClr: "#88FFFF", color: "#55AABB", glow: "#88EEFF", hp: 142, atk: 26, def: 20, evoLv: 35, desc: "Crystal prism golem.\nBody bends light into power." },
+      { id: "diamondra", name: "DIAMONDRA", Sprite: DiamondraSprite, type: "CRYSTAL2", typeClr: "#88FFFF", color: "#2A6888", glow: "#88FFFF", hp: 175, atk: 35, def: 27, evoLv: null, desc: "Crystal dragon empress.\nRainbow light pours from within." },
+    ],
+  },
 ];
 
 export const ALL_CATCH_IDS = CATCH_MON_LINES.flatMap((line) => line.stages.map((stage) => stage.id));
 
 export const EGG_DROP = {
-  common: ["flame", "wave", "leaf", "ice", "rock", "wind"],
-  rare: ["bolt", "wind", "toxic", "metal", "flame", "wave"],
-  superrare: ["shadow", "psychic", "crystal", "dragon", "nature"],
-  legendary: ["star", "lava", "ancient"],
+  common: ["flame", "wave", "leaf", "ice", "rock", "wind", "fairy", "sand", "dino", "coral", "cloud"],
+  rare: ["bolt", "wind", "toxic", "metal", "flame", "wave", "ghost", "speed", "dream", "candy", "music", "dark", "mech"],
+  superrare: ["shadow", "psychic", "crystal", "dragon", "nature", "cosmic", "angel", "lava2"],
+  legendary: ["star", "lava", "ancient", "crystal2"],
 };
 
 export const PARTNER_UNLOCK_STARS = {
@@ -1907,18 +3808,34 @@ export const PARTNER_UNLOCK_STARS = {
   leaf: 0,
   ice: 0,
   rock: 0,
+  fairy: 0,
+  sand: 0,
+  dino: 0,
+  coral: 0,
+  cloud: 0,
   wind: 8,
   bolt: 8,
   toxic: 8,
+  ghost: 8,
+  speed: 10,
+  dream: 10,
+  candy: 12,
+  music: 12,
+  dark: 12,
+  mech: 14,
   metal: 12,
   psychic: 16,
   shadow: 16,
+  angel: 18,
   crystal: 20,
+  cosmic: 20,
   dragon: 24,
   nature: 24,
+  lava2: 28,
   star: 30,
   lava: 36,
   ancient: 40,
+  crystal2: 44,
 };
 
 export function getCatchLineById(lineId) {
