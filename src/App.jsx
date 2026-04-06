@@ -1448,9 +1448,9 @@ export default function VocabMon() {
   function isDifficultyUnlocked(uid, stg, diff) {
     if (isMaster) return true;
     if (diff === "easy") return true;
-    if (diff === "normal") return getUnitStars(uid, stg, "easy") >= 3;
-    if (diff === "hard")   return getUnitStars(uid, stg, "normal") >= 3;
-    if (diff === "hell")   return getUnitStars(uid, stg, "hard") >= 3;
+    if (diff === "normal") return getUnitStars(uid, stg, "easy") >= 1;
+    if (diff === "hard")   return getUnitStars(uid, stg, "normal") >= 1;
+    if (diff === "hell")   return getUnitStars(uid, stg, "hard") >= 1;
     return false;
   }
 
@@ -2520,11 +2520,13 @@ export default function VocabMon() {
                 <div key={stg}
                   data-testid={`unit-stage-${stg}`}
                   className="card-btn"
+                  onClick={()=>!locked&&setShowDiffModal({uid,stg,subIdx:0})}
                   style={{
                     borderRadius:12,padding:"clamp(10px,2.2vh,14px)",
                     background:locked?"#0E0C1A":`linear-gradient(135deg,#14121E,${color}18)`,
                     border:`2px solid ${locked?"#1A1828":stars>0?color+"55":"var(--rim)"}`,
                     opacity:locked?.4:1,
+                    cursor:locked?"not-allowed":"pointer",
                     boxShadow:locked?"none":"0 3px 0 rgba(0,0,0,.5)",
                   }}>
                   <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:locked?0:8}}>
@@ -2551,7 +2553,7 @@ export default function VocabMon() {
                         const done=isSubDone(si);
                         return (
                           <button key={si}
-                            onClick={()=>unlk&&setShowDiffModal({uid,stg,subIdx:si})}
+                            onClick={e=>{e.stopPropagation();unlk&&setShowDiffModal({uid,stg,subIdx:si});}}
                             style={{
                               fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",
                               padding:"4px 8px",borderRadius:7,border:`1px solid ${done?color+"88":unlk?"#3A3050":"#1A1828"}`,
@@ -2569,7 +2571,7 @@ export default function VocabMon() {
                         const done=isSubDone(4);
                         return (
                           <button
-                            onClick={()=>unlk&&setShowDiffModal({uid,stg,subIdx:4})}
+                            onClick={e=>{e.stopPropagation();unlk&&setShowDiffModal({uid,stg,subIdx:4});}}
                             style={{
                               fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",
                               padding:"4px 8px",borderRadius:7,border:`1px solid ${done?"#F5C84288":unlk?"#4A3820":"#1A1828"}`,
