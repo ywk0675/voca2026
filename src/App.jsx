@@ -1442,7 +1442,10 @@ export default function VocabMon() {
     );
   };
 
+  const isMaster = player?.name?.toLowerCase() === "master";
+
   function isDifficultyUnlocked(uid, stg, diff) {
+    if (isMaster) return true;
     if (diff === "easy") return true;
     if (diff === "normal") return getUnitStars(uid, stg, "easy") >= 3;
     if (diff === "hard")   return getUnitStars(uid, stg, "normal") >= 3;
@@ -2415,7 +2418,7 @@ export default function VocabMon() {
           {[...Array(bookInfo?.units||12)].map((_,i)=>{
             const uid=i+1;
             const u=getUnitInfo(curBook||"ww5", uid);
-            const ok=uid===1||Object.keys(unitStars).some(k=>
+            const ok=isMaster||uid===1||Object.keys(unitStars).some(k=>
               k.startsWith(`${curBook||"ww5"}_${uid-1}_`)&&unitStars[k]>=1
             );
             const bestStars=Math.max(0,...[0,1,2].flatMap(s=>DIFFICULTY_MODES.map(m=>getUnitStars(uid,s,m.key))));
@@ -2496,10 +2499,11 @@ export default function VocabMon() {
           <div style={{width:"100%",maxWidth:400,display:"flex",flexDirection:"column",gap:10}}>
             {STAGE_INFO.map(({stg,label,desc,color,icon,req})=>{
               const stars=getUnitStars(uid,stg);
-              const locked=req&&getUnitStars(uid,req-1)<1;
+              const locked=!isMaster&&req&&getUnitStars(uid,req-1)<1;
               const bk=curBook||"ww5";
               // sub-stage unlock helper
               const isSubUnlocked=(si)=>{
+                if(isMaster) return true;
                 if(si===0) return true;
                 if(si===4){ // boss: needs last regular sub-stage done
                   const lastSi=subStageWords.length-1;

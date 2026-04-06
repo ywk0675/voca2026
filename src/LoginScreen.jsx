@@ -3,10 +3,11 @@ import React, { useState } from "react";
 const CLASS_CODE = "THANKYOUDAVIDT"; // ← 선생님이 원하는 코드로 바꾸세요
 
 export default function LoginScreen({ onLogin }) {
-  const [name, setName]     = useState("");
-  const [code, setCode]     = useState("");
-  const [error, setError]   = useState("");
+  const [name, setName]       = useState("");
+  const [code, setCode]       = useState("");
+  const [error, setError]     = useState("");
   const [loading, setLoading] = useState(false);
+  const [showCode, setShowCode] = useState(false);
 
   async function handleStart() {
     const trimName = name.trim();
@@ -78,21 +79,38 @@ export default function LoginScreen({ onLogin }) {
           <label style={{ color: "#A090CC", fontSize: 13, marginBottom: 6, display: "block" }}>
             반 코드
           </label>
-          <input
-            data-testid="login-code-input"
-            type="text"
-            placeholder="선생님한테 받은 코드"
-            value={code}
-            onChange={e => setCode(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && handleStart()}
-            style={{
-              width: "100%", padding: "12px 14px",
-              borderRadius: 12, border: "2px solid #2E2848",
-              background: "#13102A", color: "#fff",
-              fontSize: 16, outline: "none", letterSpacing: 2,
-              boxSizing: "border-box",
-            }}
-          />
+          <div style={{ position: "relative" }}>
+            <input
+              data-testid="login-code-input"
+              type={showCode ? "text" : "password"}
+              placeholder="선생님한테 받은 코드"
+              value={code}
+              onChange={e => setCode(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleStart()}
+              style={{
+                width: "100%", padding: "12px 44px 12px 14px",
+                borderRadius: 12, border: "2px solid #2E2848",
+                background: "#13102A", color: "#fff",
+                fontSize: 16, outline: "none", letterSpacing: 2,
+                boxSizing: "border-box",
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setShowCode(v => !v)}
+              style={{
+                position: "absolute", right: 12, top: "50%",
+                transform: "translateY(-50%)",
+                background: "none", border: "none",
+                cursor: "pointer", fontSize: 18, padding: 0,
+                color: showCode ? "#A090CC" : "#4A3A60",
+                lineHeight: 1,
+              }}
+              aria-label={showCode ? "코드 숨기기" : "코드 보기"}
+            >
+              {showCode ? "👁️" : "🙈"}
+            </button>
+          </div>
         </div>
 
         {error && (
