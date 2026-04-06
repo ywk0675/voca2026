@@ -3,49 +3,61 @@ import { supabase } from "./supabase.js";
 import { BOOK_SERIES } from "./wordCatalog.js";
 
 export default function TeacherDashboard({ onExit }) {
-  const [rows, setRows]       = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch]   = useState("");
-  const [sortBy, setSortBy]   = useState("updated_at");
-  const [confirm, setConfirm] = useState(null); // { type:"kick"|"ban", row }
-  const [msg, setMsg]         = useState("");
+  const [rows, setRows]         = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [search, setSearch]     = useState("");
+  const [sortBy, setSortBy]     = useState("updated_at");
+  const [selected, setSelected] = useState(new Set()); // 선택된 row id들
+  const [confirm, setConfirm]   = useState(null); // { type, ids, names }
+  const [msg, setMsg]           = useState("");
 
   useEffect(() => { fetchAll(); }, []);
 
   async function fetchAll() {
     setLoading(true);
+    setSelected(new Set());
     if (!supabase) { setLoading(false); return; }
     const { data, error } = await supabase
-      .from("progress")
-      .select("*")
-      .order("updated_at", { ascending: false });
+      .from("progress").select("*").order("updated_at", { ascending: false });
     if (!error && data) setRows(data);
     setLoading(false);
   }
 
-  async function doKick(row) {
+  // ── 단일 액션 ──
+  async function doKick(ids) {
     if (!supabase) return;
-    await supabase.from("progress").delete().eq("id", row.id);
-    setRows(r => r.filter(x => x.id !== row.id));
-    flash(`${row.name} 킥 완료`);
+    await supabase.from("progress").delete().in("id", ids);
+    setRows(r => r.filter(x => !ids.includes(x.id)));
+    setSelected(new Set());
+    flash(`${ids.length}명 킥 완료`);
     setConfirm(null);
   }
 
-  async function doBan(row) {
+  async function doBan(ids) {
     if (!supabase) return;
-    const newData = { ...(row.data || {}), banned: true };
-    await supabase.from("progress").update({ data: newData }).eq("id", row.id);
-    setRows(r => r.map(x => x.id === row.id ? { ...x, data: newData } : x));
-    flash(`${row.name} 밴 완료`);
+    for (const id of ids) {
+      const row = rows.find(r => r.id === id);
+      if (!row) continue;
+      const newData = { ...(row.data || {}), banned: true };
+      await supabase.from("progress").update({ data: newData }).eq("id", id);
+      setRows(r => r.map(x => x.id === id ? { ...x, data: newData } : x));
+    }
+    setSelected(new Set());
+    flash(`${ids.length}명 밴 완료`);
     setConfirm(null);
   }
 
-  async function doUnban(row) {
+  async function doUnban(ids) {
     if (!supabase) return;
-    const newData = { ...(row.data || {}), banned: false };
-    await supabase.from("progress").update({ data: newData }).eq("id", row.id);
-    setRows(r => r.map(x => x.id === row.id ? { ...x, data: newData } : x));
-    flash(`${row.name} 밴 해제`);
+    for (const id of ids) {
+      const row = rows.find(r => r.id === id);
+      if (!row) continue;
+      const newData = { ...(row.data || {}), banned: false };
+      await supabase.from("progress").update({ data: newData }).eq("id", id);
+      setRows(r => r.map(x => x.id === id ? { ...x, data: newData } : x));
+    }
+    setSelected(new Set());
+    flash(`${ids.length}명 밴 해제 완료`);
   }
 
   function flash(text) {
@@ -61,8 +73,7 @@ export default function TeacherDashboard({ onExit }) {
     )].filter(Boolean).length;
     const book = BOOK_SERIES?.find(b => b.id === d.curBook);
     return {
-      totalStars,
-      unitsCompleted,
+      totalStars, unitsCompleted,
       bookName: book ? book.subtitle : d.curBook || "-",
       monLv: d.monLv || 1,
       banned: !!d.banned,
@@ -88,12 +99,30 @@ export default function TeacherDashboard({ onExit }) {
       return 0;
     });
 
+  const allChecked = filtered.length > 0 && filtered.every(r => selected.has(r.id));
+  const someChecked = filtered.some(r => selected.has(r.id));
+
+  function toggleAll() {
+    if (allChecked) setSelected(new Set());
+    else setSelected(new Set(filtered.map(r => r.id)));
+  }
+
+  function toggleOne(id) {
+    setSelected(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  const selRows = filtered.filter(r => selected.has(r.id));
+  const selNames = selRows.map(r => r.name);
+
   return (
     <div style={{
       minHeight: "100dvh",
       background: "linear-gradient(160deg,#0D0A1A 0%,#1A1030 100%)",
-      fontFamily: "'Nunito',sans-serif",
-      color: "#fff",
+      fontFamily: "'Nunito',sans-serif", color: "#fff",
     }}>
       {/* 헤더 */}
       <div style={{
@@ -104,7 +133,7 @@ export default function TeacherDashboard({ onExit }) {
         <div>
           <div style={{ fontSize: 20, fontWeight: 800, color: "#F5C842" }}>📊 관리자 대시보드</div>
           <div style={{ fontSize: 12, color: "#8878AA", marginTop: 2 }}>
-            전체 {rows.length}명 등록 · 밴 {rows.filter(r => r.data?.banned).length}명
+            전체 {rows.length}명 · 밴 {rows.filter(r => r.data?.banned).length}명
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
@@ -118,8 +147,7 @@ export default function TeacherDashboard({ onExit }) {
         <div style={{
           position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)",
           background: "#2A4A2A", border: "1px solid #44CC77", borderRadius: 10,
-          padding: "10px 20px", color: "#44CC77", fontWeight: 700, zIndex: 999,
-          fontSize: 14,
+          padding: "10px 20px", color: "#44CC77", fontWeight: 700, zIndex: 999, fontSize: 14,
         }}>{msg}</div>
       )}
 
@@ -137,11 +165,45 @@ export default function TeacherDashboard({ onExit }) {
         />
         {[["updated_at","최근접속순"],["stars","별점순"],["name","이름순"]].map(([k,l]) => (
           <button key={k} onClick={() => setSortBy(k)}
-            style={btn(sortBy === k ? "#5533AA" : "#2A2448")}>
-            {l}
+            style={btn(sortBy === k ? "#5533AA" : "#2A2448")}>{l}
           </button>
         ))}
       </div>
+
+      {/* 일괄 액션 바 */}
+      {someChecked && (
+        <div style={{
+          margin: "0 20px 12px", padding: "12px 16px",
+          background: "#1E1840", border: "2px solid #5533AA",
+          borderRadius: 12, display: "flex", alignItems: "center",
+          gap: 12, flexWrap: "wrap",
+        }}>
+          <span style={{ fontWeight: 700, color: "#C0A8FF", fontSize: 14 }}>
+            {selected.size}명 선택됨
+          </span>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              onClick={() => setConfirm({ type: "ban", ids: [...selected], names: selNames })}
+              style={actionBtn("#2A1400","#FF9933")}>
+              🚫 선택 밴
+            </button>
+            <button
+              onClick={() => doUnban([...selected])}
+              style={actionBtn("#1A3A1A","#44CC77")}>
+              ✅ 선택 밴해제
+            </button>
+            <button
+              onClick={() => setConfirm({ type: "kick", ids: [...selected], names: selNames })}
+              style={actionBtn("#3A0808","#FF4444")}>
+              👢 선택 킥
+            </button>
+          </div>
+          <button onClick={() => setSelected(new Set())}
+            style={{ marginLeft: "auto", ...actionBtn("#2A2448","#8878AA") }}>
+            선택 해제
+          </button>
+        </div>
+      )}
 
       {/* Supabase 미연결 안내 */}
       {!supabase && (
@@ -162,21 +224,28 @@ export default function TeacherDashboard({ onExit }) {
           <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 14, minWidth: 600 }}>
             <thead>
               <tr style={{ background: "#1C182E" }}>
+                <th style={{ ...thStyle, width: 40 }}>
+                  <input type="checkbox" checked={allChecked} onChange={toggleAll}
+                    style={{ cursor: "pointer", width: 16, height: 16, accentColor: "#7744FF" }} />
+                </th>
                 {["이름","교재","유닛","별점","Lv","마지막 접속","상태","액션"].map(h => (
-                  <th key={h} style={{
-                    padding: "12px 12px", textAlign: "left", color: "#A090CC",
-                    fontWeight: 700, borderBottom: "2px solid #2E2848", whiteSpace: "nowrap",
-                  }}>{h}</th>
+                  <th key={h} style={thStyle}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {filtered.map((row, i) => {
                 const s = getStats(row.data);
+                const isSelected = selected.has(row.id);
                 return (
                   <tr key={row.id} style={{
-                    background: s.banned ? "#1A0A0A" : i % 2 === 0 ? "#13102A" : "#16132E",
+                    background: isSelected ? "#1E1840" : s.banned ? "#1A0A0A" : i % 2 === 0 ? "#13102A" : "#16132E",
+                    outline: isSelected ? "1px solid #5533AA" : "none",
                   }}>
+                    <td style={{ ...td, textAlign: "center" }}>
+                      <input type="checkbox" checked={isSelected} onChange={() => toggleOne(row.id)}
+                        style={{ cursor: "pointer", width: 16, height: 16, accentColor: "#7744FF" }} />
+                    </td>
                     <td style={td}>
                       <span style={{ fontWeight: 700, color: s.banned ? "#FF6666" : "#E0D0FF" }}>
                         {s.banned ? "🚫 " : ""}{row.name}
@@ -199,19 +268,15 @@ export default function TeacherDashboard({ onExit }) {
                     </td>
                     <td style={{ ...td, whiteSpace: "nowrap" }}>
                       {s.banned ? (
-                        <button onClick={() => doUnban(row)} style={actionBtn("#1A3A1A","#44CC77")}>
+                        <button onClick={() => doUnban([row.id])} style={actionBtn("#1A3A1A","#44CC77")}>
                           밴 해제
                         </button>
                       ) : (
                         <>
-                          <button onClick={() => setConfirm({ type: "ban", row })}
-                            style={actionBtn("#2A1A0A","#FF9933")}>
-                            밴
-                          </button>
-                          <button onClick={() => setConfirm({ type: "kick", row })}
-                            style={{ ...actionBtn("#2A0A0A","#FF4444"), marginLeft: 6 }}>
-                            킥
-                          </button>
+                          <button onClick={() => setConfirm({ type:"ban", ids:[row.id], names:[row.name] })}
+                            style={actionBtn("#2A1A0A","#FF9933")}>밴</button>
+                          <button onClick={() => setConfirm({ type:"kick", ids:[row.id], names:[row.name] })}
+                            style={{ ...actionBtn("#2A0A0A","#FF4444"), marginLeft: 6 }}>킥</button>
                         </>
                       )}
                     </td>
@@ -231,7 +296,7 @@ export default function TeacherDashboard({ onExit }) {
         }} onClick={() => setConfirm(null)}>
           <div onClick={e => e.stopPropagation()} style={{
             background: "#1A1630", border: "2px solid #3A2A50",
-            borderRadius: 16, padding: 28, maxWidth: 320, width: "100%", textAlign: "center",
+            borderRadius: 16, padding: 28, maxWidth: 360, width: "100%", textAlign: "center",
           }}>
             <div style={{ fontSize: 40, marginBottom: 12 }}>
               {confirm.type === "kick" ? "👢" : "🚫"}
@@ -239,22 +304,37 @@ export default function TeacherDashboard({ onExit }) {
             <div style={{ fontWeight: 800, fontSize: 18, marginBottom: 8 }}>
               {confirm.type === "kick" ? "킥 확인" : "밴 확인"}
             </div>
+            {/* 선택된 이름 목록 */}
+            <div style={{
+              background: "#12101E", borderRadius: 10, padding: "10px 14px",
+              marginBottom: 14, maxHeight: 120, overflowY: "auto", textAlign: "left",
+            }}>
+              {confirm.names.map(n => (
+                <div key={n} style={{ color: "#F5C842", fontSize: 13, padding: "2px 0" }}>• {n}</div>
+              ))}
+            </div>
             <div style={{ color: "#A090CC", fontSize: 14, marginBottom: 20, lineHeight: 1.6 }}>
-              <strong style={{ color: "#F5C842" }}>{confirm.row.name}</strong>을(를){" "}
+              {confirm.ids.length}명을{" "}
               {confirm.type === "kick"
                 ? "킥하면 모든 진행 데이터가 삭제됩니다."
                 : "밴하면 로그인이 차단됩니다. 언제든 해제 가능합니다."}
             </div>
             <div style={{ display: "flex", gap: 10 }}>
               <button onClick={() => setConfirm(null)}
-                style={{ flex: 1, ...actionBtn("#2A2448","#8878AA") }}>
+                style={{ flex: 1, padding: "12px", borderRadius: 10, border: "none",
+                  background: "#2A2448", color: "#8878AA", cursor: "pointer", fontWeight: 700 }}>
                 취소
               </button>
               <button
-                onClick={() => confirm.type === "kick" ? doKick(confirm.row) : doBan(confirm.row)}
-                style={{ flex: 1, ...actionBtn(confirm.type === "kick" ? "#3A0808" : "#2A1400",
-                  confirm.type === "kick" ? "#FF4444" : "#FF9933") }}>
-                {confirm.type === "kick" ? "킥" : "밴"}
+                onClick={() => confirm.type === "kick" ? doKick(confirm.ids) : doBan(confirm.ids)}
+                style={{ flex: 1, padding: "12px", borderRadius: 10, border: "none", fontWeight: 700,
+                  cursor: "pointer", color: "#fff",
+                  background: confirm.type === "kick"
+                    ? "linear-gradient(135deg,#881010,#CC2222)"
+                    : "linear-gradient(135deg,#7A4000,#CC6600)",
+                  boxShadow: confirm.type === "kick" ? "0 4px 0 #440000" : "0 4px 0 #3A2000",
+                }}>
+                {confirm.type === "kick" ? "👢 킥" : "🚫 밴"}
               </button>
             </div>
           </div>
@@ -265,6 +345,10 @@ export default function TeacherDashboard({ onExit }) {
 }
 
 const td = { padding: "11px 12px", borderBottom: "1px solid #1E1A30" };
+const thStyle = {
+  padding: "12px 12px", textAlign: "left", color: "#A090CC",
+  fontWeight: 700, borderBottom: "2px solid #2E2848", whiteSpace: "nowrap",
+};
 function btn(bg) {
   return {
     padding: "8px 14px", borderRadius: 10, border: "none",
