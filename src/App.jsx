@@ -1491,7 +1491,7 @@ export default function VocabMon() {
     setPHp(effMon.hp); setEHp(words.length);
     setWrongCount(0); setCorrectCount(0);
     const stgLabel=["EXPLORE","RECALL","MASTER"][stg];
-    const subLabel = subIdx === 4 ? "👑 BOSS" : `Part ${subIdx+1}`;
+    const subLabel = subIdx === 4 ? "👑 BOSS" : `Stage ${subIdx+1}`;
     setLog([
       `A wild ${enemy.name} appeared!`,
       `${stgLabel} · ${subLabel}`,
@@ -2497,67 +2497,96 @@ export default function VocabMon() {
             {STAGE_INFO.map(({stg,label,desc,color,icon,req})=>{
               const stars=getUnitStars(uid,stg);
               const locked=req&&getUnitStars(uid,req-1)<1;
+              const bk=curBook||"ww5";
+              // sub-stage unlock helper
+              const isSubUnlocked=(si)=>{
+                if(si===0) return true;
+                if(si===4){ // boss: needs last regular sub-stage done
+                  const lastSi=subStageWords.length-1;
+                  return DIFFICULTY_MODES.some(m=>(unitStars[`${bk}_${uid}_${stg}_s${lastSi}_${m.key}`]||0)>=1);
+                }
+                return DIFFICULTY_MODES.some(m=>(unitStars[`${bk}_${uid}_${stg}_s${si-1}_${m.key}`]||0)>=1);
+              };
+              const isSubDone=(si)=>{
+                const subKey=si===4?"boss":`s${si}`;
+                return DIFFICULTY_MODES.some(m=>(unitStars[`${bk}_${uid}_${stg}_${subKey}_${m.key}`]||0)>=1);
+              };
               return (
                 <div key={stg}
                   data-testid={`unit-stage-${stg}`}
-                  role="button"
-                  tabIndex={locked ? -1 : 0}
-                  aria-disabled={locked}
-                  aria-label={`${label}${locked?" (잠김)":""}`}
-                  onClick={()=>!locked&&setShowDiffModal({uid,stg})}
-                  onKeyDown={e=>{if(!locked&&(e.key==="Enter"||e.key===" ")){e.preventDefault();setShowDiffModal({uid,stg});}}}
                   className="card-btn"
                   style={{
-                    borderRadius:12,padding:"clamp(12px,2.5vh,16px)",
+                    borderRadius:12,padding:"clamp(10px,2.2vh,14px)",
                     background:locked?"#0E0C1A":`linear-gradient(135deg,#14121E,${color}18)`,
                     border:`2px solid ${locked?"#1A1828":stars>0?color+"55":"var(--rim)"}`,
-                    cursor:locked?"not-allowed":"pointer",opacity:locked ? .4 : 1,
-                    display:"flex",alignItems:"center",gap:12,
+                    opacity:locked?.4:1,
                     boxShadow:locked?"none":"0 3px 0 rgba(0,0,0,.5)",
                   }}>
-                  <div style={{fontSize:"clamp(24px,5.5vmin,32px)",flexShrink:0}}>{locked?"🔒":icon}</div>
-                  <div style={{flex:1}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-                      <span style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:locked?"#444":color}}>{label}</span>
-                      <Stars count={stars} size="sm"/>
+                  <div style={{display:"flex",alignItems:"center",gap:12,marginBottom:locked?0:8}}>
+                    <div style={{fontSize:"clamp(22px,5vmin,28px)",flexShrink:0}}>{locked?"🔒":icon}</div>
+                    <div style={{flex:1}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+                        <span style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:locked?"#444":color}}>{label}</span>
+                        <Stars count={stars} size="sm"/>
+                      </div>
+                      <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888"}}>{desc}</div>
+                      <div style={{display:"flex",gap:6,marginTop:4,flexWrap:"wrap"}}>
+                        {DIFFICULTY_MODES.map(m=>{
+                          const ds=getUnitStars(uid,stg,m.key);
+                          if(!isDifficultyUnlocked(uid,stg,m.key)&&ds===0) return null;
+                          return <span key={m.key} style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.4vmin,8px)",color:m.color}}>{m.icon}{ds}★</span>;
+                        })}
+                      </div>
                     </div>
-                    <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888"}}>{desc}</div>
-                    <div style={{display:"flex",gap:6,marginTop:6,flexWrap:"wrap"}}>
-                      {DIFFICULTY_MODES.map(m=>{
-                        const ds = getUnitStars(uid, stg, m.key);
-                        if (!isDifficultyUnlocked(uid, stg, m.key) && ds === 0) return null;
+                  </div>
+                  {!locked&&(
+                    <div style={{display:"flex",gap:4,flexWrap:"wrap"}}>
+                      {subStageWords.map((_,si)=>{
+                        const unlk=isSubUnlocked(si);
+                        const done=isSubDone(si);
                         return (
-                          <span key={m.key} style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.4vmin,8px)",color:m.color}}>
-                            {m.icon}{ds}★
-                          </span>
+                          <button key={si}
+                            onClick={()=>unlk&&setShowDiffModal({uid,stg,subIdx:si})}
+                            style={{
+                              fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",
+                              padding:"4px 8px",borderRadius:7,border:`1px solid ${done?color+"88":unlk?"#3A3050":"#1A1828"}`,
+                              background:done?`${color}22`:unlk?"#1A1830":"#0E0C18",
+                              color:done?color:unlk?"#9080B0":"#3A3050",
+                              cursor:unlk?"pointer":"not-allowed",
+                            }}>
+                            {done?"✓ ":""}S{si+1}
+                          </button>
                         );
                       })}
+                      {/* Boss button */}
+                      {(()=>{
+                        const unlk=isSubUnlocked(4);
+                        const done=isSubDone(4);
+                        return (
+                          <button
+                            onClick={()=>unlk&&setShowDiffModal({uid,stg,subIdx:4})}
+                            style={{
+                              fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",
+                              padding:"4px 8px",borderRadius:7,border:`1px solid ${done?"#F5C84288":unlk?"#4A3820":"#1A1828"}`,
+                              background:done?"#F5C84222":unlk?"#1E1810":"#0E0C18",
+                              color:done?"#F5C842":unlk?"#AA8833":"#3A3050",
+                              cursor:unlk?"pointer":"not-allowed",
+                            }}>
+                            {done?"✓ ":""}👑Boss
+                          </button>
+                        );
+                      })()}
                     </div>
-                    {!locked && (
-                      <div style={{display:"flex",gap:4,marginTop:6,alignItems:"center"}}>
-                        {[...Array(Math.min(subStageWords.length,4))].map((_,si)=>{
-                          const done=(unitStars[`${curBook||"ww5"}_${uid}_${stg}_s${si}_easy`]||0)>=1;
-                          return <span key={si} style={{fontSize:"clamp(8px,1.8vmin,10px)",color:done?color:"#2A2438",lineHeight:1}}>●</span>;
-                        })}
-                        {subStageWords.length>0&&(()=>{
-                          const done=(unitStars[`${curBook||"ww5"}_${uid}_${stg}_boss_easy`]||0)>=1;
-                          return <span style={{fontSize:"clamp(9px,2vmin,11px)",opacity:done?1:0.25,marginLeft:2}}>👑</span>;
-                        })()}
-                        <span style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"clamp(7px,1.6vmin,9px)",color:"#4A3A60",marginLeft:2}}>
-                          {Math.min(subStageWords.length,4)}파트+보스
-                        </span>
-                      </div>
-                    )}
-                    {locked&&<div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#4A3A60",marginTop:4}}>
-                      이전 단계를 먼저 클리어하세요.
-                    </div>}
-                    {!locked&&wrongQueue.length>0&&curUnit===uid&&battleStage===stg&&(
-                      <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",
-                        color:"#EE4444",marginTop:4,animation:"pulse .8s ease-in-out infinite"}}>
-                        오답 {wrongQueue.length}개 복습 필요
-                      </div>
-                    )}
-                  </div>
+                  )}
+                  {locked&&<div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#4A3A60",marginTop:4,paddingLeft:40}}>
+                    이전 단계를 먼저 클리어하세요.
+                  </div>}
+                  {!locked&&wrongQueue.length>0&&curUnit===uid&&battleStage===stg&&(
+                    <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",
+                      color:"#EE4444",marginTop:6,animation:"pulse .8s ease-in-out infinite"}}>
+                      오답 {wrongQueue.length}개 복습 필요
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -2597,16 +2626,20 @@ export default function VocabMon() {
                 borderRadius:20,padding:"clamp(16px,4vw,24px)",
                 maxWidth:340,width:"100%",
                 boxShadow:"0 0 40px rgba(0,0,0,0.8)"}}>
-                <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",
-                  color:"#F5C842",textAlign:"center",marginBottom:16}}>
-                  난이도 선택
+                <div style={{textAlign:"center",marginBottom:16}}>
+                  <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",color:"#6A5888",marginBottom:4}}>
+                    {showDiffModal.subIdx===4?"👑 Boss":showDiffModal.subIdx!=null?`Stage ${showDiffModal.subIdx+1}`:""}
+                  </div>
+                  <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>
+                    난이도 선택
+                  </div>
                 </div>
                 {DIFFICULTY_MODES.map(mode=>{
                   const unlocked = isDifficultyUnlocked(showDiffModal.uid, showDiffModal.stg, mode.key);
                   const stars = getUnitStars(showDiffModal.uid, showDiffModal.stg, mode.key);
                   return (
                     <div key={mode.key}
-                      onClick={()=>{ if(unlocked){ startBattle(showDiffModal.uid, showDiffModal.stg, null, mode.key); setShowDiffModal(null); } }}
+                      onClick={()=>{ if(unlocked){ startBattle(showDiffModal.uid, showDiffModal.stg, null, mode.key, showDiffModal.subIdx ?? 0); setShowDiffModal(null); } }}
                       style={{
                         borderRadius:12,padding:"clamp(10px,2.2vmin,14px)",marginBottom:8,
                         cursor:unlocked?"pointer":"not-allowed",
@@ -2901,6 +2934,7 @@ export default function VocabMon() {
     const total=queue.length;
     const stars=won?calcStars(wrongCount,total):0;
     const hasWrong=wrongQueue.length>0;
+    const resultSubStageCount = curUnit ? getSubStages(curBook||"ww5", curUnit).length : 4;
     return (
       <div data-testid="result-screen" className="crt page slide-up" style={{position:"relative",
         alignItems:"center",justifyContent:"center",padding:24,textAlign:"center",
@@ -2944,15 +2978,15 @@ export default function VocabMon() {
         )}
 
         <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:300}}>
-          {won && curSubStage < 3 && (
+          {won && curSubStage < resultSubStageCount - 1 && (
             <button data-testid="result-next-sub-button" className="big-btn"
               onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty,curSubStage+1)}
               style={{padding:"clamp(12px,2.5vmin,16px)",fontSize:"var(--fs-sm)",color:"#fff",
                 background:"linear-gradient(135deg,#1A5080,#2A80CC)",boxShadow:"0 4px 0 #0A2840"}}>
-              다음 단계 (Part {curSubStage+2} →)
+              다음 단계 (Stage {curSubStage+2} →)
             </button>
           )}
-          {won && curSubStage === 3 && (
+          {won && curSubStage === resultSubStageCount - 1 && (
             <button data-testid="result-boss-button" className="big-btn"
               onClick={()=>startBattle(curUnit,battleStage,curBook,difficulty,4)}
               style={{padding:"clamp(12px,2.5vmin,16px)",fontSize:"var(--fs-sm)",color:"#fff",
