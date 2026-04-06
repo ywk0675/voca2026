@@ -2410,7 +2410,8 @@ export default function VocabMon() {
 
         <div style={{textAlign:"center",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#4A3A60",flexShrink:0}}>SELECT UNIT</div>
 
-        <div style={{flex:1,display:"grid",gridTemplateColumns:"1fr 1fr",gridAutoRows:"minmax(clamp(52px,11vh,68px),auto)",gap:"clamp(5px,1.5vmin,8px)",overflowY:"auto",minHeight:0}}>
+        <div style={{flex:1,overflowY:"auto",minHeight:0}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:"clamp(4px,1.2vmin,7px)"}}>
           {[...Array(bookInfo?.units||12)].map((_,i)=>{
             const uid=i+1;
             const u=getUnitInfo(curBook||"ww5", uid);
@@ -2428,16 +2429,15 @@ export default function VocabMon() {
                 onClick={()=>ok&&setScreen(`unitdetail_${uid}`)}
                 onKeyDown={e=>{if(ok&&(e.key==="Enter"||e.key===" ")){e.preventDefault();setScreen(`unitdetail_${uid}`);}}}
                 className="card-btn"
-                style={{borderRadius:10,cursor:ok?"pointer":"not-allowed",opacity:ok?1:.35,background:bestStars===3?"linear-gradient(135deg,#0A1A08,#0A2A0A)":bestStars>0?"#16122A":"#110F1E",border:`2px solid ${bestStars===3?"#44CC7755":bestStars>0?"var(--rim)":"#1A1828"}`,boxShadow:bestStars===3?"0 0 10px rgba(68,204,119,.2),0 3px 0 rgba(0,0,0,.5)":"0 3px 0 rgba(0,0,0,.5)",display:"flex",alignItems:"center",gap:"clamp(5px,1.3vw,9px)",padding:"clamp(7px,1.5vmin,11px) clamp(8px,1.8vw,12px)"}}>
-                <span style={{fontSize:"clamp(20px,5vmin,28px)",flexShrink:0,filter:ok?`drop-shadow(0 0 5px ${bestStars>0?"#F5C842":"rgba(255,255,255,.1)"})`:"none"}}>{ok?u.emoji:"🔒"}</span>
-                <div style={{flex:1,minWidth:0}}>
-                  <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2.2vmin,10px)",color:bestStars===3?"#44CC77":"#E8E0F0",marginBottom:2}}>Unit {uid}</div>
-                  <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"clamp(10px,2.6vmin,12px)",color:"#9080B0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{u.short}</div>
-                  {bestStars>0&&<Stars count={bestStars} size="sm"/>}
-                </div>
+                style={{borderRadius:10,cursor:ok?"pointer":"not-allowed",opacity:ok?1:.35,background:bestStars===3?"linear-gradient(135deg,#0A1A08,#0A2A0A)":bestStars>0?"#16122A":"#110F1E",border:`2px solid ${bestStars===3?"#44CC7755":bestStars>0?"var(--rim)":"#1A1828"}`,boxShadow:bestStars===3?"0 0 10px rgba(68,204,119,.2),0 3px 0 rgba(0,0,0,.5)":"0 3px 0 rgba(0,0,0,.5)",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:2,padding:"clamp(6px,1.4vmin,10px) clamp(4px,1vw,8px)",textAlign:"center",minHeight:"clamp(56px,9vh,72px)"}}>
+                <span style={{fontSize:"clamp(18px,4.5vmin,26px)",filter:ok?`drop-shadow(0 0 5px ${bestStars>0?"#F5C842":"rgba(255,255,255,.1)"})`:"none"}}>{ok?u.emoji:"🔒"}</span>
+                <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(7px,1.8vmin,9px)",color:bestStars===3?"#44CC77":"#E8E0F0"}}>Unit {uid}</div>
+                <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"clamp(8px,2vmin,10px)",color:"#9080B0",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:"100%"}}>{u.short}</div>
+                {bestStars>0&&<Stars count={bestStars} size="sm"/>}
               </div>
             );
           })}
+          </div>
         </div>
 
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:7,flexShrink:0}}>
