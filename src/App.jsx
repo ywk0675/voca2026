@@ -1,5 +1,6 @@
 ﻿import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import LoginScreen from "./LoginScreen.jsx";
+import TeacherDashboard from "./TeacherDashboard.jsx";
 import { loadProgress, saveProgress, supabase } from "./supabase.js";
 import { CATCH_MON_LINES, EGG_DROP, PARTNER_UNLOCK_STARS, getCatchLineById, getCatchStage, rollEggRarity, rollMonsterFromLine } from "./catchMons.jsx";
 import { startBGM, stopBGM, sfxCorrect, sfxWrong, sfxHitEnemy, sfxHitPlayer, sfxVictory, sfxDefeat, sfxBattleStart, sfxHatch, sfxEvolveStart, sfxEvolveDone, setMuted, isMuted } from "./audio.js";
@@ -879,7 +880,8 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
 //  MAIN APP
 export default function VocabMon() {
   // [ 로그인 상태 ]
-  const [player, setPlayer] = useState(null); // { name, classCode }
+  const [player, setPlayer]           = useState(null); // { name, classCode }
+  const [teacherMode, setTeacherMode] = useState(false);
   // Core state
   // Core state
   const [screen,  setScreen]  = useState("title");
@@ -1158,6 +1160,7 @@ export default function VocabMon() {
   // 로그인 처리: Supabase에서 진행상황 불러오기
   async function handleLogin(name, classCode) {
     const saved = await loadProgress(name, classCode);
+    if (saved?.banned) return "banned";
     const today = new Date().toDateString();
     let restoredStreak = 0, restoredLoginDays = 0, restoredLastLogin = "";
     let restoredEggDate = "", restoredShields = 0;
@@ -1890,8 +1893,20 @@ export default function VocabMon() {
     );
   }
 
+  // 관리자 모드
+  if (teacherMode) return <TeacherDashboard onExit={() => setTeacherMode(false)} />;
+
   // 로그인 전이면 로그인 화면 표시
-  if (!player) return <LoginScreen onLogin={handleLogin} />;
+  if (!player) return (
+    <LoginScreen
+      onLogin={async (name, classCode) => {
+        const result = await handleLogin(name, classCode);
+        if (result === "banned") return "🚫 접근이 차단되었습니다. 선생님께 문의하세요.";
+        return null;
+      }}
+      onTeacher={() => setTeacherMode(true)}
+    />
+  );
 
   // Toast wrapper helper ??renders on top of any screen
   const toastEl = toast ? <Toast msg={toast} onDone={()=>setToast(null)}/> : null;
