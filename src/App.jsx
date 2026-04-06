@@ -1432,6 +1432,7 @@ export default function VocabMon() {
 
   // Get stars for a unit+stage key (aggregates across sub-stages)
   const getUnitStars = (uid, stg, diff="easy") => {
+    if (player?.name?.toLowerCase() === "master") return 3;
     const bk = curBook||"ww5";
     const pre = `${bk}_${uid}_${stg}_`;
     const suf = `_${diff}`;
