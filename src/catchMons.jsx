@@ -5,6 +5,55 @@ const spriteStyle = (flipped) => ({
   overflow: "visible",
 });
 
+function createCatchmonImageSprite(stage) {
+  return function CatchmonImageSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
+    const stageIndex = stage.stageIndex ?? 0;
+    const scale = stageIndex === 0 ? 1.08 : stageIndex === 1 ? 1.2 : 1.32;
+    const size = Math.round(w * scale);
+    const transform = `${flipped ? "scaleX(-1)" : ""} ${fainted ? "rotate(-13deg) translateY(6px)" : ""}`.trim() || undefined;
+
+    return (
+      <span
+        style={{
+          width: w,
+          height: w,
+          display: "inline-flex",
+          alignItems: "flex-end",
+          justifyContent: "center",
+          overflow: "visible",
+          lineHeight: 0,
+          opacity: fainted ? 0.44 : 1,
+          transform,
+          transformOrigin: "50% 88%",
+          transition: "opacity 140ms ease, transform 160ms ease",
+        }}
+      >
+        <img
+          src={`/catchmons/${stage.id}.png`}
+          alt={stage.name}
+          role="img"
+          aria-label={stage.name}
+          draggable={false}
+          loading="lazy"
+          decoding="async"
+          style={{
+            width: size,
+            height: size,
+            objectFit: "contain",
+            display: "block",
+            flex: "0 0 auto",
+            filter: hurt
+              ? "brightness(2.1) saturate(.35) drop-shadow(0 0 12px #ff4d5f)"
+              : `drop-shadow(0 12px 16px rgba(0,0,0,.42)) drop-shadow(0 0 18px ${stage.glow || stage.typeClr || "#33D6FF"}66)`,
+            transition: "filter 120ms ease",
+            userSelect: "none",
+          }}
+        />
+      </span>
+    );
+  };
+}
+
 function SpriteFrame({ w = 64, flipped = false, shadow = "#0000001A", children }) {
   return (
     <svg width={w} height={w} viewBox="0 0 48 48" style={spriteStyle(flipped)}>
@@ -3792,6 +3841,15 @@ export const CATCH_MON_LINES = [
     ],
   },
 ];
+
+CATCH_MON_LINES.forEach((line) => {
+  line.stages = line.stages.map((stage, stageIndex) => ({
+    ...stage,
+    stageIndex,
+    OriginalSprite: stage.Sprite,
+    Sprite: createCatchmonImageSprite({ ...stage, stageIndex }),
+  }));
+});
 
 export const ALL_CATCH_IDS = CATCH_MON_LINES.flatMap((line) => line.stages.map((stage) => stage.id));
 
