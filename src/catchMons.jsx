@@ -1,35 +1,37 @@
 ﻿import React from "react";
+import { createAnimeMonsterSprite } from "./animeMonsterRenderer.jsx";
+import { getMonsterAsset } from "./monsterAssets.js";
+import { MONSTER_LINE_CONCEPTS } from "./monsterLineConcepts.js";
 
 const spriteStyle = (flipped) => ({
   transform: flipped ? "scaleX(-1)" : "none",
   overflow: "visible",
 });
 
-function createCatchmonImageSprite(stage) {
-  return function CatchmonImageSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
-    const stageIndex = stage.stageIndex ?? 0;
-    const scale = stageIndex === 0 ? 1.08 : stageIndex === 1 ? 1.2 : 1.32;
-    const size = Math.round(w * scale);
+function createImageMonsterSprite(asset, stage) {
+  return function ImageMonsterSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
+    const displaySize = w * (asset.displayScale || 1);
     const transform = `${flipped ? "scaleX(-1)" : ""} ${fainted ? "rotate(-13deg) translateY(6px)" : ""}`.trim() || undefined;
-
+    const anchorX = Math.round((asset.anchor?.x ?? 0.5) * 100);
+    const anchorY = Math.round((asset.anchor?.y ?? 0.82) * 100);
     return (
       <span
         style={{
-          width: w,
-          height: w,
-          display: "inline-flex",
-          alignItems: "flex-end",
-          justifyContent: "center",
-          overflow: "visible",
-          lineHeight: 0,
-          opacity: fainted ? 0.44 : 1,
+          width:w,
+          height:w,
+          display:"inline-flex",
+          alignItems:"flex-end",
+          justifyContent:"center",
+          overflow:"visible",
+          lineHeight:0,
           transform,
-          transformOrigin: "50% 88%",
-          transition: "opacity 140ms ease, transform 160ms ease",
+          transformOrigin:`${anchorX}% ${anchorY}%`,
+          opacity:fainted ? 0.46 : 1,
+          transition:"opacity 140ms ease, transform 160ms ease",
         }}
       >
         <img
-          src={`/catchmons/${stage.id}.png`}
+          src={asset.artUrl}
           alt={stage.name}
           role="img"
           aria-label={stage.name}
@@ -37,16 +39,17 @@ function createCatchmonImageSprite(stage) {
           loading="lazy"
           decoding="async"
           style={{
-            width: size,
-            height: size,
-            objectFit: "contain",
-            display: "block",
-            flex: "0 0 auto",
-            filter: hurt
-              ? "brightness(2.1) saturate(.35) drop-shadow(0 0 12px #ff4d5f)"
+            width:displaySize,
+            height:displaySize,
+            objectFit:"contain",
+            objectPosition:`${anchorX}% ${anchorY}%`,
+            display:"block",
+            flex:"0 0 auto",
+            filter:hurt
+              ? "brightness(2.15) saturate(0.35) drop-shadow(0 0 12px #ff4d5f)"
               : `drop-shadow(0 12px 16px rgba(0,0,0,.42)) drop-shadow(0 0 18px ${stage.glow || stage.typeClr || "#33D6FF"}66)`,
-            transition: "filter 120ms ease",
-            userSelect: "none",
+            transition:"filter 120ms ease",
+            userSelect:"none",
           }}
         />
       </span>
@@ -3311,7 +3314,142 @@ export function TitanwrexSprite({ w = 64, flipped = false }) {
   );
 }
 
+export function GlyphinSprite({ w = 64, flipped = false }) {
+  return (
+    <svg width={w} height={w} viewBox="0 0 64 64" style={{ ...spriteStyle(flipped), imageRendering: "pixelated", shapeRendering: "crispEdges", filter: "drop-shadow(0 7px 0 #07142666) drop-shadow(0 0 14px #33D6FF88)" }}>
+      <rect x="8" y="44" width="42" height="5" fill="#00000035" />
+      <rect x="15" y="22" width="30" height="18" fill="#061522" />
+      <rect x="20" y="14" width="22" height="12" fill="#061522" />
+      <rect x="10" y="29" width="11" height="8" fill="#061522" />
+      <rect x="43" y="27" width="9" height="9" fill="#061522" />
+      <rect x="22" y="7" width="8" height="9" fill="#061522" />
+      <rect x="17" y="23" width="27" height="15" fill="#1A91C6" />
+      <rect x="21" y="16" width="19" height="10" fill="#20B8E8" />
+      <rect x="11" y="30" width="10" height="6" fill="#0B6EA0" />
+      <rect x="43" y="28" width="7" height="7" fill="#0B6EA0" />
+      <rect x="23" y="8" width="6" height="8" fill="#8FF4FF" />
+      <rect x="23" y="27" width="8" height="5" fill="#BDFBFF" />
+      <rect x="28" y="18" width="5" height="5" fill="#FFFFFF" />
+      <rect x="29" y="19" width="3" height="3" fill="#061522" />
+      <rect x="37" y="19" width="5" height="5" fill="#FFFFFF" />
+      <rect x="38" y="20" width="3" height="3" fill="#061522" />
+      <rect x="32" y="29" width="7" height="2" fill="#061522" />
+      <rect x="30" y="28" width="2" height="2" fill="#061522" />
+      <rect x="39" y="28" width="2" height="2" fill="#061522" />
+      <rect x="15" y="40" width="8" height="5" fill="#061522" />
+      <rect x="35" y="40" width="8" height="5" fill="#061522" />
+      <rect x="16" y="39" width="6" height="5" fill="#0B6EA0" />
+      <rect x="36" y="39" width="6" height="5" fill="#0B6EA0" />
+      <rect x="49" y="22" width="5" height="4" fill="#F6E36A" />
+      <rect x="54" y="19" width="3" height="3" fill="#F6E36A" />
+      <rect x="48" y="38" width="4" height="4" fill="#33D6FF" />
+      <rect x="52" y="42" width="3" height="3" fill="#33D6FF" />
+    </svg>
+  );
+}
+
+export function LexigonSprite({ w = 64, flipped = false }) {
+  return (
+    <svg width={w} height={w} viewBox="0 0 64 64" style={{ ...spriteStyle(flipped), imageRendering: "pixelated", shapeRendering: "crispEdges", filter: "drop-shadow(0 8px 0 #07142677) drop-shadow(0 0 18px #33D6FF99)" }}>
+      <rect x="6" y="49" width="51" height="6" fill="#00000040" />
+      <rect x="12" y="23" width="35" height="23" fill="#061522" />
+      <rect x="24" y="11" width="24" height="17" fill="#061522" />
+      <rect x="44" y="18" width="12" height="12" fill="#061522" />
+      <rect x="7" y="31" width="10" height="9" fill="#061522" />
+      <rect x="20" y="4" width="8" height="11" fill="#061522" />
+      <rect x="38" y="3" width="8" height="12" fill="#061522" />
+      <rect x="47" y="37" width="10" height="9" fill="#061522" />
+      <rect x="14" y="25" width="31" height="19" fill="#187CAF" />
+      <rect x="25" y="13" width="21" height="14" fill="#1DB6E6" />
+      <rect x="44" y="20" width="10" height="9" fill="#1689BD" />
+      <rect x="8" y="32" width="9" height="7" fill="#0B5F8F" />
+      <rect x="21" y="5" width="6" height="10" fill="#F6E36A" />
+      <rect x="39" y="4" width="6" height="11" fill="#F6E36A" />
+      <rect x="48" y="38" width="8" height="7" fill="#0B5F8F" />
+      <rect x="18" y="33" width="17" height="6" fill="#BDFBFF" />
+      <rect x="30" y="17" width="5" height="5" fill="#FFFFFF" />
+      <rect x="31" y="18" width="3" height="3" fill="#061522" />
+      <rect x="42" y="18" width="5" height="5" fill="#FFFFFF" />
+      <rect x="43" y="19" width="3" height="3" fill="#061522" />
+      <rect x="45" y="26" width="8" height="2" fill="#FFFFFF" />
+      <rect x="34" y="28" width="10" height="2" fill="#061522" />
+      <rect x="36" y="30" width="2" height="3" fill="#FFFFFF" />
+      <rect x="42" y="30" width="2" height="3" fill="#FFFFFF" />
+      <rect x="15" y="45" width="9" height="6" fill="#061522" />
+      <rect x="36" y="45" width="9" height="6" fill="#061522" />
+      <rect x="16" y="44" width="7" height="6" fill="#0B5F8F" />
+      <rect x="37" y="44" width="7" height="6" fill="#0B5F8F" />
+      <rect x="4" y="22" width="5" height="5" fill="#33D6FF" />
+      <rect x="56" y="13" width="4" height="4" fill="#F6E36A" />
+      <rect x="55" y="33" width="5" height="5" fill="#33D6FF" />
+    </svg>
+  );
+}
+
+export function VocarionSprite({ w = 64, flipped = false }) {
+  return (
+    <svg width={w} height={w} viewBox="0 0 64 64" style={{ ...spriteStyle(flipped), imageRendering: "pixelated", shapeRendering: "crispEdges", filter: "drop-shadow(0 10px 0 #050A1477) drop-shadow(0 0 24px #33D6FFBB)" }}>
+      <rect x="3" y="52" width="58" height="7" fill="#0000004A" />
+      <rect x="8" y="24" width="38" height="25" fill="#050A14" />
+      <rect x="28" y="9" width="28" height="21" fill="#050A14" />
+      <rect x="50" y="18" width="11" height="13" fill="#050A14" />
+      <rect x="2" y="34" width="12" height="11" fill="#050A14" />
+      <rect x="13" y="12" width="8" height="13" fill="#050A14" />
+      <rect x="25" y="1" width="8" height="13" fill="#050A14" />
+      <rect x="43" y="0" width="8" height="14" fill="#050A14" />
+      <rect x="45" y="42" width="14" height="12" fill="#050A14" />
+      <rect x="10" y="26" width="35" height="21" fill="#115C91" />
+      <rect x="29" y="11" width="25" height="18" fill="#178FD0" />
+      <rect x="50" y="20" width="9" height="10" fill="#0D6BA5" />
+      <rect x="3" y="35" width="11" height="8" fill="#0A4772" />
+      <rect x="14" y="13" width="6" height="12" fill="#33D6FF" />
+      <rect x="26" y="2" width="6" height="12" fill="#F6E36A" />
+      <rect x="44" y="1" width="6" height="13" fill="#F6E36A" />
+      <rect x="46" y="43" width="12" height="10" fill="#0A4772" />
+      <rect x="13" y="34" width="21" height="7" fill="#BDFBFF" />
+      <rect x="35" y="15" width="6" height="6" fill="#FFFFFF" />
+      <rect x="36" y="16" width="4" height="4" fill="#050A14" />
+      <rect x="49" y="16" width="6" height="6" fill="#FFFFFF" />
+      <rect x="50" y="17" width="4" height="4" fill="#050A14" />
+      <rect x="50" y="25" width="9" height="2" fill="#FFFFFF" />
+      <rect x="39" y="29" width="13" height="2" fill="#050A14" />
+      <rect x="40" y="31" width="3" height="4" fill="#FFFFFF" />
+      <rect x="47" y="31" width="3" height="4" fill="#FFFFFF" />
+      <rect x="54" y="31" width="3" height="3" fill="#FFFFFF" />
+      <rect x="9" y="24" width="7" height="6" fill="#33D6FF" opacity="0.55" />
+      <rect x="20" y="24" width="5" height="5" fill="#F6E36A" opacity="0.6" />
+      <rect x="31" y="25" width="6" height="5" fill="#33D6FF" opacity="0.55" />
+      <rect x="9" y="48" width="11" height="7" fill="#050A14" />
+      <rect x="33" y="48" width="12" height="7" fill="#050A14" />
+      <rect x="10" y="47" width="9" height="7" fill="#0A4772" />
+      <rect x="34" y="47" width="10" height="7" fill="#0A4772" />
+      <rect x="2" y="17" width="5" height="5" fill="#33D6FF" />
+      <rect x="58" y="9" width="4" height="4" fill="#F6E36A" />
+      <rect x="59" y="39" width="4" height="4" fill="#33D6FF" />
+      <rect x="22" y="56" width="4" height="4" fill="#F6E36A" />
+      <rect x="28" y="57" width="9" height="2" fill="#33D6FF" />
+    </svg>
+  );
+}
+
 export const CATCH_MON_LINES = [
+  {
+    lineId: "vocabmon",
+    type: "CORE",
+    typeClr: "#33D6FF",
+    typeBg: "#061522",
+    rarity: "legendary",
+    rarityLabel: "★★★★ Signature",
+    rarityClr: "#F6E36A",
+    eggColor: "#33D6FF",
+    eggEmoji: "📘",
+    preserveSprites: true,
+    stages: [
+      { id: "glyphin", name: "GLYPHIN", Sprite: GlyphinSprite, type: "CORE", typeClr: "#33D6FF", color: "#20B8E8", glow: "#33D6FF", hp: 114, atk: 16, def: 13, evoLv: 14, desc: "A young word-fin beast.\nIt snaps up forgotten letters like fish." },
+      { id: "lexigon", name: "LEXIGON", Sprite: LexigonSprite, type: "CORE", typeClr: "#33D6FF", color: "#1DB6E6", glow: "#33D6FF", hp: 146, atk: 24, def: 20, evoLv: 30, desc: "Armored by dictionary plates.\nIts horn glows when a new word is mastered." },
+      { id: "vocarion", name: "VOCARION", Sprite: VocarionSprite, type: "CORE", typeClr: "#33D6FF", color: "#178FD0", glow: "#F6E36A", hp: 184, atk: 36, def: 28, evoLv: null, desc: "The abyssal word leviathan.\nEvery roar turns fear into vocabulary." },
+    ],
+  },
   {
     lineId: "flame",
     type: "FLAME",
@@ -3842,25 +3980,1017 @@ export const CATCH_MON_LINES = [
   },
 ];
 
+function shadeHex(hex, amount = 0) {
+  const clean = String(hex || "#88CCFF").replace("#", "");
+  const full = clean.length === 3 ? clean.split("").map((c) => c + c).join("") : clean.padEnd(6, "0").slice(0, 6);
+  const num = parseInt(full, 16);
+  const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+  const g = Math.max(0, Math.min(255, ((num >> 8) & 255) + amount));
+  const b = Math.max(0, Math.min(255, (num & 255) + amount));
+  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+}
+
+function cuteFamily(lineId = "") {
+  if (/flame|lava|speed/.test(lineId)) return "flame";
+  if (/wave|coral|ice|cloud/.test(lineId)) return "aqua";
+  if (/leaf|nature|fairy|candy/.test(lineId)) return "garden";
+  if (/bolt|metal|mech/.test(lineId)) return "spark";
+  if (/shadow|ghost|dark|dream|psychic|cosmic|star|crystal/.test(lineId)) return "mystic";
+  if (/rock|sand|dino|ancient|dragon/.test(lineId)) return "beast";
+  if (/wind|angel|music/.test(lineId)) return "wing";
+  return "buddy";
+}
+
+function CuteMonFace({ y = 22, eye = "#1D1830", blush = "#FFB6C8", stage = 0 }) {
+  const eyeRx = stage >= 2 ? 3.9 : 4.3;
+  const eyeRy = stage >= 2 ? 4.7 : 5.1;
+  return (
+    <>
+      <ellipse cx="17.6" cy={y} rx={eyeRx} ry={eyeRy} fill="#FFFFFF" />
+      <ellipse cx="30.4" cy={y} rx={eyeRx} ry={eyeRy} fill="#FFFFFF" />
+      <ellipse cx="18.2" cy={y + 0.8} rx={eyeRx - 1.3} ry={eyeRy - 1.2} fill={eye} />
+      <ellipse cx="31" cy={y + 0.8} rx={eyeRx - 1.3} ry={eyeRy - 1.2} fill={eye} />
+      <circle cx="16.8" cy={y - 1.5} r="1.25" fill="#FFFFFF" />
+      <circle cx="29.6" cy={y - 1.5} r="1.25" fill="#FFFFFF" />
+      <ellipse cx="14" cy={y + 5.8} rx="3" ry="1.55" fill={blush} opacity="0.52" />
+      <ellipse cx="34" cy={y + 5.8} rx="3" ry="1.55" fill={blush} opacity="0.52" />
+      <path d={`M 20.7 ${y + 7.2} Q 24 ${y + 9.9} 27.3 ${y + 7.2}`} stroke={shadeHex(eye, 40)} strokeWidth="1.45" fill="none" strokeLinecap="round" />
+    </>
+  );
+}
+
+function CuteMonAccessories({ family, stage, base, light, dark, accent }) {
+  const big = stage >= 2;
+  if (family === "flame") {
+    return (
+      <>
+        <path d={big ? "M24 1 L30 11 L39 15 L31 21 L33 31 L24 26 L15 31 L17 21 L9 15 L18 11 Z" : "M24 4 C20 8 20 12 23 15 C19 15 17 18 17 21 C20 19 23 19 24 15 C26 19 29 19 32 21 C32 17 29 15 25 15 C29 11 28 7 24 4 Z"} fill="#FFD66D" />
+        <path d={big ? "M24 5 L28 12 L34 15 L29 19 L30 26 L24 23 L18 26 L19 19 L14 15 L20 12 Z" : "M24 8 C22 11 22 13 24 16 C26 13 26 11 24 8 Z"} fill={accent} />
+        <path d="M34 31 Q42 27 43 20 Q45 24 43 30 Q41 37 35 38 Z" fill={dark} />
+        <path d="M38 20 C43 22 44 27 41 31 C39 28 38 25 38 20 Z" fill="#FFE083" />
+      </>
+    );
+  }
+  if (family === "aqua") {
+    return (
+      <>
+        <path d="M13 24 Q6 24 4 31 Q10 34 15 29 Z" fill={dark} opacity="0.88" />
+        <path d="M35 29 Q40 34 46 31 Q44 24 37 24 Z" fill={dark} opacity="0.88" />
+        <circle cx="9" cy="14" r="2.2" fill="#C9F3FF" opacity="0.75" />
+        <circle cx="39" cy="12" r="1.55" fill="#C9F3FF" opacity="0.65" />
+        {big && <path d="M24 4 Q18 10 20 17 L24 20 L28 17 Q30 10 24 4 Z" fill="#D7F8FF" opacity="0.75" />}
+      </>
+    );
+  }
+  if (family === "garden") {
+    return (
+      <>
+        <path d="M24 5 Q14 4 10 13 Q18 17 24 13 Q30 17 38 13 Q34 4 24 5 Z" fill="#7EE36E" />
+        {big && Array.from({ length: 8 }, (_, i) => {
+          const a = (-90 + i * 45) * Math.PI / 180;
+          const x = 24 + Math.cos(a) * 13;
+          const y = 17 + Math.sin(a) * 8;
+          return <ellipse key={i} cx={x} cy={y} rx="3.1" ry="6" fill={i % 2 ? "#FFE07D" : "#FF95C4"} transform={`rotate(${-90 + i * 45} ${x} ${y})`} opacity="0.92" />;
+        })}
+        <path d="M11 28 Q5 25 6 18 Q13 19 16 25 Z" fill={dark} opacity="0.82" />
+        <path d="M37 25 Q40 19 47 18 Q48 25 37 28 Z" fill={dark} opacity="0.82" />
+      </>
+    );
+  }
+  if (family === "spark") {
+    return (
+      <>
+        <path d="M16 8 L10 18 L16 17 L13 27 L24 12 L17 13 Z" fill="#FFE66B" />
+        <path d="M32 8 L38 18 L32 17 L35 27 L24 12 L31 13 Z" fill="#FFE66B" />
+        {big && <path d="M15 5 H33 L37 13 L30 16 L24 12 L18 16 L11 13 Z" fill={shadeHex(light, 20)} opacity="0.88" />}
+        <circle cx="13" cy="13" r="1.4" fill="#FFFFFF" opacity="0.8" />
+        <circle cx="35" cy="13" r="1.4" fill="#FFFFFF" opacity="0.8" />
+      </>
+    );
+  }
+  if (family === "mystic") {
+    return (
+      <>
+        <path d="M13 22 Q4 16 8 8 Q17 12 18 22 Z" fill={dark} opacity="0.78" />
+        <path d="M35 22 Q44 16 40 8 Q31 12 30 22 Z" fill={dark} opacity="0.78" />
+        <path d="M33 6 C28 7 25 11 25 16 C28 13 32 13 36 15 C34 12 34 9 37 6 C36 6 35 6 33 6 Z" fill="#FFF3A3" opacity="0.94" />
+        <Sparkle x={11} y={32} size={3.2} color="#FFF0A6" opacity={0.8} />
+        <Sparkle x={39} y={30} size={2.8} color="#DFA9FF" opacity={0.8} />
+        {big && <Sparkle x={24} y={7} size={4.2} color="#FFFFFF" opacity={0.86} />}
+      </>
+    );
+  }
+  if (family === "beast") {
+    return (
+      <>
+        <path d="M14 10 L11 2 L20 8 Z" fill={stage >= 2 ? "#F5E5B6" : dark} />
+        <path d="M34 10 L37 2 L28 8 Z" fill={stage >= 2 ? "#F5E5B6" : dark} />
+        <path d="M18 8 L20 2 L23 8 Z" fill={accent} opacity="0.85" />
+        <path d="M25 8 L28 2 L30 8 Z" fill={accent} opacity="0.85" />
+        <path d="M35 34 Q43 31 46 24 Q47 31 42 36 Q39 39 35 39 Z" fill={dark} opacity="0.9" />
+        {big && <path d="M12 16 L7 12 L10 21 Z M36 16 L41 12 L38 21 Z" fill={shadeHex(accent, 25)} />}
+      </>
+    );
+  }
+  if (family === "wing") {
+    return (
+      <>
+        <path d="M14 24 Q4 21 5 10 Q15 12 19 24 Z" fill={light} opacity="0.82" />
+        <path d="M34 24 Q44 21 43 10 Q33 12 29 24 Z" fill={light} opacity="0.82" />
+        <path d="M11 21 Q9 16 12 13" stroke="#FFFFFF" strokeWidth="1.6" fill="none" opacity="0.7" />
+        <path d="M37 21 Q39 16 36 13" stroke="#FFFFFF" strokeWidth="1.6" fill="none" opacity="0.7" />
+        {big && <ellipse cx="24" cy="6" rx="8" ry="2.4" fill="#FFE66D" opacity="0.85" />}
+        <path d="M38 34 Q42 31 43 28" stroke={accent} strokeWidth="1.6" fill="none" strokeLinecap="round" />
+      </>
+    );
+  }
+  return (
+    <>
+      <path d="M14 12 Q12 5 18 4 Q20 9 18 14 Z" fill={dark} />
+      <path d="M34 12 Q36 5 30 4 Q28 9 30 14 Z" fill={dark} />
+    </>
+  );
+}
+
+function makeCuteSprite(line, stageIndex, lineIndex) {
+  const family = cuteFamily(line.lineId);
+  const stage = stageIndex;
+  const base = line.stages?.[stageIndex]?.color || line.typeClr || "#88CCFF";
+  const light = shadeHex(base, 38);
+  const dark = shadeHex(base, -42);
+  const accent = line.eggColor || line.typeClr || base;
+  const blush = family === "beast" || family === "spark" ? "#FFD1A0" : "#FFB5CB";
+  const eye = family === "mystic" ? "#2E124A" : family === "spark" ? "#4A3500" : "#1F2230";
+  const bodyByStage = [
+    "M12 25 C12 15 17 10 24 10 C31 10 36 15 36 25 L36 30 C36 38 31 42 24 42 C17 42 12 38 12 30 Z",
+    "M11 24 C11 13 17 7 24 7 C31 7 37 13 37 24 L37 31 C37 39 32 43 24 43 C16 43 11 39 11 31 Z",
+    "M9 23 C9 11 16 5 24 5 C32 5 39 11 39 23 L39 32 C39 41 33 46 24 46 C15 46 9 41 9 32 Z",
+  ];
+  const bellyByStage = [
+    { cx: 24, cy: 32, rx: 8.2, ry: 6.2 },
+    { cx: 24, cy: 32.4, rx: 9.2, ry: 7.2 },
+    { cx: 24, cy: 33, rx: 9.8, ry: 8.5 },
+  ];
+
+  return function CuteMonsterSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
+    const gradId = `cute_${lineIndex}_${stageIndex}`;
+    const belly = bellyByStage[stageIndex] ?? bellyByStage[0];
+    return (
+      <svg width={w} height={w} viewBox="0 0 48 48" style={{
+        ...spriteStyle(flipped),
+        opacity: fainted ? 0.45 : 1,
+        filter: hurt ? "brightness(2.8) saturate(0.2)" : `drop-shadow(0 8px 13px ${line.typeClr || base}55)`,
+      }}>
+        <defs>
+          <radialGradient id={gradId} cx="35%" cy="25%" r="75%">
+            <stop offset="0%" stopColor={shadeHex(light, 38)} />
+            <stop offset="52%" stopColor={base} />
+            <stop offset="100%" stopColor={dark} />
+          </radialGradient>
+        </defs>
+        <ellipse cx="24" cy="43" rx={stage >= 2 ? 15 : 12.5} ry="3.6" fill="#00000022" />
+        <CuteMonAccessories family={family} stage={stage} base={base} light={light} dark={dark} accent={accent} />
+        <path d={bodyByStage[stageIndex] ?? bodyByStage[0]} fill={`url(#${gradId})`} />
+        <path d="M15 18 C17 12 21 10 25 10" stroke="#FFFFFF" strokeWidth="2.8" strokeLinecap="round" opacity="0.24" />
+        <ellipse cx={belly.cx} cy={belly.cy} rx={belly.rx} ry={belly.ry} fill={shadeHex(light, 28)} opacity="0.76" />
+        {stage >= 1 && (
+          <>
+            <ellipse cx="13.5" cy="35.5" rx="4.7" ry="2.4" fill={dark} opacity="0.86" />
+            <ellipse cx="34.5" cy="35.5" rx="4.7" ry="2.4" fill={dark} opacity="0.86" />
+          </>
+        )}
+        {stage >= 2 && (
+          <>
+            <path d="M14 18 Q9 21 8 28" stroke={dark} strokeWidth="3.1" fill="none" strokeLinecap="round" />
+            <path d="M34 18 Q39 21 40 28" stroke={dark} strokeWidth="3.1" fill="none" strokeLinecap="round" />
+            <Sparkle x="17" y="31" size="2.2" color="#FFFFFF" opacity="0.7" />
+            <Sparkle x="31" y="30" size="2.2" color="#FFFFFF" opacity="0.7" />
+          </>
+        )}
+        <CuteMonFace y={stage >= 2 ? 21 : 22.5} eye={eye} blush={blush} stage={stage} />
+        <ellipse cx="17" cy="43" rx={stage >= 2 ? 5.4 : 4.4} ry="2.25" fill={dark} />
+        <ellipse cx="31" cy="43" rx={stage >= 2 ? 5.4 : 4.4} ry="2.25" fill={dark} />
+      </svg>
+    );
+  };
+}
+
+function Px({ x, y, w: width, h: height, fill, opacity = 1 }) {
+  return <rect x={x} y={y} width={width} height={height} fill={fill} opacity={opacity} />;
+}
+
+function PixelFace({ stage, eye = "#191522", blush = "#FFB1C8" }) {
+  const y = stage >= 2 ? 20 : 21;
+  const eyeSize = stage >= 2 ? 5 : 6;
+  return (
+    <>
+      <Px x={14} y={y} w={eyeSize} h={eyeSize} fill="#FFFFFF" />
+      <Px x={29} y={y} w={eyeSize} h={eyeSize} fill="#FFFFFF" />
+      <Px x={15} y={y + 1} w={eyeSize - 2} h={eyeSize - 1} fill={eye} />
+      <Px x={30} y={y + 1} w={eyeSize - 2} h={eyeSize - 1} fill={eye} />
+      <Px x={15} y={y} w={2} h={2} fill="#FFFFFF" />
+      <Px x={30} y={y} w={2} h={2} fill="#FFFFFF" />
+      <Px x={11} y={y + 7} w={4} h={2} fill={blush} opacity={0.65} />
+      <Px x={34} y={y + 7} w={4} h={2} fill={blush} opacity={0.65} />
+      <Px x={22} y={y + 8} w={4} h={2} fill={shadeHex(eye, 35)} />
+      <Px x={20} y={y + 7} w={2} h={2} fill={shadeHex(eye, 35)} />
+      <Px x={26} y={y + 7} w={2} h={2} fill={shadeHex(eye, 35)} />
+    </>
+  );
+}
+
+function PixelAccessories({ family, stage, dark, light, accent, lineIndex }) {
+  const variant = lineIndex % 4;
+  if (family === "flame") {
+    return (
+      <>
+        <Px x={20} y={2} w={8} h={6} fill="#FFE06A" />
+        <Px x={18} y={6} w={12} h={6} fill={accent} />
+        <Px x={22} y={0} w={4} h={4} fill="#FFF0A0" />
+        <Px x={36} y={25} w={6} h={8} fill={dark} />
+        <Px x={40} y={19} w={4} h={8} fill={accent} />
+        <Px x={42} y={16} w={3} h={5} fill="#FFE06A" />
+        {stage >= 2 && <><Px x={8} y={13} w={6} h={10} fill={dark} /><Px x={34} y={13} w={6} h={10} fill={dark} /></>}
+      </>
+    );
+  }
+  if (family === "aqua") {
+    return (
+      <>
+        <Px x={5} y={23} w={8} h={8} fill={dark} />
+        <Px x={35} y={23} w={8} h={8} fill={dark} />
+        <Px x={7} y={20} w={4} h={4} fill={light} />
+        <Px x={37} y={20} w={4} h={4} fill={light} />
+        <Px x={8} y={10} w={3} h={3} fill="#D9F8FF" opacity={0.8} />
+        <Px x={38} y={8} w={2} h={2} fill="#D9F8FF" opacity={0.75} />
+        {stage >= 2 && <><Px x={21} y={3} w={6} h={8} fill="#D9F8FF" /><Px x={19} y={7} w={10} h={4} fill={accent} opacity={0.75} /></>}
+      </>
+    );
+  }
+  if (family === "garden") {
+    return (
+      <>
+        <Px x={16} y={5} w={7} h={6} fill="#7FEB73" />
+        <Px x={25} y={5} w={7} h={6} fill="#7FEB73" />
+        <Px x={22} y={8} w={4} h={6} fill={dark} />
+        <Px x={7} y={24} w={8} h={6} fill={dark} />
+        <Px x={33} y={24} w={8} h={6} fill={dark} />
+        {stage >= 2 && (
+          <>
+            {[10, 16, 22, 28, 34].map((x, i) => <Px key={x} x={x} y={variant % 2 ? 8 : 6} w={5} h={7} fill={i % 2 ? "#FFE16C" : "#FF8DB8"} />)}
+          </>
+        )}
+      </>
+    );
+  }
+  if (family === "spark") {
+    return (
+      <>
+        <Px x={12} y={5} w={5} h={10} fill="#FFE35F" />
+        <Px x={31} y={5} w={5} h={10} fill="#FFE35F" />
+        <Px x={9} y={12} w={7} h={4} fill="#FFE35F" />
+        <Px x={32} y={12} w={7} h={4} fill="#FFE35F" />
+        <Px x={18} y={4} w={12} h={5} fill={stage >= 2 ? light : dark} />
+        {stage >= 1 && <><Px x={5} y={30} w={7} h={4} fill="#FFE35F" /><Px x={36} y={30} w={7} h={4} fill="#FFE35F" /></>}
+      </>
+    );
+  }
+  if (family === "mystic") {
+    return (
+      <>
+        <Px x={5} y={12} w={8} h={12} fill={dark} />
+        <Px x={35} y={12} w={8} h={12} fill={dark} />
+        <Px x={8} y={9} w={5} h={5} fill={shadeHex(dark, 24)} />
+        <Px x={35} y={9} w={5} h={5} fill={shadeHex(dark, 24)} />
+        <Px x={33} y={4} w={6} h={3} fill="#FFF3A0" />
+        <Px x={31} y={7} w={4} h={3} fill="#FFF3A0" />
+        <Px x={38} y={7} w={3} h={3} fill="#FFF3A0" />
+        {stage >= 2 && <><Px x={22} y={2} w={4} h={4} fill="#FFFFFF" /><Px x={20} y={4} w={8} h={2} fill="#DDAAFF" /></>}
+      </>
+    );
+  }
+  if (family === "beast") {
+    return (
+      <>
+        <Px x={12} y={3} w={5} h={9} fill="#F4E1A8" />
+        <Px x={31} y={3} w={5} h={9} fill="#F4E1A8" />
+        <Px x={18} y={4} w={4} h={7} fill={accent} />
+        <Px x={26} y={4} w={4} h={7} fill={accent} />
+        <Px x={36} y={29} w={8} h={6} fill={dark} />
+        <Px x={42} y={24} w={4} h={5} fill={dark} />
+        {stage >= 2 && <><Px x={8} y={17} w={5} h={8} fill={accent} /><Px x={35} y={17} w={5} h={8} fill={accent} /></>}
+      </>
+    );
+  }
+  if (family === "wing") {
+    return (
+      <>
+        <Px x={4} y={16} w={10} h={12} fill={light} opacity={0.92} />
+        <Px x={34} y={16} w={10} h={12} fill={light} opacity={0.92} />
+        <Px x={7} y={20} w={6} h={3} fill="#FFFFFF" opacity={0.65} />
+        <Px x={35} y={20} w={6} h={3} fill="#FFFFFF" opacity={0.65} />
+        {stage >= 2 && <><Px x={17} y={3} w={14} h={3} fill="#FFE56A" /><Px x={20} y={1} w={8} h={2} fill="#FFF4A0" /></>}
+        <Px x={35} y={33} w={5} h={3} fill={accent} />
+      </>
+    );
+  }
+  return (
+    <>
+      <Px x={13} y={5} w={5} h={9} fill={dark} />
+      <Px x={30} y={5} w={5} h={9} fill={dark} />
+    </>
+  );
+}
+
+function makePixelMonsterSprite(line, stageIndex, lineIndex) {
+  const family = cuteFamily(line.lineId);
+  const base = line.stages?.[stageIndex]?.color || line.typeClr || "#88CCFF";
+  const light = shadeHex(base, 46);
+  const dark = shadeHex(base, -58);
+  const outline = shadeHex(base, -88);
+  const accent = line.eggColor || line.typeClr || base;
+  const eye = family === "mystic" ? "#251139" : family === "spark" ? "#423000" : "#171923";
+  const blush = family === "beast" || family === "flame" ? "#FFD0A2" : "#FFB0CB";
+  const body = [
+    { x: 14, y: 15, w: 20, h: 22, headX: 16, headY: 10, headW: 16, headH: 12 },
+    { x: 12, y: 13, w: 24, h: 25, headX: 14, headY: 8, headW: 20, headH: 14 },
+    { x: 9, y: 12, w: 30, h: 28, headX: 12, headY: 6, headW: 24, headH: 16 },
+  ][stageIndex] ?? { x: 14, y: 15, w: 20, h: 22, headX: 16, headY: 10, headW: 16, headH: 12 };
+
+  return function PixelMonsterSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
+    return (
+      <svg width={w} height={w} viewBox="0 0 48 48" style={{
+        ...spriteStyle(flipped),
+        imageRendering: "pixelated",
+        shapeRendering: "crispEdges",
+        opacity: fainted ? 0.42 : 1,
+        filter: hurt ? "brightness(2.8) saturate(.25)" : `drop-shadow(0 6px 0 #00000033) drop-shadow(0 0 12px ${line.typeClr || base}66)`,
+      }}>
+        <ellipse cx="24" cy="44" rx={stageIndex >= 2 ? 16 : 13} ry="3" fill="#00000038" />
+        <PixelAccessories family={family} stage={stageIndex} dark={dark} light={light} accent={accent} lineIndex={lineIndex} />
+        <Px x={body.headX - 2} y={body.headY - 2} w={body.headW + 4} h={body.headH + 4} fill={outline} />
+        <Px x={body.x - 2} y={body.y - 2} w={body.w + 4} h={body.h + 4} fill={outline} />
+        <Px x={body.headX} y={body.headY} w={body.headW} h={body.headH} fill={base} />
+        <Px x={body.x} y={body.y} w={body.w} h={body.h} fill={base} />
+        <Px x={body.headX + 3} y={body.headY + 2} w={Math.max(6, body.headW - 8)} h={3} fill={light} opacity={0.72} />
+        <Px x={body.x + 4} y={body.y + 4} w={Math.max(8, body.w - 10)} h={5} fill={light} opacity={0.5} />
+        <Px x={body.x + 6} y={body.y + body.h - 10} w={body.w - 12} h={8} fill={shadeHex(light, 18)} opacity={0.78} />
+        {stageIndex >= 1 && (
+          <>
+            <Px x={body.x - 3} y={body.y + 8} w={5} h={10} fill={outline} />
+            <Px x={body.x + body.w - 2} y={body.y + 8} w={5} h={10} fill={outline} />
+            <Px x={body.x - 2} y={body.y + 9} w={4} h={8} fill={dark} />
+            <Px x={body.x + body.w - 2} y={body.y + 9} w={4} h={8} fill={dark} />
+          </>
+        )}
+        {stageIndex >= 2 && (
+          <>
+            <Px x={body.x - 4} y={body.y + 1} w={7} h={7} fill={outline} />
+            <Px x={body.x + body.w - 3} y={body.y + 1} w={7} h={7} fill={outline} />
+            <Px x={body.x - 3} y={body.y + 2} w={5} h={5} fill={dark} />
+            <Px x={body.x + body.w - 2} y={body.y + 2} w={5} h={5} fill={dark} />
+          </>
+        )}
+        <PixelFace stage={stageIndex} eye={eye} blush={blush} />
+        <Px x={stageIndex >= 2 ? 12 : 15} y={41} w={7} h={4} fill={outline} />
+        <Px x={stageIndex >= 2 ? 29 : 26} y={41} w={7} h={4} fill={outline} />
+        <Px x={stageIndex >= 2 ? 13 : 16} y={40} w={5} h={4} fill={dark} />
+        <Px x={stageIndex >= 2 ? 30 : 27} y={40} w={5} h={4} fill={dark} />
+      </svg>
+    );
+  };
+}
+
+function getArchetype(lineId = "") {
+  if (/wave/.test(lineId)) return "shark";
+  if (/coral/.test(lineId)) return "reef";
+  if (/flame|ice|speed|fairy|candy/.test(lineId)) return "fox";
+  if (/bolt|psychic/.test(lineId)) return "cat";
+  if (/leaf/.test(lineId)) return "plant";
+  if (/nature/.test(lineId)) return "bug";
+  if (/rock|crystal|crystal2/.test(lineId)) return "golem";
+  if (/wind|angel|music/.test(lineId)) return "bird";
+  if (/toxic/.test(lineId)) return "slime";
+  if (/metal|mech/.test(lineId)) return "robot";
+  if (/shadow|ghost|dark|dream|cosmic|star/.test(lineId)) return "spirit";
+  if (/dragon|dino|ancient|lava/.test(lineId)) return "dragon";
+  if (/sand/.test(lineId)) return "armadillo";
+  if (/cloud/.test(lineId)) return "cloud";
+  if (/lava2/.test(lineId)) return "hound";
+  return "beast";
+}
+
+function PixelEyePair({ x1 = 17, x2 = 29, y = 20, eye = "#171923", cute = true }) {
+  return (
+    <>
+      <Px x={x1} y={y} w={cute ? 5 : 4} h={cute ? 5 : 4} fill="#FFFFFF" />
+      <Px x={x2} y={y} w={cute ? 5 : 4} h={cute ? 5 : 4} fill="#FFFFFF" />
+      <Px x={x1 + 1} y={y + 1} w={cute ? 3 : 2} h={cute ? 3 : 2} fill={eye} />
+      <Px x={x2 + 1} y={y + 1} w={cute ? 3 : 2} h={cute ? 3 : 2} fill={eye} />
+      <Px x={x1 + 1} y={y} w={1} h={1} fill="#FFFFFF" />
+      <Px x={x2 + 1} y={y} w={1} h={1} fill="#FFFFFF" />
+    </>
+  );
+}
+
+function PixelMouth({ x = 22, y = 30, color = "#171923" }) {
+  return (
+    <>
+      <Px x={x} y={y} w={4} h={2} fill={color} />
+      <Px x={x - 2} y={y - 1} w={2} h={2} fill={color} />
+      <Px x={x + 4} y={y - 1} w={2} h={2} fill={color} />
+    </>
+  );
+}
+
+function CollectibleSilhouette({ archetype, stage, base, light, dark, outline, accent, eye }) {
+  const big = stage >= 2;
+  const mid = stage >= 1;
+  if (archetype === "shark") {
+    return (
+      <>
+        <Px x={8} y={23} w={29} h={13} fill={outline} />
+        <Px x={31} y={19} w={10} h={11} fill={outline} />
+        <Px x={4} y={27} w={8} h={7} fill={outline} />
+        <Px x={18} y={14} w={8} h={9} fill={outline} />
+        <Px x={10} y={24} w={26} h={11} fill={base} />
+        <Px x={32} y={20} w={7} h={9} fill={base} />
+        <Px x={5} y={28} w={7} h={5} fill={dark} />
+        <Px x={20} y={15} w={5} h={7} fill={dark} />
+        <Px x={14} y={31} w={17} h={3} fill={light} />
+        <Px x={34} y={22} w={3} h={3} fill="#FFFFFF" />
+        <Px x={35} y={23} w={1} h={1} fill={eye} />
+        <Px x={32} y={27} w={5} h={1} fill="#FFFFFF" />
+        {mid && <Px x={24} y={36} w={8} h={5} fill={dark} />}
+        {big && <><Px x={38} y={17} w={5} h={5} fill={accent} /><Px x={39} y={30} w={5} h={5} fill={accent} /></>}
+      </>
+    );
+  }
+  if (archetype === "fox" || archetype === "hound") {
+    return (
+      <>
+        <Px x={14} y={17} w={22} h={18} fill={outline} />
+        <Px x={11} y={10} w={10} h={11} fill={outline} />
+        <Px x={29} y={10} w={10} h={11} fill={outline} />
+        <Px x={35} y={24} w={8} h={10} fill={outline} />
+        <Px x={16} y={18} w={18} h={16} fill={base} />
+        <Px x={13} y={12} w={7} h={8} fill={base} />
+        <Px x={30} y={12} w={7} h={8} fill={base} />
+        <Px x={36} y={25} w={6} h={8} fill={dark} />
+        <Px x={18} y={29} w={12} h={5} fill={light} />
+        <PixelEyePair x1={17} x2={29} y={20} eye={eye} />
+        <PixelMouth x={22} y={28} color={eye} />
+        <Px x={16} y={39} w={6} h={4} fill={outline} />
+        <Px x={29} y={39} w={6} h={4} fill={outline} />
+        <Px x={17} y={38} w={4} h={4} fill={dark} />
+        <Px x={30} y={38} w={4} h={4} fill={dark} />
+        {mid && <><Px x={22} y={5} w={6} h={7} fill={accent} /><Px x={23} y={3} w={4} h={4} fill="#FFE28A" /></>}
+        {big && <><Px x={8} y={16} w={5} h={6} fill={dark} /><Px x={37} y={16} w={5} h={6} fill={dark} /></>}
+      </>
+    );
+  }
+  if (archetype === "cat") {
+    return (
+      <>
+        <Px x={12} y={17} w={24} h={18} fill={outline} />
+        <Px x={13} y={8} w={7} h={10} fill={outline} />
+        <Px x={29} y={8} w={7} h={10} fill={outline} />
+        <Px x={14} y={18} w={20} h={16} fill={base} />
+        <Px x={15} y={10} w={5} h={7} fill={base} />
+        <Px x={29} y={10} w={5} h={7} fill={base} />
+        <Px x={18} y={30} w={12} h={4} fill={light} />
+        <PixelEyePair x1={17} x2={29} y={20} eye={eye} />
+        <PixelMouth x={22} y={28} color={eye} />
+        <Px x={34} y={26} w={8} h={4} fill={outline} />
+        <Px x={38} y={22} w={4} h={8} fill={dark} />
+        {mid && <><Px x={8} y={21} w={5} h={5} fill={accent} /><Px x={36} y={21} w={5} h={5} fill={accent} /></>}
+        {big && <><Px x={20} y={4} w={8} h={4} fill={accent} /><Px x={22} y={1} w={4} h={4} fill="#FFFFFF" /></>}
+      </>
+    );
+  }
+  if (archetype === "plant") {
+    return (
+      <>
+        <Px x={15} y={18} w={18} h={20} fill={outline} />
+        <Px x={10} y={12} w={13} h={8} fill={outline} />
+        <Px x={25} y={12} w={13} h={8} fill={outline} />
+        <Px x={17} y={19} w={14} h={18} fill={base} />
+        <Px x={11} y={13} w={11} h={6} fill="#7BE46D" />
+        <Px x={26} y={13} w={11} h={6} fill="#7BE46D" />
+        <Px x={21} y={8} w={6} h={8} fill={dark} />
+        <Px x={18} y={31} w={12} h={5} fill={light} />
+        <PixelEyePair x1={17} x2={28} y={22} eye={eye} />
+        <PixelMouth x={21} y={30} color={eye} />
+        {mid && <><Px x={8} y={25} w={7} h={5} fill={dark} /><Px x={33} y={25} w={7} h={5} fill={dark} /></>}
+        {big && [9, 15, 21, 27, 33].map((x, i) => <Px key={x} x={x} y={6} w={5} h={8} fill={i % 2 ? "#FFE06E" : "#FF86B4"} />)}
+      </>
+    );
+  }
+  if (archetype === "bug") {
+    return (
+      <>
+        <Px x={16} y={19} w={17} h={17} fill={outline} />
+        <Px x={8} y={15} w={10} h={16} fill={outline} />
+        <Px x={31} y={15} w={10} h={16} fill={outline} />
+        <Px x={18} y={20} w={13} h={15} fill={base} />
+        <Px x={9} y={16} w={8} h={14} fill={light} opacity={0.86} />
+        <Px x={32} y={16} w={8} h={14} fill={light} opacity={0.86} />
+        <Px x={18} y={12} w={13} h={9} fill={dark} />
+        <PixelEyePair x1={18} x2={27} y={22} eye={eye} cute={false} />
+        <Px x={19} y={36} w={4} h={5} fill={outline} />
+        <Px x={27} y={36} w={4} h={5} fill={outline} />
+        {mid && <><Px x={14} y={7} w={3} h={8} fill={accent} /><Px x={32} y={7} w={3} h={8} fill={accent} /></>}
+        {big && <><Px x={5} y={11} w={6} h={8} fill={accent} opacity={0.75} /><Px x={38} y={11} w={6} h={8} fill={accent} opacity={0.75} /></>}
+      </>
+    );
+  }
+  if (archetype === "bird") {
+    return (
+      <>
+        <Px x={15} y={14} w={19} h={22} fill={outline} />
+        <Px x={7} y={18} w={10} h={14} fill={outline} />
+        <Px x={32} y={18} w={10} h={14} fill={outline} />
+        <Px x={17} y={15} w={15} h={20} fill={base} />
+        <Px x={8} y={19} w={8} h={12} fill={light} />
+        <Px x={33} y={19} w={8} h={12} fill={light} />
+        <Px x={22} y={23} w={5} h={4} fill="#FFE08A" />
+        <PixelEyePair x1={17} x2={28} y={19} eye={eye} cute={false} />
+        <Px x={18} y={37} w={4} h={5} fill={outline} />
+        <Px x={28} y={37} w={4} h={5} fill={outline} />
+        {mid && <Px x={21} y={7} w={8} h={7} fill={accent} />}
+        {big && <><Px x={17} y={4} w={14} h={3} fill="#FFE66A" /><Px x={20} y={1} w={8} h={2} fill="#FFF4A0" /></>}
+      </>
+    );
+  }
+  if (archetype === "slime") {
+    return (
+      <>
+        <Px x={12} y={24} w={24} h={14} fill={outline} />
+        <Px x={15} y={17} w={18} h={10} fill={outline} />
+        <Px x={10} y={29} w={6} h={6} fill={outline} />
+        <Px x={32} y={29} w={6} h={6} fill={outline} />
+        <Px x={13} y={25} w={22} h={12} fill={base} />
+        <Px x={16} y={18} w={16} h={9} fill={base} />
+        <Px x={17} y={22} w={9} h={3} fill={light} opacity={0.75} />
+        <PixelEyePair x1={17} x2={28} y={25} eye={eye} />
+        <PixelMouth x={21} y={32} color={eye} />
+        {mid && <><Px x={8} y={21} w={4} h={4} fill={accent} /><Px x={36} y={20} w={4} h={4} fill={accent} /></>}
+        {big && <><Px x={22} y={10} w={6} h={8} fill={accent} /><Px x={20} y={8} w={10} h={3} fill="#DDFF9A" /></>}
+      </>
+    );
+  }
+  if (archetype === "robot") {
+    return (
+      <>
+        <Px x={13} y={12} w={22} h={24} fill={outline} />
+        <Px x={15} y={14} w={18} h={20} fill={base} />
+        <Px x={18} y={8} w={12} h={6} fill={outline} />
+        <Px x={20} y={9} w={8} h={4} fill={light} />
+        <Px x={9} y={20} w={6} h={11} fill={outline} />
+        <Px x={34} y={20} w={6} h={11} fill={outline} />
+        <Px x={11} y={22} w={4} h={7} fill={dark} />
+        <Px x={34} y={22} w={4} h={7} fill={dark} />
+        <Px x={17} y={20} w={5} h={5} fill="#DFFFF7" />
+        <Px x={27} y={20} w={5} h={5} fill="#DFFFF7" />
+        <Px x={18} y={21} w={3} h={3} fill={eye} />
+        <Px x={28} y={21} w={3} h={3} fill={eye} />
+        <Px x={20} y={29} w={9} h={2} fill={dark} />
+        {mid && <Px x={21} y={4} w={7} h={4} fill={accent} />}
+        {big && <><Px x={6} y={31} w={7} h={5} fill={accent} /><Px x={36} y={31} w={7} h={5} fill={accent} /></>}
+      </>
+    );
+  }
+  if (archetype === "spirit") {
+    return (
+      <>
+        <Px x={13} y={13} w={22} h={22} fill={outline} />
+        <Px x={11} y={28} w={6} h={8} fill={outline} />
+        <Px x={22} y={31} w={5} h={8} fill={outline} />
+        <Px x={32} y={28} w={6} h={8} fill={outline} />
+        <Px x={15} y={15} w={18} h={18} fill={base} />
+        <Px x={12} y={29} w={5} h={6} fill={base} />
+        <Px x={23} y={32} w={4} h={6} fill={base} />
+        <Px x={32} y={29} w={5} h={6} fill={base} />
+        <Px x={17} y={18} w={10} h={3} fill={light} opacity={0.6} />
+        <PixelEyePair x1={17} x2={28} y={22} eye={eye} />
+        <Px x={21} y={30} w={7} h={2} fill={eye} />
+        {mid && <><Px x={7} y={13} w={6} h={8} fill={dark} /><Px x={35} y={13} w={6} h={8} fill={dark} /></>}
+        {big && <><Px x={22} y={5} w={5} h={5} fill="#FFFFFF" /><Px x={20} y={7} w={9} h={2} fill={accent} /></>}
+      </>
+    );
+  }
+  if (archetype === "dragon") {
+    return (
+      <>
+        <Px x={12} y={15} w={24} h={20} fill={outline} />
+        <Px x={28} y={10} w={10} h={12} fill={outline} />
+        <Px x={6} y={27} w={10} h={6} fill={outline} />
+        <Px x={14} y={16} w={20} h={18} fill={base} />
+        <Px x={29} y={12} w={8} h={9} fill={base} />
+        <Px x={7} y={28} w={9} h={4} fill={dark} />
+        <Px x={17} y={9} w={4} h={7} fill={accent} />
+        <Px x={25} y={8} w={4} h={8} fill={accent} />
+        <Px x={32} y={14} w={4} h={4} fill="#FFFFFF" />
+        <Px x={33} y={15} w={2} h={2} fill={eye} />
+        <Px x={32} y={20} w={5} h={2} fill={eye} />
+        <Px x={18} y={30} w={11} h={4} fill={light} opacity={0.75} />
+        {mid && <><Px x={10} y={15} w={5} h={8} fill={dark} /><Px x={34} y={22} w={6} h={5} fill={dark} /></>}
+        {big && <><Px x={8} y={12} w={6} h={8} fill={accent} /><Px x={36} y={25} w={6} h={8} fill={accent} /></>}
+      </>
+    );
+  }
+  if (archetype === "golem") {
+    return (
+      <>
+        <Px x={13} y={16} w={22} h={20} fill={outline} />
+        <Px x={16} y={10} w={16} h={10} fill={outline} />
+        <Px x={15} y={18} w={18} h={16} fill={base} />
+        <Px x={18} y={12} w={12} h={7} fill={base} />
+        <Px x={8} y={24} w={7} h={8} fill={outline} />
+        <Px x={34} y={24} w={7} h={8} fill={outline} />
+        <Px x={9} y={25} w={5} h={6} fill={dark} />
+        <Px x={35} y={25} w={5} h={6} fill={dark} />
+        <Px x={17} y={22} w={4} h={4} fill="#FFFFFF" />
+        <Px x={28} y={22} w={4} h={4} fill="#FFFFFF" />
+        <Px x={18} y={23} w={2} h={2} fill={eye} />
+        <Px x={29} y={23} w={2} h={2} fill={eye} />
+        <Px x={21} y={30} w={7} h={2} fill={eye} />
+        {mid && <><Px x={18} y={6} w={5} h={5} fill={accent} /><Px x={26} y={6} w={5} h={5} fill={accent} /></>}
+        {big && <><Px x={12} y={38} w={8} h={5} fill={outline} /><Px x={29} y={38} w={8} h={5} fill={outline} /></>}
+      </>
+    );
+  }
+  if (archetype === "armadillo") {
+    return (
+      <>
+        <Px x={10} y={22} w={28} h={15} fill={outline} />
+        <Px x={28} y={16} w={10} h={10} fill={outline} />
+        <Px x={12} y={23} w={24} h={13} fill={base} />
+        <Px x={29} y={17} w={8} h={8} fill={base} />
+        {[14, 19, 24, 29].map((x) => <Px key={x} x={x} y={24} w={3} h={12} fill={dark} opacity={0.68} />)}
+        <Px x={33} y={19} w={3} h={3} fill="#FFFFFF" />
+        <Px x={34} y={20} w={1} h={1} fill={eye} />
+        <Px x={8} y={30} w={5} h={4} fill={dark} />
+        {mid && <><Px x={18} y={15} w={5} h={6} fill={accent} /><Px x={23} y={14} w={5} h={7} fill={accent} /></>}
+        {big && <Px x={5} y={26} w={8} h={8} fill={outline} />}
+      </>
+    );
+  }
+  if (archetype === "cloud") {
+    return (
+      <>
+        <Px x={10} y={22} w={28} h={13} fill={outline} />
+        <Px x={15} y={15} w={11} h={10} fill={outline} />
+        <Px x={24} y={13} w={12} h={12} fill={outline} />
+        <Px x={12} y={23} w={24} h={11} fill={base} />
+        <Px x={16} y={16} w={9} h={8} fill={light} />
+        <Px x={25} y={14} w={10} h={10} fill={light} />
+        <PixelEyePair x1={17} x2={29} y={24} eye={eye} cute={false} />
+        <PixelMouth x={22} y={31} color={eye} />
+        {mid && <><Px x={8} y={16} w={5} h={6} fill={light} /><Px x={36} y={19} w={5} h={6} fill={light} /></>}
+        {big && <><Px x={17} y={8} w={4} h={6} fill="#FFE25F" /><Px x={29} y={8} w={4} h={6} fill="#FFE25F" /></>}
+      </>
+    );
+  }
+  return (
+    <>
+      <Px x={13} y={15} w={22} h={22} fill={outline} />
+      <Px x={15} y={17} w={18} h={18} fill={base} />
+      <PixelEyePair x1={17} x2={29} y={21} eye={eye} />
+      <PixelMouth x={22} y={29} color={eye} />
+    </>
+  );
+}
+
+function makeDistinctMonsterSprite(line, stageIndex, lineIndex) {
+  const archetype = getArchetype(line.lineId);
+  const base = line.stages?.[stageIndex]?.color || line.typeClr || "#88CCFF";
+  const light = shadeHex(base, 52);
+  const dark = shadeHex(base, -48);
+  const outline = shadeHex(base, -96);
+  const accent = line.eggColor || line.typeClr || base;
+  const eye = archetype === "spirit" ? "#20102F" : archetype === "robot" ? "#083B36" : "#171923";
+
+  return function DistinctMonsterSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
+    return (
+      <svg width={w} height={w} viewBox="0 0 48 48" style={{
+        ...spriteStyle(flipped),
+        imageRendering: "pixelated",
+        shapeRendering: "crispEdges",
+        opacity: fainted ? 0.4 : 1,
+        filter: hurt ? "brightness(2.7) saturate(.2)" : `drop-shadow(0 6px 0 #0000003D) drop-shadow(0 0 12px ${line.typeClr || base}66)`,
+      }}>
+        <ellipse cx="24" cy="44" rx={stageIndex >= 2 ? 16 : 13} ry="3" fill="#00000044" />
+        <CollectibleSilhouette archetype={archetype} stage={stageIndex} base={base} light={light} dark={dark} outline={outline} accent={accent} eye={eye} />
+      </svg>
+    );
+  };
+}
+
+function AnimeEyes({ x1 = 20, x2 = 34, y = 23, eye = "#151826", fierce = false }) {
+  return (
+    <>
+      <ellipse cx={x1} cy={y} rx={fierce ? 3.8 : 4.5} ry={fierce ? 4.6 : 5.2} fill="#FFFFFF" />
+      <ellipse cx={x2} cy={y} rx={fierce ? 3.8 : 4.5} ry={fierce ? 4.6 : 5.2} fill="#FFFFFF" />
+      <ellipse cx={x1 + 0.7} cy={y + 0.8} rx={fierce ? 2.2 : 2.8} ry={fierce ? 3 : 3.6} fill={eye} />
+      <ellipse cx={x2 + 0.7} cy={y + 0.8} rx={fierce ? 2.2 : 2.8} ry={fierce ? 3 : 3.6} fill={eye} />
+      <circle cx={x1 - 1.1} cy={y - 1.3} r="1.2" fill="#FFFFFF" />
+      <circle cx={x2 - 1.1} cy={y - 1.3} r="1.2" fill="#FFFFFF" />
+      {fierce && (
+        <>
+          <path d={`M ${x1 - 5} ${y - 5} L ${x1 + 5} ${y - 8}`} stroke={eye} strokeWidth="1.8" strokeLinecap="round" />
+          <path d={`M ${x2 - 5} ${y - 8} L ${x2 + 5} ${y - 5}`} stroke={eye} strokeWidth="1.8" strokeLinecap="round" />
+        </>
+      )}
+    </>
+  );
+}
+
+function AnimeMouth({ x = 27, y = 32, color = "#151826", fang = false }) {
+  return (
+    <>
+      <path d={`M ${x - 4} ${y} Q ${x} ${y + 3.2} ${x + 4} ${y}`} stroke={color} strokeWidth="1.7" fill="none" strokeLinecap="round" />
+      {fang && (
+        <>
+          <path d={`M ${x - 1.8} ${y + 1} L ${x - 0.5} ${y + 4} L ${x + 0.8} ${y + 1}`} fill="#FFFFFF" />
+          <path d={`M ${x + 2.5} ${y + 0.6} L ${x + 3.5} ${y + 3.2} L ${x + 4.7} ${y + 0.6}`} fill="#FFFFFF" />
+        </>
+      )}
+    </>
+  );
+}
+
+function AnimeAura({ color, stage }) {
+  const opacity = stage >= 2 ? 0.42 : stage >= 1 ? 0.28 : 0.18;
+  return (
+    <>
+      <ellipse cx="32" cy="37" rx={stage >= 2 ? 24 : 19} ry={stage >= 2 ? 16 : 12} fill={color} opacity={opacity} />
+      <circle cx="11" cy="20" r={stage >= 2 ? 3 : 2} fill={color} opacity="0.45" />
+      <circle cx="53" cy="17" r={stage >= 1 ? 2.4 : 1.5} fill={color} opacity="0.38" />
+      {stage >= 2 && <circle cx="50" cy="45" r="3" fill={color} opacity="0.32" />}
+    </>
+  );
+}
+
+function AnimeMonsterBody({ archetype, stage, gradId, base, light, dark, accent, eye }) {
+  const fierce = stage >= 2;
+  if (archetype === "shark") {
+    return (
+      <>
+        <path d="M9 37 C7 28 12 20 25 18 C38 16 49 22 55 30 C48 39 35 45 20 43 C15 42 11 40 9 37 Z" fill="#071426" opacity="0.72" />
+        <path d="M8 34 C13 25 23 18 38 19 C48 19 56 25 60 32 C55 37 49 40 40 41 C25 43 13 40 8 34 Z" fill={`url(#${gradId})`} />
+        <path d="M9 34 L2 28 L5 39 Z" fill={dark} />
+        <path d="M28 19 L34 7 L39 20 Z" fill={dark} />
+        <path d="M29 41 L36 52 L41 40 Z" fill={dark} opacity="0.9" />
+        <path d="M34 24 C43 24 51 27 57 32 C51 36 43 39 34 39 C28 38 23 35 22 32 C24 27 28 25 34 24 Z" fill={shadeHex(light, 20)} opacity="0.72" />
+        <AnimeEyes x1={43} x2={52} y={27} eye={eye} fierce={fierce} />
+        <path d="M48 34 C51 35 54 35 57 34" stroke="#FFFFFF" strokeWidth="1.8" strokeLinecap="round" />
+        {stage >= 1 && <path d="M18 24 C13 19 11 15 12 10 C18 12 22 16 24 21 Z" fill={accent} opacity="0.9" />}
+        {stage >= 2 && <path d="M39 18 C45 9 51 7 57 10 C52 15 47 19 41 23 Z" fill={accent} opacity="0.9" />}
+      </>
+    );
+  }
+  if (archetype === "dragon") {
+    return (
+      <>
+        <path d="M12 39 C10 24 18 12 31 12 C45 12 53 22 52 37 C50 49 39 56 27 54 C17 52 12 47 12 39 Z" fill="#071426" opacity="0.65" />
+        <path d="M15 38 C14 25 20 15 31 14 C42 13 49 22 48 36 C47 47 38 52 28 51 C20 50 15 45 15 38 Z" fill={`url(#${gradId})`} />
+        <path d="M21 18 L16 6 L27 13 Z" fill={accent} />
+        <path d="M39 17 L46 5 L48 19 Z" fill={accent} />
+        <path d="M43 37 C52 36 59 30 61 22 C62 33 55 43 45 46 Z" fill={dark} />
+        <path d="M13 31 C7 29 3 24 3 17 C11 18 16 23 19 31 Z" fill={dark} opacity="0.86" />
+        <path d="M44 31 C53 27 58 22 60 14 C51 15 45 20 41 29 Z" fill={dark} opacity="0.86" />
+        <ellipse cx="31" cy="38" rx="10" ry="8" fill={shadeHex(light, 22)} opacity="0.72" />
+        <AnimeEyes x1={27} x2={39} y={25} eye={eye} fierce={fierce} />
+        <AnimeMouth x={34} y={34} color={eye} fang />
+      </>
+    );
+  }
+  if (archetype === "fox" || archetype === "hound" || archetype === "cat") {
+    const cat = archetype === "cat";
+    return (
+      <>
+        <path d="M14 42 C12 28 19 17 31 16 C44 15 51 26 48 40 C46 51 36 56 26 53 C18 51 14 48 14 42 Z" fill="#071426" opacity="0.58" />
+        <path d="M17 40 C15 29 21 20 31 19 C41 18 47 27 45 39 C43 47 35 51 27 49 C21 48 17 45 17 40 Z" fill={`url(#${gradId})`} />
+        <path d="M20 20 L14 8 L27 15 Z" fill={dark} />
+        <path d="M39 20 L47 8 L48 23 Z" fill={dark} />
+        <path d={cat ? "M46 37 C55 33 57 24 53 18 C52 27 48 31 43 33 Z" : "M44 38 C54 36 59 28 57 20 C53 28 47 31 41 32 Z"} fill={dark} />
+        <ellipse cx="31" cy="39" rx="10" ry="7.5" fill={shadeHex(light, 20)} opacity="0.72" />
+        <AnimeEyes x1={26} x2={38} y={28} eye={eye} fierce={fierce} />
+        <AnimeMouth x={32} y={36} color={eye} fang={stage >= 1} />
+        {stage >= 1 && <path d="M29 15 C28 8 31 4 35 2 C36 8 34 13 31 17 Z" fill={accent} />}
+        {stage >= 2 && <path d="M12 30 C6 29 2 25 1 19 C8 18 14 22 18 29 Z" fill={accent} opacity="0.86" />}
+      </>
+    );
+  }
+  if (archetype === "plant" || archetype === "bug") {
+    const bug = archetype === "bug";
+    return (
+      <>
+        {bug && (
+          <>
+            <ellipse cx="16" cy="28" rx="10" ry="15" fill={shadeHex(light, 8)} opacity="0.55" />
+            <ellipse cx="47" cy="28" rx="10" ry="15" fill={shadeHex(light, 8)} opacity="0.55" />
+          </>
+        )}
+        <path d="M16 42 C14 28 21 18 32 18 C43 18 49 28 47 42 C45 52 37 56 28 53 C21 51 17 48 16 42 Z" fill="#071426" opacity="0.55" />
+        <path d="M19 40 C17 30 22 22 32 21 C41 21 46 30 44 40 C42 48 36 51 29 49 C23 48 19 45 19 40 Z" fill={`url(#${gradId})`} />
+        <path d="M31 19 C20 15 15 10 14 4 C24 4 30 9 33 17 Z" fill={bug ? accent : "#78E66B"} />
+        <path d="M33 19 C42 14 48 10 52 5 C54 14 48 20 38 22 Z" fill={bug ? accent : "#78E66B"} />
+        {!bug && stage >= 2 && Array.from({ length: 8 }, (_, i) => {
+          const a = (-90 + i * 45) * Math.PI / 180;
+          const x = 32 + Math.cos(a) * 17;
+          const y = 21 + Math.sin(a) * 10;
+          return <ellipse key={i} cx={x} cy={y} rx="4" ry="8" fill={i % 2 ? "#FFE37A" : "#FF8FBD"} transform={`rotate(${-90 + i * 45} ${x} ${y})`} opacity="0.9" />;
+        })}
+        <ellipse cx="31" cy="40" rx="9" ry="7" fill={shadeHex(light, 22)} opacity="0.72" />
+        <AnimeEyes x1={26} x2={38} y={29} eye={eye} fierce={fierce} />
+        <AnimeMouth x={32} y={37} color={eye} />
+      </>
+    );
+  }
+  if (archetype === "bird") {
+    return (
+      <>
+        <path d="M17 40 C14 27 21 17 33 16 C45 15 52 27 48 40 C45 50 36 55 27 52 C21 50 18 46 17 40 Z" fill="#071426" opacity="0.55" />
+        <path d="M20 39 C18 29 23 21 33 20 C42 19 48 28 45 39 C43 47 36 51 29 49 C24 48 20 44 20 39 Z" fill={`url(#${gradId})`} />
+        <path d="M20 31 C10 28 4 20 4 10 C17 12 25 19 29 31 Z" fill={dark} opacity="0.88" />
+        <path d="M43 31 C53 27 59 19 60 9 C48 12 40 19 36 31 Z" fill={dark} opacity="0.88" />
+        <path d="M30 29 L39 31 L30 36 Z" fill="#FFE083" />
+        <AnimeEyes x1={25} x2={36} y={25} eye={eye} fierce={fierce} />
+        {stage >= 2 && <ellipse cx="32" cy="9" rx="10" ry="3" fill="#FFE66B" opacity="0.86" />}
+      </>
+    );
+  }
+  if (archetype === "golem" || archetype === "robot") {
+    const robot = archetype === "robot";
+    return (
+      <>
+        <path d="M14 44 L12 24 L22 13 L42 13 L52 25 L50 44 L39 54 L25 54 Z" fill="#071426" opacity="0.65" />
+        <path d="M17 42 L16 26 L24 17 L40 17 L48 27 L47 42 L38 50 L26 50 Z" fill={`url(#${gradId})`} />
+        <path d="M23 14 L28 5 L34 14 Z" fill={accent} />
+        <path d="M39 17 L48 10 L48 23 Z" fill={dark} />
+        <path d="M16 24 L7 19 L9 34 Z" fill={dark} />
+        <ellipse cx="31" cy="38" rx="9" ry="7" fill={shadeHex(light, 18)} opacity="0.66" />
+        {robot ? (
+          <>
+            <rect x="24" y="25" width="6" height="6" rx="1.5" fill="#E4FFFA" />
+            <rect x="36" y="25" width="6" height="6" rx="1.5" fill="#E4FFFA" />
+            <rect x="25" y="26" width="4" height="4" fill={eye} />
+            <rect x="37" y="26" width="4" height="4" fill={eye} />
+            <rect x="28" y="37" width="11" height="2" fill={eye} />
+          </>
+        ) : (
+          <>
+            <AnimeEyes x1={27} x2={39} y={28} eye={eye} fierce={fierce} />
+            <AnimeMouth x={33} y={37} color={eye} />
+          </>
+        )}
+      </>
+    );
+  }
+  if (archetype === "spirit" || archetype === "slime" || archetype === "cloud") {
+    return (
+      <>
+        <path d="M15 38 C13 25 21 15 33 15 C45 15 52 26 49 39 C47 49 39 55 31 53 C30 58 25 58 22 53 C16 51 15 46 15 38 Z" fill="#071426" opacity="0.52" />
+        <path d="M18 37 C16 27 22 19 33 19 C43 19 49 28 46 38 C44 46 38 50 31 48 C30 53 26 53 24 48 C20 47 18 43 18 37 Z" fill={`url(#${gradId})`} />
+        <path d="M15 30 C8 27 5 21 8 14 C16 17 20 22 21 30 Z" fill={dark} opacity="0.8" />
+        <path d="M47 30 C55 27 59 20 56 13 C48 16 44 22 43 30 Z" fill={dark} opacity="0.8" />
+        <ellipse cx="31" cy="38" rx="10" ry="7" fill={shadeHex(light, 20)} opacity="0.52" />
+        <AnimeEyes x1={27} x2={39} y={29} eye={eye} fierce={fierce} />
+        <AnimeMouth x={33} y={38} color={eye} fang={archetype === "spirit" && stage >= 1} />
+        {stage >= 2 && <path d="M33 14 C39 7 47 5 55 8 C48 13 42 17 35 20 Z" fill={accent} opacity="0.9" />}
+      </>
+    );
+  }
+  return (
+    <>
+      <ellipse cx="32" cy="35" rx="18" ry="20" fill={`url(#${gradId})`} />
+      <AnimeEyes eye={eye} fierce={fierce} />
+      <AnimeMouth color={eye} />
+    </>
+  );
+}
+
+function makeAnimeMonsterSprite(line, stageIndex, lineIndex) {
+  const archetype = getArchetype(line.lineId);
+  const base = line.stages?.[stageIndex]?.color || line.typeClr || "#88CCFF";
+  const light = shadeHex(base, 52);
+  const dark = shadeHex(base, -42);
+  const accent = line.eggColor || line.typeClr || base;
+  const eye = archetype === "spirit" ? "#21102F" : archetype === "robot" ? "#053B37" : "#151826";
+
+  return function AnimeMonsterSprite({ w = 64, flipped = false, hurt = false, fainted = false }) {
+    const gradId = `anime_${lineIndex}_${stageIndex}`;
+    return (
+      <svg width={w} height={w} viewBox="0 0 64 64" style={{
+        ...spriteStyle(flipped),
+        overflow: "visible",
+        opacity: fainted ? 0.42 : 1,
+        filter: hurt ? "brightness(2.4) saturate(.3)" : `drop-shadow(0 9px 16px #00000055) drop-shadow(0 0 18px ${line.typeClr || base}66)`,
+      }}>
+        <defs>
+          <linearGradient id={gradId} x1="18" y1="8" x2="48" y2="54" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor={shadeHex(light, 24)} />
+            <stop offset="48%" stopColor={base} />
+            <stop offset="100%" stopColor={dark} />
+          </linearGradient>
+        </defs>
+        <AnimeAura color={line.typeClr || base} stage={stageIndex} />
+        <AnimeMonsterBody archetype={archetype} stage={stageIndex} gradId={gradId} base={base} light={light} dark={dark} accent={accent} eye={eye} />
+      </svg>
+    );
+  };
+}
+
+const CONCEPT_BY_ID = Object.fromEntries(MONSTER_LINE_CONCEPTS.map((concept) => [concept.lineId, concept]));
+
+const LINE_CONCEPT_MAP = {
+  vocabmon: "tidejaw-line",
+  flame: "foxflare-line",
+  wave: "tidejaw-line",
+  leaf: "grovehart-line",
+  bolt: "boltcat-line",
+  shadow: "nightwolf-line",
+  star: "crystowl-line",
+  ice: "cloudwhale-line",
+  rock: "cactusaur-line",
+  wind: "ramcloud-line",
+  toxic: "frogspell-line",
+  metal: "mechamite-line",
+  psychic: "crystowl-line",
+  crystal: "crystowl-line",
+  dragon: "volcdrake-line",
+  nature: "flutterbug-line",
+  lava: "volcdrake-line",
+  ancient: "cactusaur-line",
+  fairy: "grovehart-line",
+  ghost: "nightwolf-line",
+  sand: "cactusaur-line",
+  speed: "boltcat-line",
+  cosmic: "cloudwhale-line",
+  dream: "frogspell-line",
+  dino: "cactusaur-line",
+  angel: "crystowl-line",
+  candy: "foxflare-line",
+  music: "crystowl-line",
+  dark: "nightwolf-line",
+  mech: "mechamite-line",
+  coral: "tidejaw-line",
+  cloud: "cloudwhale-line",
+  lava2: "volcdrake-line",
+  crystal2: "crystowl-line",
+};
+
+function getLineRenderConcept(line, stageIndex) {
+  const source = CONCEPT_BY_ID[LINE_CONCEPT_MAP[line.lineId]] ?? null;
+  const stage = line.stages?.[stageIndex] ?? {};
+  const conceptStages = source?.stages?.length
+    ? source.stages.map((conceptStage, index) => ({
+        ...conceptStage,
+        id: line.stages?.[index]?.id ?? conceptStage.id,
+        name: line.stages?.[index]?.name ?? conceptStage.name,
+        color: line.stages?.[index]?.color ?? stage.color ?? line.typeClr,
+      }))
+    : line.stages;
+
+  return {
+    ...(source ?? {}),
+    lineId: line.lineId,
+    type: line.type,
+    typeClr: line.typeClr,
+    typeColor: line.typeClr,
+    eggColor: line.eggColor,
+    color: stage.color ?? line.typeClr,
+    stages: conceptStages,
+  };
+}
+
 CATCH_MON_LINES.forEach((line) => {
-  line.stages = line.stages.map((stage, stageIndex) => ({
-    ...stage,
-    stageIndex,
-    OriginalSprite: stage.Sprite,
-    Sprite: createCatchmonImageSprite({ ...stage, stageIndex }),
-  }));
+  line.stages = line.stages.map((stage, stageIndex) => {
+    const asset = getMonsterAsset(stage.id);
+    return {
+      ...stage,
+      artUrl: asset?.artUrl,
+      OriginalSprite: stage.Sprite,
+      Sprite: asset
+        ? createImageMonsterSprite(asset, stage)
+        : createAnimeMonsterSprite(getLineRenderConcept(line, stageIndex), stageIndex),
+    };
+  });
 });
 
 export const ALL_CATCH_IDS = CATCH_MON_LINES.flatMap((line) => line.stages.map((stage) => stage.id));
 
 export const EGG_DROP = {
-  common: ["flame", "wave", "leaf", "ice", "rock", "wind", "fairy", "sand", "dino", "coral", "cloud"],
+  common: ["vocabmon", "flame", "wave", "leaf", "ice", "rock", "wind", "fairy", "sand", "dino", "coral", "cloud"],
   rare: ["bolt", "wind", "toxic", "metal", "flame", "wave", "ghost", "speed", "dream", "candy", "music", "dark", "mech"],
   superrare: ["shadow", "psychic", "crystal", "dragon", "nature", "cosmic", "angel", "lava2"],
   legendary: ["star", "lava", "ancient", "crystal2"],
 };
 
 export const PARTNER_UNLOCK_STARS = {
+  vocabmon: 0,
   flame: 0,
   wave: 0,
   leaf: 0,

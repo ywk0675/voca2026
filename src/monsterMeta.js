@@ -1,10 +1,66 @@
 import { CATCH_MON_LINES } from "./catchMons.jsx";
 
-export const HATCH_DURATIONS_MS = {
-  common: 5 * 60 * 1000,
-  rare: 20 * 60 * 1000,
-  superrare: 60 * 60 * 1000,
-  legendary: 3 * 60 * 60 * 1000,
+export const RARITY_META = {
+  common: {
+    label: "Common",
+    shortLabel: "★",
+    hatchMinutes: 8,
+    shopPrice: 80,
+    hatchLevel: 1,
+    boosterMinutes: 8,
+  },
+  rare: {
+    label: "Rare",
+    shortLabel: "★★",
+    hatchMinutes: 30,
+    shopPrice: 220,
+    hatchLevel: 3,
+    boosterMinutes: 15,
+  },
+  superrare: {
+    label: "Super Rare",
+    shortLabel: "★★★",
+    hatchMinutes: 120,
+    shopPrice: 520,
+    hatchLevel: 6,
+    boosterMinutes: 30,
+  },
+  legendary: {
+    label: "Legendary",
+    shortLabel: "★★★★",
+    hatchMinutes: 360,
+    shopPrice: 1200,
+    hatchLevel: 10,
+    boosterMinutes: 60,
+  },
+};
+
+export const HATCH_DURATIONS_MS = Object.fromEntries(
+  Object.entries(RARITY_META).map(([rarity, meta]) => [rarity, meta.hatchMinutes * 60 * 1000])
+);
+
+export const HATCHERY_SLOT_META = {
+  1: {
+    label: "기본 부화기",
+    tier: "basic",
+    allowedRarities: ["common", "rare"],
+    unlockPrice: 0,
+    desc: "Common/Rare 알 전용",
+  },
+  2: {
+    label: "고급 부화기",
+    tier: "advanced",
+    allowedRarities: ["common", "rare", "superrare"],
+    unlockPrice: 450,
+    desc: "Super Rare까지 가능",
+  },
+  3: {
+    label: "레전드 부화기",
+    tier: "legendary",
+    allowedRarities: ["common", "rare", "superrare", "legendary"],
+    unlockPrice: 950,
+    desc: "Legendary 알 가능",
+  },
 };
 
 export const DUPLICATE_REWARDS = {
@@ -22,9 +78,26 @@ function getLineStages(lineId) {
   return CATCH_MON_LINES.find((line) => line.lineId === lineId)?.stages ?? [];
 }
 
+export function getEggRarityMeta(rarity = "common") {
+  return RARITY_META[rarity] ?? RARITY_META.common;
+}
+
+export function getHatchDurationMs(rarity = "common") {
+  return getEggRarityMeta(rarity).hatchMinutes * 60 * 1000;
+}
+
+export function getSlotMeta(slotId) {
+  return HATCHERY_SLOT_META[slotId] ?? HATCHERY_SLOT_META[1];
+}
+
 function makeSlot(slotId, unlocked = false) {
+  const meta = getSlotMeta(slotId);
   return {
     slotId,
+    tier: meta.tier,
+    label: meta.label,
+    allowedRarities: meta.allowedRarities,
+    unlockPrice: meta.unlockPrice,
     unlocked,
     egg: null,
     startedAt: null,
@@ -41,18 +114,54 @@ export function normalizeHatcherySlots(slots = []) {
   const defaults = createDefaultHatcherySlots();
   return defaults.map((slot) => {
     const found = slots.find((entry) => entry.slotId === slot.slotId);
-    return found ? { ...slot, ...found } : slot;
+    const merged = found ? { ...slot, ...found } : slot;
+    const meta = getSlotMeta(merged.slotId);
+    return {
+      ...merged,
+      tier: meta.tier,
+      label: meta.label,
+      allowedRarities: meta.allowedRarities,
+      unlockPrice: meta.unlockPrice,
+    };
   });
 }
 
 export function createEgg(rarity = "common", lineId, source = "reward") {
+  const meta = getEggRarityMeta(rarity);
   return {
     id: `egg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
     rarity,
     lineId,
     source,
+    hatchMinutes: meta.hatchMinutes,
+    hatchLevel: meta.hatchLevel,
     obtainedAt: Date.now(),
   };
+}
+
+export function canSlotHatchEgg(slot, egg) {
+  if (!slot?.unlocked || slot.egg || !egg?.rarity) return false;
+  const allowed = slot.allowedRarities ?? getSlotMeta(slot.slotId).allowedRarities;
+  return allowed.includes(egg.rarity);
+}
+
+export function getNextLockedSlot(slots = []) {
+  return normalizeHatcherySlots(slots).find((slot) => !slot.unlocked) ?? null;
+}
+
+export function reduceRunningEggTime(slots = [], reduceMs = 30 * 60 * 1000, now = Date.now()) {
+  let applied = false;
+  const nextSlots = syncHatcherySlots(slots, now).map((slot) => {
+    if (applied || slot.status !== "running" || !slot.egg || !slot.finishesAt) return slot;
+    applied = true;
+    const nextFinish = Math.max(now, slot.finishesAt - reduceMs);
+    return {
+      ...slot,
+      finishesAt: nextFinish,
+      status: nextFinish <= now ? "ready" : "running",
+    };
+  });
+  return { slots: nextSlots, applied };
 }
 
 export function syncHatcherySlots(slots = [], now = Date.now()) {
@@ -272,7 +381,7 @@ export function migrateEggState(savedEggInventory, savedHatcherySlots, savedPend
     const hasProgress = answersLeft < 10;
 
     if (!firstProgressAssigned && hasProgress) {
-      const duration = HATCH_DURATIONS_MS[egg.rarity] ?? HATCH_DURATIONS_MS.common;
+      const duration = getHatchDurationMs(egg.rarity);
       const remainingRatio = Math.max(0, Math.min(1, answersLeft / 10));
       const elapsed = duration * (1 - remainingRatio);
       hatcherySlots[0] = {

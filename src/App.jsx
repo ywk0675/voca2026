@@ -6,10 +6,15 @@ import { CATCH_MON_LINES, EGG_DROP, PARTNER_UNLOCK_STARS, getCatchLineById, getC
 import { startBGM, stopBGM, sfxCorrect, sfxWrong, sfxHitEnemy, sfxHitPlayer, sfxVictory, sfxDefeat, sfxBattleStart, sfxHatch, sfxEvolveStart, sfxEvolveDone, setMuted, isMuted } from "./audio.js";
 import { BOOK_SERIES, getUnitInfo, getWordsForUnit, getSubStages } from "./wordData.js";
 import {
-  HATCH_DURATIONS_MS,
   createDefaultHatcherySlots,
   createEgg,
   syncHatcherySlots,
+  getEggRarityMeta,
+  getHatchDurationMs,
+  getSlotMeta,
+  canSlotHatchEgg,
+  getNextLockedSlot,
+  reduceRunningEggTime,
   migrateMonsterCollection,
   migrateEggState,
   getOwnedMonsterIds,
@@ -264,6 +269,404 @@ const CSS = `
   .page-y{height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:var(--bg);}
   .slide-up{animation:slideUp .22s ease;}
 
+  .monster-preview{
+    min-height:100vh;
+    padding:clamp(16px,3vw,32px);
+    color:#F8F0D2;
+    background:
+      radial-gradient(circle at 12% 8%,rgba(84,202,255,.28) 0,transparent 25%),
+      radial-gradient(circle at 86% 14%,rgba(255,198,64,.24) 0,transparent 26%),
+      radial-gradient(circle at 56% 72%,rgba(58,255,175,.13) 0,transparent 32%),
+      linear-gradient(145deg,#07111D 0%,#0A0713 48%,#12080A 100%);
+  }
+  .monster-preview::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background-image:
+      linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);
+    background-size:34px 34px;
+    mask-image:radial-gradient(circle at 50% 12%,black 0%,transparent 72%);
+  }
+  .monster-preview__shell{
+    position:relative;
+    z-index:1;
+    width:100%;
+    max-width:1440px;
+    margin:0 auto;
+  }
+  .monster-preview__header{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:18px;
+    margin-bottom:24px;
+    padding:18px clamp(14px,2.5vw,26px);
+    border:1px solid rgba(255,255,255,.12);
+    border-radius:28px;
+    background:linear-gradient(135deg,rgba(255,255,255,.12),rgba(255,255,255,.035));
+    box-shadow:0 22px 70px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.2);
+    backdrop-filter:blur(14px);
+  }
+  .monster-preview__eyebrow{
+    font-family:var(--f-pk);
+    font-size:clamp(8px,1.6vw,12px);
+    letter-spacing:.08em;
+    color:#78E6FF;
+    text-shadow:0 0 18px rgba(120,230,255,.45);
+  }
+  .monster-preview__title{
+    margin-top:10px;
+    font-family:var(--f-pk);
+    font-size:clamp(24px,5vw,54px);
+    line-height:1.14;
+    color:#FFF6CD;
+    text-shadow:0 0 28px rgba(255,204,85,.42),0 10px 34px rgba(0,0,0,.55);
+  }
+  .monster-preview__subtitle{
+    max-width:820px;
+    margin-top:12px;
+    font-family:var(--f-ui);
+    font-size:clamp(14px,2.3vw,19px);
+    font-weight:900;
+    line-height:1.55;
+    color:#BEEBDB;
+  }
+  .monster-preview__counter{
+    min-width:150px;
+    padding:16px 14px;
+    border-radius:22px;
+    border:1px solid rgba(245,200,66,.4);
+    background:radial-gradient(circle at 50% 0%,rgba(245,200,66,.28),rgba(12,13,22,.78) 58%);
+    color:#FFE8A1;
+    font-family:var(--f-pk);
+    font-size:clamp(9px,1.6vw,12px);
+    line-height:1.8;
+    text-align:right;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 16px 36px rgba(0,0,0,.35);
+  }
+  .monster-preview__counter span{
+    font-size:1.55em;
+    color:#FFFFFF;
+  }
+  .signature-showcase{
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(280px,.76fr) minmax(560px,1.24fr);
+    gap:clamp(16px,2.8vw,28px);
+    align-items:center;
+    margin-bottom:26px;
+    padding:clamp(18px,3vw,32px);
+    border:2px solid color-mix(in srgb,var(--line) 68%,white 12%);
+    border-radius:34px;
+    overflow:hidden;
+    background:
+      radial-gradient(circle at 78% 38%,color-mix(in srgb,var(--line) 48%,transparent) 0%,transparent 38%),
+      linear-gradient(132deg,#061724 0%,#101829 52%,#06070C 100%);
+    box-shadow:0 32px 90px rgba(0,0,0,.62),0 0 58px color-mix(in srgb,var(--line) 35%,transparent),inset 0 1px 0 rgba(255,255,255,.22);
+  }
+  .signature-showcase::before{
+    content:"";
+    position:absolute;
+    inset:-35%;
+    background:conic-gradient(from 120deg,transparent,color-mix(in srgb,var(--line) 45%,transparent),transparent,rgba(255,255,255,.2),transparent);
+    opacity:.22;
+    animation:previewSpin 16s linear infinite;
+  }
+  .signature-showcase__copy,
+  .signature-showcase__stages{
+    position:relative;
+    z-index:1;
+  }
+  .signature-showcase__name{
+    margin-top:12px;
+    font-family:var(--f-pk);
+    font-size:clamp(26px,5vw,58px);
+    line-height:1.14;
+    color:#FFF7D7;
+    text-shadow:0 0 30px color-mix(in srgb,var(--line) 62%,transparent);
+  }
+  .signature-showcase__desc{
+    margin-top:14px;
+    font-family:var(--f-ui);
+    font-weight:900;
+    font-size:clamp(14px,2.1vw,20px);
+    line-height:1.6;
+    color:#C9E9F1;
+  }
+  .signature-showcase__chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:18px;
+  }
+  .signature-showcase__chips span{
+    padding:8px 11px;
+    border:1px solid color-mix(in srgb,var(--line) 50%,white 20%);
+    border-radius:999px;
+    background:rgba(0,0,0,.22);
+    color:#FFF6CD;
+    font-family:var(--f-ui);
+    font-size:12px;
+    font-weight:900;
+  }
+  .signature-showcase__stages{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:14px;
+    align-items:start;
+  }
+  .signature-stage-card{
+    position:relative;
+    min-height:340px;
+    padding:14px 10px 16px;
+    border-radius:28px;
+    border:1px solid color-mix(in srgb,var(--line) 52%,rgba(255,255,255,.2));
+    background:
+      radial-gradient(circle at 50% 34%,color-mix(in srgb,var(--line) 50%,transparent),transparent 58%),
+      linear-gradient(180deg,color-mix(in srgb,var(--line) 30%,#10202C 70%),#08101A 74%,#04070C);
+    box-shadow:0 18px 48px rgba(0,0,0,.46),0 0 26px color-mix(in srgb,var(--line) 22%,transparent),inset 0 1px 0 rgba(255,255,255,.2);
+    text-align:center;
+    display:grid;
+    grid-template-rows:auto 360px auto auto;
+    align-items:start;
+    animation:previewCardIn .46s ease both;
+    animation-delay:var(--delay);
+  }
+  .signature-stage-card,
+  .signature-stage-card:nth-child(2),
+  .signature-stage-card:nth-child(3){
+    min-height:500px;
+  }
+  .signature-stage-card:nth-child(2){min-height:500px;}
+  .signature-stage-card:nth-child(3){min-height:500px;}
+  .signature-stage-card__rank{
+    display:inline-flex;
+    padding:7px 10px;
+    border-radius:999px;
+    background:#060B12AA;
+    color:var(--line);
+    font-family:var(--f-pk);
+    font-size:8px;
+  }
+  .signature-stage-card__art{
+    height:360px;
+    display:flex;
+    align-items:end;
+    justify-content:center;
+    filter:drop-shadow(0 28px 26px rgba(0,0,0,.48));
+    animation:floatBob 2.8s ease-in-out infinite;
+  }
+  .signature-stage-card__art--illustration{height:360px;}
+  .concept-monster-art{
+    position:relative;
+    flex:0 0 auto;
+    width:min(100%,220px);
+    aspect-ratio:1;
+    overflow:hidden;
+    border-radius:26px;
+  }
+  .signature-stage-card:nth-child(1) .concept-monster-art{width:184px;}
+  .signature-stage-card:nth-child(2) .concept-monster-art{width:292px;}
+  .signature-stage-card:nth-child(3) .concept-monster-art{width:318px;}
+  .concept-monster-art img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    filter:saturate(1.08) contrast(1.03) drop-shadow(0 22px 22px rgba(0,0,0,.44)) drop-shadow(0 0 28px color-mix(in srgb,var(--line) 32%,transparent));
+  }
+  .signature-stage-card__name,
+  .dex-stage-card__name{
+    font-family:var(--f-pk);
+    line-height:1.35;
+    color:#FFF7D7;
+    text-shadow:0 0 18px rgba(255,255,255,.15);
+  }
+  .signature-stage-card__name{font-size:clamp(8px,1.45vw,12px);}
+  .signature-stage-card__name{
+    position:absolute;
+    left:10px;
+    right:10px;
+    bottom:58px;
+  }
+  .signature-stage-card__species,
+  .dex-stage-card__species{
+    margin-top:6px;
+    font-family:var(--f-ui);
+    font-weight:900;
+    line-height:1.25;
+    color:#BBE5EA;
+  }
+  .signature-stage-card__species{font-size:12px;}
+  .signature-stage-card__species{
+    position:absolute;
+    left:10px;
+    right:10px;
+    bottom:27px;
+  }
+  .monster-preview__section-title{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:14px;
+    margin:4px 4px 16px;
+  }
+  .monster-preview__section-title span{
+    font-family:var(--f-pk);
+    font-size:clamp(14px,2.8vw,24px);
+    color:#FFE59B;
+  }
+  .monster-preview__section-title small{
+    max-width:440px;
+    text-align:right;
+    font-family:var(--f-ui);
+    font-size:13px;
+    font-weight:900;
+    color:#9ECBC9;
+  }
+  .monster-preview__grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(360px,1fr));
+    gap:18px;
+    padding-bottom:28px;
+  }
+  .dex-line-card{
+    position:relative;
+    overflow:hidden;
+    border-radius:30px;
+    padding:16px;
+    border:1px solid color-mix(in srgb,var(--line) 60%,rgba(255,255,255,.16));
+    background:
+      radial-gradient(circle at 50% 28%,color-mix(in srgb,var(--line) 28%,transparent) 0%,transparent 44%),
+      linear-gradient(154deg,color-mix(in srgb,var(--line-bg) 74%,#050712 26%) 0%,#101321 70%,#06070D 100%);
+    box-shadow:0 20px 55px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.18);
+    animation:previewCardIn .45s ease both;
+    animation-delay:var(--stagger);
+  }
+  .dex-line-card::before{
+    content:"";
+    position:absolute;
+    inset:-1px;
+    background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.18) 36%,transparent 52%);
+    transform:translateX(-80%);
+    animation:foilSweep 5.5s ease-in-out infinite;
+    opacity:.55;
+  }
+  .dex-line-card::after{
+    content:"";
+    position:absolute;
+    right:-62px;
+    top:-54px;
+    width:178px;
+    height:178px;
+    border-radius:50%;
+    background:var(--line);
+    opacity:.14;
+    filter:blur(6px);
+  }
+  .dex-line-card__top,
+  .dex-line-card__stages{
+    position:relative;
+    z-index:1;
+  }
+  .dex-line-card__top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    margin-bottom:12px;
+  }
+  .dex-line-card__type{
+    font-family:var(--f-pk);
+    font-size:clamp(8px,1.6vw,11px);
+    color:var(--line);
+    text-shadow:0 0 16px color-mix(in srgb,var(--line) 60%,transparent);
+  }
+  .dex-line-card__rarity{
+    margin-top:5px;
+    font-family:var(--f-ui);
+    font-size:12px;
+    font-weight:900;
+    color:#C9C0E9;
+  }
+  .dex-line-card__number{
+    padding:8px 9px;
+    border-radius:12px;
+    background:rgba(0,0,0,.24);
+    color:#FFE78E;
+    font-family:var(--f-pk);
+    font-size:8px;
+    white-space:nowrap;
+  }
+  .dex-line-card__stages{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+  }
+  .dex-stage-card{
+    min-height:244px;
+    padding:9px 6px 11px;
+    border-radius:22px;
+    border:1px solid color-mix(in srgb,var(--line) 34%,rgba(255,255,255,.12));
+    background:
+      radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--line) 30%,transparent),transparent 62%),
+      linear-gradient(180deg,color-mix(in srgb,var(--line) 18%,#101522 82%),#070A12);
+    text-align:center;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 12px 24px rgba(0,0,0,.22);
+  }
+  .dex-stage-card--2{min-height:270px;}
+  .dex-stage-card--3{
+    min-height:300px;
+    background:
+      radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--line) 46%,transparent),transparent 64%),
+      linear-gradient(180deg,color-mix(in srgb,var(--line) 28%,#121929 72%),#060912);
+  }
+  .dex-stage-card__plate{
+    position:relative;
+    height:156px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .dex-stage-card--2 .dex-stage-card__plate{height:178px;}
+  .dex-stage-card--3 .dex-stage-card__plate{height:204px;}
+  .dex-stage-card__halo{
+    position:absolute;
+    left:50%;
+    bottom:18px;
+    width:92%;
+    height:44%;
+    border-radius:50%;
+    transform:translateX(-50%);
+    background:radial-gradient(ellipse at 50% 54%,color-mix(in srgb,var(--line) 58%,transparent) 0%,transparent 68%);
+    filter:blur(.2px);
+  }
+  .dex-stage-card__sprite{
+    position:relative;
+    z-index:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    filter:drop-shadow(0 22px 18px rgba(0,0,0,.44));
+    animation:floatBob 2.7s ease-in-out infinite;
+  }
+  .dex-stage-card__name{
+    min-height:34px;
+    font-size:clamp(7px,1.35vw,10px);
+  }
+  .dex-stage-card__meta{
+    margin-top:7px;
+    font-family:var(--f-pk);
+    font-size:7px;
+    color:var(--line);
+  }
+  .dex-stage-card__species{
+    font-size:10px;
+    color:#C5BDD9;
+  }
+
   .crt::after{content:'';position:fixed;inset:0;pointer-events:none;z-index:9999;
     background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,.08) 2px,rgba(0,0,0,.08) 3px);}
 
@@ -279,6 +682,39 @@ const CSS = `
   @keyframes evoFlash  {0%,100%{opacity:1;filter:none}50%{opacity:0;filter:brightness(8)}}
   @keyframes titleGlow {0%,100%{text-shadow:0 0 20px #F5C842,0 0 60px #F5C84244}50%{text-shadow:0 0 30px #F5C842,0 0 80px #F5C842AA}}
   @keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  @keyframes previewSpin{to{transform:rotate(360deg)}}
+  @keyframes previewCardIn{from{opacity:0;transform:translateY(18px) scale(.985)}to{opacity:1;transform:none}}
+  @keyframes foilSweep{0%,52%{transform:translateX(-82%)}70%,100%{transform:translateX(82%)}}
+
+  @media (max-width:900px){
+    .monster-preview__header,
+    .signature-showcase,
+    .monster-preview__section-title{
+      grid-template-columns:1fr;
+      flex-direction:column;
+      align-items:flex-start;
+    }
+    .signature-showcase{display:block;}
+    .signature-showcase__stages{margin-top:18px;}
+    .monster-preview__counter,
+    .monster-preview__section-title small{text-align:left;}
+    .monster-preview__grid{grid-template-columns:1fr;}
+  }
+  @media (max-width:560px){
+    .monster-preview{padding:12px;}
+    .signature-showcase__stages,
+    .dex-line-card__stages{grid-template-columns:1fr;}
+    .signature-stage-card,
+    .signature-stage-card:nth-child(2),
+    .signature-stage-card:nth-child(3),
+    .dex-stage-card,
+    .dex-stage-card--2,
+    .dex-stage-card--3{min-height:auto;}
+    .signature-stage-card__art{height:220px;}
+    .dex-stage-card__plate,
+    .dex-stage-card--2 .dex-stage-card__plate,
+    .dex-stage-card--3 .dex-stage-card__plate{height:190px;}
+  }
 /* Attack animations */
 /* Attack animations */
 
@@ -566,6 +1002,280 @@ function Toast({msg, onDone}) {
   );
 }
 
+const sumStars = (unitStars = {}) => Object.values(unitStars).reduce((a, b) => a + (Number(b) || 0), 0);
+const ownedCount = (collection = {}) => Object.values(collection).filter((entry) => entry?.owned).length;
+
+function calcBattlePower(data = {}) {
+  const dex = getDexProgress(data.monsterCollection || {});
+  return Math.max(1,
+    (data.monLv || 1) * 18 +
+    sumStars(data.unitStars) * 6 +
+    dex.completedLines * 90 +
+    ownedCount(data.monsterCollection) * 12 +
+    (data.battleBoost || 0) +
+    (data.arenaWins || 0) * 20
+  );
+}
+
+function getStoryChapter({ totalStars, dexCompleted, arenaWins }) {
+  const chapters = [
+    {
+      id: 1,
+      title: "1장. 사라진 단어 코어",
+      goal: "별 6개를 모아 첫 단어 코어를 되찾기",
+      done: totalStars >= 6,
+      reward: "+80G",
+    },
+    {
+      id: 2,
+      title: "2장. 반 친구들의 아레나",
+      goal: "아레나에서 친구에게 1번 승리하기",
+      done: arenaWins >= 1,
+      reward: "배틀 티켓 +1",
+    },
+    {
+      id: 3,
+      title: "3장. 진화 라인 각성",
+      goal: "도감 라인 1개를 최종 진화까지 완성하기",
+      done: dexCompleted >= 1,
+      reward: "+150G",
+    },
+    {
+      id: 4,
+      title: "4장. 배틀왕 예선",
+      goal: "아레나 5승 달성하기",
+      done: arenaWins >= 5,
+      reward: "챔피언 후보",
+    },
+  ];
+  return chapters.find((chapter) => !chapter.done) || {
+    id: 5,
+    title: "최종장. 단어 리그 챔피언",
+    goal: "반 랭킹 1위를 노려보세요",
+    done: false,
+    reward: "명예",
+  };
+}
+
+const DEX_HABITATS = [
+  "잿빛초원",
+  "물결항구",
+  "초록수풀",
+  "눈꽃동굴",
+  "돌무더기산",
+  "바람언덕",
+  "별빛탑",
+  "사전도서관",
+  "먹구름섬",
+  "모래시계사막",
+];
+
+const DEX_SPECIES = [
+  ["새싹 단어몬", "도약 단어몬", "수호 단어몬"],
+];
+
+const DEX_SPECIES_BY_LINE = {
+  vocabmon: ["단어상어 유생", "사전장갑 맹수", "심해 단어군주"],
+  flame: ["불씨 여우몬", "화염 여우몬", "왕관 화염몬"],
+  wave: ["아기 상어몬", "산호 상어몬", "심해 상어몬"],
+  leaf: ["새싹 수호몬", "꽃잎 수호몬", "숲의 거목몬"],
+  bolt: ["전류 고양몬", "번개 살쾡몬", "폭풍 호랑몬"],
+  shadow: ["달그림자몬", "환영 날개몬", "심연 용군몬"],
+  star: ["별가루 정령몬", "혜성 정령몬", "은하 불사몬"],
+  ice: ["눈꽃 여우몬", "빙하 늑대몬", "설원 용왕몬"],
+  rock: ["조약돌 골렘몬", "바위견 골렘몬", "수정 산맥몬"],
+  wind: ["산들새몬", "소용돌이 부엉몬", "폭풍 콘도르몬"],
+  toxic: ["젤리 슬라임몬", "독개구리몬", "산성 드래곤몬"],
+  metal: ["톱니 꼬마몬", "강철 곰몬", "크롬 용몬"],
+  psychic: ["염력 고양몬", "환각 여우몬", "심상 스핑크스몬"],
+  crystal: ["수정 요정몬", "프리즘 여우몬", "보석 골렘몬"],
+  dragon: ["꼬마 드래곤몬", "비늘 송곳몬", "고대 용왕몬"],
+  nature: ["잎벌레몬", "수정 나비몬", "은하 나방몬"],
+  lava: ["마그마 민달팽몬", "용암 도롱몬", "화산 불사몬"],
+  ancient: ["화석 새끼몬", "고대 랩터몬", "거대 티라노몬"],
+  fairy: ["솜토끼몬", "꽃토끼몬", "달빛 토끼여왕몬"],
+  ghost: ["수줍 유령몬", "벽통과 유령몬", "왕관 유령몬"],
+  sand: ["모래쥐몬", "사막 아르마몬", "열사 도마뱀몬"],
+  speed: ["질주 여우몬", "잔상 여우몬", "섬광 레이서몬"],
+  cosmic: ["별구름 강아몬", "성운 외계몬", "우주 드레이크몬"],
+  dream: ["잠구름몬", "꿈곰몬", "수면 수호몬"],
+  dino: ["아기 공룡몬", "날개 공룡몬", "초원 포식몬"],
+  angel: ["고리 병아몬", "수호 새몬", "여섯날개몬"],
+  candy: ["사탕 젤리몬", "롤리팝 고양몬", "무지개 사탕용몬"],
+  music: ["음표 꼬마몬", "선율 새몬", "공명 여우새몬"],
+  dark: ["그림자 늑대몬", "별무늬 늑대몬", "공허 하울몬"],
+  mech: ["로봇 병아몬", "기어 로봇몬", "거대 메카몬"],
+  coral: ["성게 꼬마몬", "불가사리몬", "산호 여왕몬"],
+  cloud: ["구름 솜몬", "먹구름몬", "천둥 구름몬"],
+  lava2: ["마그마 강아몬", "용암 늑대몬", "분화구 하운드몬"],
+  crystal2: ["보석 씨앗몬", "프리즘 골렘몬", "다이아 용녀몬"],
+};
+
+const VOCABMON_ANIME_ART = [
+  "/monsters/vocabmon/glyphin.png",
+  "/monsters/vocabmon/lexigon.png",
+  "/monsters/vocabmon/vocarion.png",
+];
+
+function ConceptMonsterArt({ stageIndex = 0, name = "VocabMon" }) {
+  const src = VOCABMON_ANIME_ART[stageIndex] ?? VOCABMON_ANIME_ART[0];
+  return (
+    <div className="concept-monster-art">
+      <img src={src} alt={`${name} anime illustration`} />
+    </div>
+  );
+}
+
+function getDexNo(lineId, stageIndex = 0) {
+  const lineIndex = Math.max(0, CATCH_MON_LINES.findIndex((line) => line.lineId === lineId));
+  return String(lineIndex * 3 + stageIndex + 1).padStart(3, "0");
+}
+
+function getDexHabitat(lineId) {
+  const lineIndex = Math.max(0, CATCH_MON_LINES.findIndex((line) => line.lineId === lineId));
+  return DEX_HABITATS[lineIndex % DEX_HABITATS.length];
+}
+
+function getDexSpecies(line, stageIndex = 0) {
+  const lineIndex = Math.max(0, CATCH_MON_LINES.findIndex((entry) => entry.lineId === line?.lineId));
+  const speciesLine = DEX_SPECIES_BY_LINE[line?.lineId] ?? DEX_SPECIES[lineIndex % DEX_SPECIES.length];
+  return speciesLine[stageIndex] ?? `${line?.type || "WORD"} 단어몬`;
+}
+
+function getRetroDexEntry(line, stage, stageIndex = 0) {
+  const baseDesc = (stage?.desc || "").split("\n")[0];
+  const habitat = getDexHabitat(line?.lineId);
+  const species = getDexSpecies(line, stageIndex);
+  const habits = [
+    "낯선 단어를 들으면 꼬리를 흔들며 따라 읽는다.",
+    "정답 에너지를 모을수록 몸의 무늬가 선명해진다.",
+    "친구와 겨룰 때 가장 큰 목소리로 울음소리를 낸다.",
+    "오답 노트를 보면 조용히 옆에 앉아 다시 도전하게 한다.",
+    "진화 직전에는 도감 화면이 잠깐 번쩍인다고 전해진다.",
+  ];
+  const lineIndex = Math.max(0, CATCH_MON_LINES.findIndex((entry) => entry.lineId === line?.lineId));
+  return `${habitat}에 사는 ${species}. ${baseDesc} ${habits[(lineIndex + stageIndex) % habits.length]}`;
+}
+
+function MonsterPreviewScreen() {
+  const signatureLine = CATCH_MON_LINES.find((line) => line.lineId === "vocabmon") ?? CATCH_MON_LINES[0];
+  return (
+    <div className="crt page-y monster-preview">
+      <style>{CSS}</style>
+      <div className="monster-preview__shell">
+        <div className="monster-preview__header">
+          <div>
+            <div className="monster-preview__eyebrow">
+              VOCABMON FIELD DEX
+            </div>
+            <div className="monster-preview__title">
+              Collect, Train, Battle
+            </div>
+            <div className="monster-preview__subtitle">
+              색만 바꾼 복붙 말고, 각 라인마다 생태/실루엣/진화 욕구가 보이게 만든 애니 몬스터 카드 도감
+            </div>
+          </div>
+          <div className="monster-preview__counter">
+            <span>{CATCH_MON_LINES.length}</span> LINES<br/><span>{CATCH_MON_LINES.length * 3}</span> MONS
+          </div>
+        </div>
+
+        {signatureLine && (
+          <div className="signature-showcase" style={{"--line":signatureLine.typeClr}}>
+            <div className="signature-showcase__copy">
+              <div className="monster-preview__eyebrow" style={{color:signatureLine.typeClr}}>
+                  SIGNATURE LINE · {signatureLine.type}
+              </div>
+              <div className="signature-showcase__name">
+                {signatureLine.stages[2]?.name}
+              </div>
+              <div className="signature-showcase__desc">
+                단어 에너지를 삼키고 진화하는 심해 단어군주. 작은 알에서 출발해, 친구 배틀에서 꺼내고 싶은 최종형까지 한눈에 보이게 키웠다.
+              </div>
+              <div className="signature-showcase__chips">
+                <span>Starter Core</span>
+                <span>3-Stage Evo</span>
+                <span>Arena Ready</span>
+              </div>
+            </div>
+            <div className="signature-showcase__stages">
+              {signatureLine.stages.map((stage, index) => {
+                return (
+                  <div className="signature-stage-card" key={stage.id} style={{"--delay":`${index * 90}ms`}}>
+                    <div className="signature-stage-card__rank">STAGE {index + 1}</div>
+                    <div className="signature-stage-card__art signature-stage-card__art--illustration">
+                      <ConceptMonsterArt stageIndex={index} name={stage.name} />
+                    </div>
+                    <div className="signature-stage-card__name">{stage.name}</div>
+                    <div className="signature-stage-card__species">{getDexSpecies(signatureLine, index)}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        <div className="monster-preview__section-title">
+          <span>Vocabmon Line Archive</span>
+          <small>진화하면 실루엣이 커지고, 카드에서 꺼내고 싶은 애들로</small>
+        </div>
+
+        <div className="monster-preview__grid">
+          {CATCH_MON_LINES.map((line, lineIndex) => (
+            <div
+              className="dex-line-card"
+              key={line.lineId}
+              style={{
+                "--line":line.typeClr,
+                "--line-bg":line.typeBg || "#141024",
+                "--stagger":`${Math.min(lineIndex, 12) * 35}ms`,
+              }}
+            >
+              <div className="dex-line-card__top">
+                <div>
+                  <div className="dex-line-card__type">
+                    {line.eggEmoji} {line.type}
+                  </div>
+                  <div className="dex-line-card__rarity">
+                    {line.rarityLabel}
+                  </div>
+                </div>
+                <div className="dex-line-card__number">
+                  No.{getDexNo(line.lineId, 0)}-{getDexNo(line.lineId, 2)}
+                </div>
+              </div>
+              <div className="dex-line-card__stages">
+                {line.stages.map((stage, index) => {
+                  const Sp = stage.Sprite;
+                  return (
+                    <div className={`dex-stage-card dex-stage-card--${index + 1}`} key={stage.id}>
+                      <div className="dex-stage-card__plate">
+                        <div className="dex-stage-card__halo" />
+                        <div className="dex-stage-card__sprite" style={{animationDelay:`${index * 120}ms`}}>
+                          <Sp w={index === 2 ? 148 : index === 1 ? 126 : 108}/>
+                        </div>
+                      </div>
+                      <div className="dex-stage-card__name">
+                        {stage.name}
+                      </div>
+                      <div className="dex-stage-card__meta">
+                        No.{getDexNo(line.lineId, index)} · EVO {index + 1}
+                      </div>
+                      <div className="dex-stage-card__species">
+                        {getDexSpecies(line, index)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────
 //  LEADERBOARD SCREEN (위치 고정 — Rules of Hooks)
 function LeaderboardScreen({ player, mon, setScreen }) {
@@ -643,6 +1353,341 @@ function LeaderboardScreen({ player, mon, setScreen }) {
       <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
         padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
         color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612",flexShrink:0}}>
+        BACK
+      </button>
+    </div>
+  );
+}
+
+function ArenaScreen({
+  player,
+  mon,
+  progressSnapshot,
+  curBook,
+  battleTickets,
+  setBattleTickets,
+  arenaWins,
+  setArenaWins,
+  arenaRating,
+  setArenaRating,
+  setCoins,
+  setBattleBoost,
+  setScreen,
+  setToast,
+}) {
+  const [opponents, setOpponents] = React.useState(null);
+  const [opponent, setOpponent] = React.useState(null);
+  const [battle, setBattle] = React.useState(null);
+  const [move, setMove] = React.useState(null);
+  const [question, setQuestion] = React.useState(null);
+  const [selected, setSelected] = React.useState(null);
+
+  const myPower = calcBattlePower(progressSnapshot);
+  const myTeamCount = ownedCount(progressSnapshot.monsterCollection);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    async function loadOpponents() {
+      if (!supabase) {
+        setOpponents([]);
+        return;
+      }
+      const { data } = await supabase
+        .from("progress")
+        .select("name,data")
+        .eq("class_code", player.classCode)
+        .neq("name", player.name)
+        .limit(30);
+      if (cancelled) return;
+      const rows = (data || []).map((row) => ({
+        name: row.name,
+        data: row.data || {},
+        power: calcBattlePower(row.data || {}),
+        stars: sumStars(row.data?.unitStars || {}),
+        dex: getDexProgress(row.data?.monsterCollection || {}),
+        teamCount: ownedCount(row.data?.monsterCollection || {}),
+      })).sort((a, b) => Math.abs(a.power - myPower) - Math.abs(b.power - myPower));
+      setOpponents(rows);
+    }
+    loadOpponents();
+    return () => { cancelled = true; };
+  }, [player.classCode, player.name, myPower]);
+
+  function nextQuestion() {
+    const unit = Math.max(1, Math.min(12, Math.floor(Math.random() * 12) + 1));
+    const words = getWordsForUnit(curBook || "ww5", unit);
+    const word = words[Math.floor(Math.random() * words.length)];
+    if (!word) return null;
+    const promptType = Math.random() > 0.5 ? "meaning" : "definition";
+    const correct = promptType === "meaning" ? word.w : word.w;
+    return {
+      prompt: promptType === "meaning" ? `뜻: ${word.m}` : word.def || `뜻: ${word.m}`,
+      correct,
+      opts: shuffle(word.opts?.length ? word.opts : [word.w]),
+      word,
+    };
+  }
+
+  function startArenaBattle(nextOpponent) {
+    if (!mon) {
+      setToast("먼저 파트너 몬스터를 선택하세요.");
+      return;
+    }
+    if (battleTickets <= 0) {
+      setToast("배틀 티켓이 부족합니다. 상점에서 구매할 수 있어요.");
+      return;
+    }
+    setBattleTickets((v) => Math.max(0, v - 1));
+    const oppPower = nextOpponent.power;
+    const myHp = 90 + Math.floor(myPower / 8);
+    const enemyHp = 90 + Math.floor(oppPower / 8);
+    setOpponent(nextOpponent);
+    setBattle({
+      myHp,
+      enemyHp,
+      myMaxHp: myHp,
+      enemyMaxHp: enemyHp,
+      combo: 0,
+      guard: false,
+      turn: 1,
+      finished: false,
+      log: [`${nextOpponent.name} 트레이너가 승부를 걸어왔습니다.`],
+    });
+    setMove(null);
+    setQuestion(null);
+    setSelected(null);
+  }
+
+  function pickMove(nextMove) {
+    if (!battle || battle.finished) return;
+    setMove(nextMove);
+    setQuestion(nextQuestion());
+    setSelected(null);
+  }
+
+  function resolveAnswer(opt) {
+    if (!battle || !move || !question || selected) return;
+    const correct = opt === question.correct;
+    setSelected(opt);
+    const nextCombo = correct ? battle.combo + 1 : 0;
+    const moveBase = move === "guard" ? 12 : move === "combo" ? 14 + nextCombo * 8 : move === "burst" ? 36 : 20;
+    const accuracyBonus = correct ? 1 : move === "burst" ? -0.4 : -0.2;
+    const myDamage = Math.max(0, Math.round((moveBase + myPower / 24) * accuracyBonus));
+    const nextEnemyHp = Math.max(0, battle.enemyHp - myDamage);
+    const nextGuard = move === "guard" && correct;
+    const afterPlayer = {
+      ...battle,
+      enemyHp: nextEnemyHp,
+      combo: nextCombo,
+      guard: nextGuard,
+      log: [
+        ...battle.log.slice(-4),
+        correct
+          ? `${question.word.w} 정답! ${move === "burst" ? "궁극기" : "기술"} 적중 -${myDamage}`
+          : `오답. ${opponent.name}이 빈틈을 봅니다.`,
+      ],
+    };
+    if (nextEnemyHp <= 0) {
+      finishArena(true, afterPlayer);
+      return;
+    }
+    setBattle(afterPlayer);
+    setTimeout(() => enemyTurn(afterPlayer, correct), 650);
+  }
+
+  function enemyTurn(current, playerCorrect) {
+    const swing = Math.floor(Math.random() * 9);
+    const base = 14 + Math.floor(opponent.power / 35) + swing + (playerCorrect ? 0 : 8);
+    const damage = Math.max(4, current.guard ? Math.floor(base * 0.45) : base);
+    const nextHp = Math.max(0, current.myHp - damage);
+    const nextBattle = {
+      ...current,
+      myHp: nextHp,
+      guard: false,
+      turn: current.turn + 1,
+      log: [...current.log.slice(-4), `${opponent.name}의 반격 -${damage}`],
+    };
+    if (nextHp <= 0) {
+      finishArena(false, nextBattle);
+      return;
+    }
+    setBattle(nextBattle);
+    setMove(null);
+    setQuestion(null);
+    setSelected(null);
+  }
+
+  function finishArena(didWin, finalBattle) {
+    const ratingDelta = didWin ? Math.max(12, Math.round(opponent.power / Math.max(80, myPower) * 22)) : -8;
+    setBattle({
+      ...finalBattle,
+      finished: true,
+      log: [
+        ...finalBattle.log.slice(-4),
+        didWin ? "아레나 승리! 친구에게 복수 알림을 남겼습니다." : "패배. 팀 세팅과 단어를 더 준비하세요.",
+      ],
+    });
+    if (didWin) {
+      const reward = 45 + Math.min(120, Math.floor(opponent.power / 18));
+      setCoins((c) => c + reward);
+      setArenaWins((w) => w + 1);
+      setArenaRating((r) => r + ratingDelta);
+      setToast(`아레나 승리! +${reward}G`);
+    } else {
+      setArenaRating((r) => Math.max(0, r + ratingDelta));
+      setToast("아레나 패배. 상점 아이템으로 다시 준비하세요.");
+    }
+  }
+
+  const moves = [
+    { key: "strike", label: "정밀 타격", desc: "안정적인 피해" },
+    { key: "guard", label: "실드 워드", desc: "맞히면 다음 피해 감소" },
+    { key: "combo", label: "콤보 차지", desc: "연속 정답일수록 강함" },
+    { key: "burst", label: "궁극기", desc: "강하지만 오답 리스크 큼" },
+  ];
+
+  if (battle && opponent) {
+    const myPct = Math.max(0, Math.round((battle.myHp / battle.myMaxHp) * 100));
+    const enemyPct = Math.max(0, Math.round((battle.enemyHp / battle.enemyMaxHp) * 100));
+    return (
+      <div data-testid="arena-battle-screen" className="crt page-y slide-up" style={{
+        padding:"clamp(12px,3vw,20px)",gap:12,
+        background:"radial-gradient(ellipse at top,#211000,#0C0A18)"}}>
+        <style>{CSS}</style>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FFB84A"}}>FRIEND ARENA</div>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#8A6A44"}}>TURN {battle.turn}</div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10}}>
+          {[
+            { name: player.name, hp: battle.myHp, max: battle.myMaxHp, pct: myPct, color: "#44CC77", sub: `${mon?.name || "PARTNER"} · BP ${myPower}` },
+            { name: opponent.name, hp: battle.enemyHp, max: battle.enemyMaxHp, pct: enemyPct, color: "#FF6644", sub: `저장 팀 ${opponent.teamCount}마리 · BP ${opponent.power}` },
+          ].map((side) => (
+            <div key={side.name} style={{background:"#16122A",border:"1px solid #2A2440",borderRadius:12,padding:12}}>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-sm)",color:"#E0D8FF",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{side.name}</div>
+              <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#7A6A92",marginTop:2}}>{side.sub}</div>
+              <div style={{height:10,background:"#0B0914",borderRadius:8,overflow:"hidden",marginTop:10}}>
+                <div style={{height:"100%",width:`${side.pct}%`,background:side.color,transition:"width .25s"}} />
+              </div>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:side.color,marginTop:6}}>{side.hp}/{side.max}</div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{background:"#100D1D",border:"1px solid #2A2440",borderRadius:12,padding:12,minHeight:92}}>
+          {battle.log.map((line, i) => (
+            <div key={i} style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:i===battle.log.length-1?"#F5C842":"#8C7AAE",lineHeight:1.7}}>
+              {line}
+            </div>
+          ))}
+        </div>
+
+        {battle.finished ? (
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            <button className="big-btn" onClick={()=>{setBattle(null);setOpponent(null);}} style={{padding:13,fontSize:"var(--fs-sm)",background:"linear-gradient(135deg,#3A2500,#6A4400)",color:"#fff",boxShadow:"0 4px 0 #1A1000"}}>다른 친구 도전</button>
+            <button className="big-btn" onClick={()=>setScreen("title")} style={{padding:13,fontSize:"var(--fs-sm)",background:"#1C182E",color:"#8878AA",boxShadow:"0 4px 0 #080612"}}>홈</button>
+          </div>
+        ) : question ? (
+          <div style={{background:"#ECE6D8",border:"3px solid #8A7E6E",borderRadius:12,padding:12}}>
+            <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-sm)",color:"#2A1A10",lineHeight:1.5}}>{question.prompt}</div>
+            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginTop:10}}>
+              {question.opts.map((opt, i) => {
+                const picked = selected === opt;
+                const correct = opt === question.correct;
+                return (
+                  <button key={`${opt}_${i}`} onClick={()=>resolveAnswer(opt)} disabled={!!selected} style={{
+                    border:"2px solid #8A7E6E",borderRadius:10,padding:"12px 8px",
+                    background:picked ? (correct ? "#2E8B48" : "#AA3333") : "#fffaf0",
+                    color:picked ? "#fff" : "#2A1A10",
+                    fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-sm)",cursor:selected?"default":"pointer",
+                  }}>{opt}</button>
+                );
+              })}
+            </div>
+          </div>
+        ) : (
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+            {moves.map((m) => (
+              <button key={m.key} className="big-btn" onClick={()=>pickMove(m.key)} style={{
+                padding:"12px 10px",fontSize:"var(--fs-sm)",background:"linear-gradient(135deg,#242050,#3A2B78)",
+                color:"#fff",boxShadow:"0 4px 0 #100A2A",textAlign:"left",
+              }}>
+                <div>{m.label}</div>
+                <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#B8A8E8",marginTop:4}}>{m.desc}</div>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="arena-screen" className="crt page-y slide-up" style={{
+      padding:"clamp(12px,3vw,20px)",gap:12,
+      background:"radial-gradient(ellipse at top,#1F1300,#0C0A18)"}}>
+      <style>{CSS}</style>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FFB84A"}}>BATTLE ARENA</div>
+          <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:"#8A6A44",marginTop:4}}>
+            친구 저장 팀에 도전해서 배틀왕 점수를 올리세요.
+          </div>
+        </div>
+        <div style={{textAlign:"right",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#F5C842"}}>
+          티켓 {battleTickets}<br/>R {arenaRating}
+        </div>
+      </div>
+
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
+        {[
+          ["내 BP", myPower],
+          ["승리", arenaWins],
+          ["팀", myTeamCount],
+        ].map(([label, value]) => (
+          <div key={label} style={{background:"#16122A",border:"1px solid #2A2440",borderRadius:12,padding:10,textAlign:"center"}}>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#6A5888"}}>{label}</div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842",marginTop:6}}>{value}</div>
+          </div>
+        ))}
+      </div>
+
+      {opponents === null ? (
+        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#6A5888"}}>친구 찾는 중...</div>
+      ) : opponents.length === 0 ? (
+        <div style={{background:"#16122A",border:"1px solid #2A2440",borderRadius:12,padding:18,textAlign:"center"}}>
+          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842"}}>아직 도전할 친구가 없습니다.</div>
+          <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:"#8C7AAE",marginTop:10,lineHeight:1.7}}>
+            같은 반 코드로 친구가 한 번 이상 저장하면 여기에서 도전할 수 있습니다.
+          </div>
+        </div>
+      ) : (
+        <div style={{display:"flex",flexDirection:"column",gap:8,flex:1}}>
+          {opponents.map((row) => {
+            const diff = row.power - myPower;
+            return (
+              <button key={row.name} onClick={()=>startArenaBattle(row)} className="big-btn" style={{
+                display:"flex",alignItems:"center",gap:12,textAlign:"left",
+                padding:"12px",background:diff > 80 ? "linear-gradient(135deg,#3A0800,#641000)" : "linear-gradient(135deg,#1A1433,#2B2458)",
+                color:"#fff",boxShadow:"0 4px 0 #080612",
+              }}>
+                <div style={{fontSize:28}}>{diff > 80 ? "🔥" : diff < -80 ? "🎯" : "⚔️"}</div>
+                <div style={{flex:1,minWidth:0}}>
+                  <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-sm)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{row.name}</div>
+                  <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:"#B8A8E8",marginTop:3}}>
+                    {row.stars}★ · 도감 완성 {row.dex.completedLines} · 팀 {row.teamCount}
+                  </div>
+                </div>
+                <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842"}}>{row.power}</div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
+        padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
+        color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
         BACK
       </button>
     </div>
@@ -892,6 +1937,10 @@ export default function VocabMon() {
   const [monLv,   setMonLv]   = useState(1);
   const [monExp,  setMonExp]  = useState(0);
   const [coins,   setCoins]   = useState(120);
+  const [battleTickets, setBattleTickets] = useState(3);
+  const [arenaWins, setArenaWins] = useState(0);
+  const [arenaRating, setArenaRating] = useState(1000);
+  const [battleBoost, setBattleBoost] = useState(0);
   // Audio
   // Audio
   const [soundOn, setSoundOn] = useState(true);
@@ -953,6 +2002,7 @@ export default function VocabMon() {
   const [evoAnim,  setEvoAnim]  = useState(false);
   const [showEvoModal,setShowEvoModal]=useState(false);
   const [newMonName,setNewMonName]=useState("");
+  const [evoFromName,setEvoFromName]=useState("");
 
   // VOC-105: 정답/오답 피드백 오버레이
   const [feedback, setFeedback] = useState(null); // {type:"correct"|"wrong", msg:string}
@@ -1038,47 +2088,48 @@ export default function VocabMon() {
 
   const startEggInSlot = useCallback((slotId, egg) => {
     if (!egg) return false;
-    let started = false;
-    setHatcherySlots((prev) => prev.map((slot) => {
-      if (slot.slotId !== slotId || !slot.unlocked || slot.egg) return slot;
-      started = true;
+    const syncedSlots = syncHatcherySlots(hatcherySlots);
+    const targetSlot = syncedSlots.find((slot) => slot.slotId === slotId && canSlotHatchEgg(slot, egg));
+    if (!targetSlot) return false;
+    setHatcherySlots(syncedSlots.map((slot) => {
+      if (slot.slotId !== slotId) return slot;
       const startAt = Date.now();
-      const duration = HATCH_DURATIONS_MS[egg.rarity] ?? HATCH_DURATIONS_MS.common;
+      const duration = getHatchDurationMs(egg.rarity);
       return {
         ...slot,
-        egg,
+        egg: {
+          ...egg,
+          hatchMinutes: getEggRarityMeta(egg.rarity).hatchMinutes,
+          hatchLevel: getEggRarityMeta(egg.rarity).hatchLevel,
+        },
         startedAt: startAt,
         finishesAt: startAt + duration,
         status: "running",
       };
     }));
-    if (started) setEggInventory((prev) => prev.filter((entry) => entry.id !== egg.id));
-    return started;
-  }, []);
+    setEggInventory((prev) => prev.filter((entry) => entry.id !== egg.id));
+    return true;
+  }, [hatcherySlots]);
 
   const unlockNextHatchSlot = useCallback(() => {
-    let unlocked = false;
-    setHatcherySlots((prev) => prev.map((slot) => {
-      if (!unlocked && !slot.unlocked) {
-        unlocked = true;
-        return { ...slot, unlocked: true };
+    const nextSlot = getNextLockedSlot(hatcherySlots);
+    if (!nextSlot) return false;
+    setHatcherySlots((prev) => syncHatcherySlots(prev).map((slot) => {
+      if (slot.slotId === nextSlot.slotId) {
+        const meta = getSlotMeta(slot.slotId);
+        return { ...slot, ...meta, unlocked: true };
       }
       return slot;
     }));
-    return unlocked;
-  }, []);
+    return true;
+  }, [hatcherySlots]);
 
-  const instantFinishFirstSlot = useCallback(() => {
-    let finished = false;
-    setHatcherySlots((prev) => prev.map((slot) => {
-      if (!finished && slot.status === "running" && slot.egg) {
-        finished = true;
-        return { ...slot, finishesAt: Date.now(), status: "ready" };
-      }
-      return slot;
-    }));
-    return finished;
-  }, []);
+  const boostFirstRunningEgg = useCallback((minutes = 30) => {
+    const result = reduceRunningEggTime(hatcherySlots, minutes * 60 * 1000);
+    if (!result.applied) return false;
+    setHatcherySlots(result.slots);
+    return true;
+  }, [hatcherySlots]);
 
   const claimHatchFromSlot = useCallback((slotId) => {
     const syncedSlots = syncHatcherySlots(hatcherySlots);
@@ -1098,21 +2149,31 @@ export default function VocabMon() {
     if (!caught) return false;
 
     const awarded = awardCaughtMonster(monsterCollection, caught);
+    const hatchLevel = rewardEgg.hatchLevel ?? getEggRarityMeta(rewardEgg.rarity).hatchLevel;
+    const leveledCollection = {
+      ...awarded.collection,
+      [caught.id]: {
+        ...awarded.collection[caught.id],
+        level: Math.max(awarded.collection[caught.id]?.level ?? 1, hatchLevel),
+      },
+    };
     const hatchPayload = {
       mon: caught,
       lineId: rewardEgg.lineId,
+      rarity: rewardEgg.rarity,
+      hatchLevel,
       outcome: awarded.outcome,
       reward: awarded.reward,
     };
 
-    setMonsterCollection(awarded.collection);
+    setMonsterCollection(leveledCollection);
 
     if (!lineId) {
       const hatchMeta = getMonsterStageMeta(hatchPayload.mon.id);
       if (hatchMeta) {
         setLineId(hatchMeta.lineId);
         setStageIdx(hatchMeta.stageIndex);
-        setMonLv(1);
+        setMonLv(hatchLevel);
         setMonExp(0);
       }
     }
@@ -1129,6 +2190,15 @@ export default function VocabMon() {
     const hours = Math.floor(totalMinutes / 60);
     const minutes = totalMinutes % 60;
     if (hours <= 0) return `${minutes}분`;
+    return `${hours}시간 ${minutes}분`;
+  }
+
+  function formatDurationFromMs(ms) {
+    const totalMinutes = Math.ceil(ms / 60000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    if (hours <= 0) return `${minutes}분`;
+    if (minutes === 0) return `${hours}시간`;
     return `${hours}시간 ${minutes}분`;
   }
 
@@ -1182,6 +2252,10 @@ export default function VocabMon() {
         setUnitStars(migrated);
       }
       if (saved.coins)        setCoins(saved.coins);
+      if (saved.battleTickets !== undefined) setBattleTickets(saved.battleTickets);
+      if (saved.arenaWins !== undefined) setArenaWins(saved.arenaWins);
+      if (saved.arenaRating !== undefined) setArenaRating(saved.arenaRating);
+      if (saved.battleBoost !== undefined) setBattleBoost(saved.battleBoost);
       restoredLineId = saved.lineId && getCatchLineById(saved.lineId) ? saved.lineId : null;
       if (restoredLineId)     setLineId(restoredLineId);
       if (saved.stageIdx !== undefined) setStageIdx(saved.stageIdx);
@@ -1244,7 +2318,7 @@ export default function VocabMon() {
 
     // 첫 플레이어: 스타터 알 1개 + 튜토리얼
     if (!saved) {
-      const starterLines = ["flame","wave","leaf"];
+      const starterLines = ["vocabmon","flame","wave","leaf"];
       const starterLine = starterLines[Math.floor(Math.random() * starterLines.length)];
       setEggInventory([createEgg("common", starterLine, "starter")]);
       setTimeout(() => setTutorialStep(1), 400);
@@ -1269,6 +2343,7 @@ export default function VocabMon() {
   // 자동 저장: 필요한 상태 스냅샷으로 Supabase에 저장
   const progressSnapshot = useMemo(() => ({
     unitStars, monLv, monExp, coins,
+    battleTickets, arenaWins, arenaRating, battleBoost,
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons,
@@ -1280,7 +2355,7 @@ export default function VocabMon() {
     dailyMissions, dailyEggDate, streakShields,
     dailyMissionDate: new Date().toDateString(),
   }), [
-    unitStars, monLv, monExp, coins,
+    unitStars, monLv, monExp, coins, battleTickets, arenaWins, arenaRating, battleBoost,
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons, pendingEggs, monsterCollection, eggInventory, hatcherySlots,
@@ -1336,6 +2411,44 @@ export default function VocabMon() {
     evoMissingCores === 0
   );
 
+  function grantLineResources(targetLineId, { lineExp = 0, evolutionCores = 0 } = {}) {
+    if (!targetLineId) return;
+    setMonsterCollection((prev) => {
+      const current = getLineResourceState(prev, targetLineId);
+      return applyLineResourceState(prev, targetLineId, {
+        lineExp: (current.lineExp ?? 0) + lineExp,
+        evolutionCores: (current.evolutionCores ?? 0) + evolutionCores,
+      });
+    });
+  }
+
+  function grantActiveMonsterExp(amount) {
+    if (!mon?.id || amount <= 0) return { leveled: false, level: monLv, exp: monExp };
+    let level = monLv;
+    let exp = monExp + amount;
+    let leveled = false;
+    while (exp >= 60 + level * 20) {
+      exp -= 60 + level * 20;
+      level += 1;
+      leveled = true;
+    }
+    setMonLv(level);
+    setMonExp(exp);
+    setMonsterCollection((prev) => ({
+      ...prev,
+      [mon.id]: {
+        ...prev[mon.id],
+        owned: true,
+        level,
+        exp,
+        lineId,
+        highestStage: Math.max(prev[mon.id]?.highestStage ?? 1, stageIdx + 1),
+        evolvedOwned: prev[mon.id]?.evolvedOwned ?? false,
+      },
+    }));
+    return { leveled, level, exp };
+  }
+
   const activateMonster = useCallback((monsterId, options = {}) => {
     const meta = getMonsterStageMeta(monsterId);
     if (!meta) return false;
@@ -1383,6 +2496,8 @@ export default function VocabMon() {
     const nextStage = evoLine?.stages[stageIdx + 1];
     if (!currentStage || !nextStage || !evoRequirement) return;
     sfxEvolveStart();
+    setEvoFromName(currentStage.name);
+    setNewMonName(nextStage.name);
     setEvoAnim(true);
     setTimeout(()=>{
       setMonsterCollection((prev) => {
@@ -1426,7 +2541,6 @@ export default function VocabMon() {
         });
       });
       setStageIdx(s=>s+1);
-      setNewMonName(nextStage.name);
       setEvoAnim(false);
       sfxEvolveDone();
       setShowEvoModal(true);
@@ -1645,17 +2759,15 @@ export default function VocabMon() {
       const ec = Math.round((20+curUnit*8) * diffMult); const ex = Math.round((40+curUnit*12) * diffMult);
       setCoins(c=>c+ec);
       if(!dailyDone){ setDailyDone(true); }
-      // Level up check
-      const newExp = monExp+ex;
-      const threshold = 60 + monLv*20;
-      if(newExp>=threshold){
-        const newLv=monLv+1;
-        setMonLv(newLv); setMonExp(newExp-threshold);
-        if(evoReady){
-          setTimeout(()=>tryEvolve(),800);
-        }
-      } else { setMonExp(newExp); }
-      setLog(p=>[...p,`Victory! +${ec}G +${ex}EXP · ${stars}★`]);
+      const levelResult = grantActiveMonsterExp(ex);
+      const lineExpGain = Math.round((10 + stars * 6) * diffMult);
+      const coreGain = difficulty === "hell" && stars >= 2 ? 1 : 0;
+      grantLineResources(lineId, { lineExp: lineExpGain, evolutionCores: coreGain });
+      setLog(p=>[
+        ...p,
+        `Victory! +${ec}G +${ex}EXP · 라인EXP +${lineExpGain}${coreGain ? " · 코어 +1" : ""} · ${stars}★`,
+        levelResult.leveled ? `${mon.name} grew to Lv.${levelResult.level}!` : null,
+      ].filter(Boolean));
 
       // 알 보상 + 일일 미션 업데이트
       const totalQ = queue.length;
@@ -1664,7 +2776,7 @@ export default function VocabMon() {
       if (difficulty === "hard" && eggRarity === "common") eggRarity = "rare";
       if (difficulty === "hell") {
         if (eggRarity === "common") eggRarity = "rare";
-        if (eggRarity === "rare" && Math.random() < 0.3) eggRarity = "epic";
+        if (eggRarity === "rare" && Math.random() < 0.3) eggRarity = "superrare";
       }
       const possLines = EGG_DROP[eggRarity] || EGG_DROP.common;
       const pickedLine = possLines[Math.floor(Math.random() * possLines.length)];
@@ -1896,6 +3008,10 @@ export default function VocabMon() {
   // 관리자 모드
   if (teacherMode) return <TeacherDashboard onExit={() => setTeacherMode(false)} />;
 
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("preview") === "monsters") {
+    return <MonsterPreviewScreen />;
+  }
+
   // 로그인 전이면 로그인 화면 표시
   if (!player) return (
     <LoginScreen
@@ -1966,6 +3082,12 @@ export default function VocabMon() {
     const allMissionsDone = doneMissions >= dailyMissions.length && dailyMissions.length > 0;
     const firstEgg = pendingEggs[0];
     const eggLine = firstEgg ? CATCH_MON_LINES.find(l=>l.lineId===firstEgg.lineId) : null;
+    const storyChapter = getStoryChapter({
+      totalStars,
+      dexCompleted: dexProgress.completedLines,
+      arenaWins,
+    });
+    const battlePower = calcBattlePower(progressSnapshot);
 
     function claimDailyEgg() {
       if (!hasFreeEgg) return;
@@ -2020,6 +3142,33 @@ export default function VocabMon() {
             boxShadow:"0 5px 0 #1E3A10",flexShrink:0,letterSpacing:1}}>
           {(lineId && totalStars > 0) ? "이어서 플레이" : "게임 시작"}
         </button>
+
+        <div style={{background:"linear-gradient(135deg,#1A1024,#241330)",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
+          border:"2px solid #7B4A2A88",flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10}}>
+            <div>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#FFB84A"}}>
+                {storyChapter.title}
+              </div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:"#C9A878",marginTop:6,lineHeight:1.55}}>
+                {storyChapter.goal}
+              </div>
+            </div>
+            <div style={{textAlign:"right",flexShrink:0}}>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842"}}>BP {battlePower}</div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-xs)",color:"#8C7AAE",marginTop:4}}>
+                보상 {storyChapter.reward}
+              </div>
+            </div>
+          </div>
+          <button onClick={()=>setScreen("arena")} style={{
+            marginTop:10,width:"100%",background:"linear-gradient(135deg,#7A2E0A,#C05A16)",color:"#fff",
+            border:"none",borderRadius:10,padding:"10px 12px",fontFamily:"var(--f-ui)",fontWeight:900,
+            fontSize:"var(--fs-sm)",cursor:"pointer",boxShadow:"0 4px 0 #3A1200",
+          }}>
+            친구 아레나 입장 · 티켓 {battleTickets}
+          </button>
+        </div>
 
         {/* 일일 달걀 */}
         <div style={{background:"#16122A",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
@@ -2135,6 +3284,7 @@ export default function VocabMon() {
           {[
             {l:"도감", fn:()=>setScreen("collection"), bg:"linear-gradient(135deg,#2A1880,#4A2AAA)"},
             {l:`🥚 알${readyEggCount>0?" !":""}`, fn:()=>setScreen("eggs"), bg:readyEggCount>0?"linear-gradient(135deg,#5A1CA8,#8E4BFF)":"#16122A"},
+            {l:`아레나 ${battleTickets}`, fn:()=>setScreen("arena"), bg:"linear-gradient(135deg,#7A2E0A,#C05A16)"},
             {l:`복수${wrongWords.length>0?" !":""}`, fn:()=>setScreen("revenge"), bg:wrongWords.length>0?"linear-gradient(135deg,#3A0800,#660A00)":"#16122A"},
             {l:"랭킹", fn:()=>setScreen("leaderboard"), bg:"linear-gradient(135deg,#1A1400,#2A2200)"},
             {l:`상점 ${caughtMons.length>0?coins+"G":"--"}`, fn:()=>setScreen("shop"), bg:"linear-gradient(135deg,#0A2A1A,#0A4A2A)"},
@@ -2146,6 +3296,7 @@ export default function VocabMon() {
               data-testid={
                 b.l.includes("도감") ? "nav-collection" :
                 b.l.includes("알") ? "nav-eggs" :
+                b.l.includes("아레나") ? "nav-arena" :
                 b.l.includes("상점") ? "nav-shop" :
                 b.l.includes("파트너") ? "nav-select" :
                 b.l.includes("교재") ? "nav-bookselect" :
@@ -2346,7 +3497,7 @@ export default function VocabMon() {
             animation:"evoFlash 1.8s ease"}}>
             <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-lg)",color:"#330088",
               textAlign:"center",animation:"pulse .3s ease-in-out infinite"}}>
-              EVOLVING!
+              아앗!<br/>{evoFromName || mon?.name}의 모습이...!
             </div>
           </div>
         )}
@@ -2368,15 +3519,17 @@ export default function VocabMon() {
         {showEvoModal&&(
           <div data-testid="evolution-modal" style={{position:"fixed",inset:0,zIndex:999,background:"rgba(0,0,0,.85)",display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
             <div style={{background:"var(--panel)",border:"3px solid #BB66FF",borderRadius:16,padding:"clamp(20px,5vmin,32px)",textAlign:"center",maxWidth:340,boxShadow:"0 0 40px rgba(160,80,255,.5)"}}>
-              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#BB66FF",marginBottom:12}}>EVOLUTION!</div>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#BB66FF",marginBottom:12}}>축하합니다!</div>
               <div style={{animation:"floatBob 2s ease-in-out infinite",marginBottom:12}}>
                 {(() => { const S=mon?.Sprite; const w=Math.min(96,Math.max(60,Math.floor(window.innerWidth*.2))); return S ? <S w={w}/> : null; })()}
               </div>
-              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842",marginBottom:6}}>{newMonName}</div>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842",marginBottom:6}}>
+                {evoFromName}가 {newMonName}로<br/>진화했습니다!
+              </div>
               <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888",marginBottom:16}}>{mon?.desc}</div>
               <button data-testid="evolution-modal-close" className="big-btn" onClick={()=>setShowEvoModal(false)}
                 style={{padding:"clamp(10px,2.5vmin,14px) 28px",fontSize:"var(--fs-sm)",color:"#fff",background:"linear-gradient(135deg,#6600CC,#AA44FF)",boxShadow:"0 4px 0 #330066"}}>
-                AWESOME
+                모험 계속하기
               </button>
             </div>
           </div>
@@ -2464,6 +3617,7 @@ export default function VocabMon() {
             {l:"교재",  fn:()=>setScreen("bookselect"),  bg:"linear-gradient(135deg,#1A3020,#2A5030)", sh:"#0A1810",       dt:"world-bookselect-button"},
             {l:"도감",  fn:()=>setScreen("collection"),  bg:"linear-gradient(135deg,#3A1880,#5A28B8)", sh:"#18083A",       dt:"world-collection-button"},
             {l:`🥚 알${readyEggCount>0?"!":""}`, fn:()=>setScreen("eggs"), bg:readyEggCount>0?"linear-gradient(135deg,#4A1880,#7B2FBE)":"#1C182E", sh:readyEggCount>0?"#200A40":"#080612", dt:"world-eggs-button"},
+            {l:`아레나 ${battleTickets}`, fn:()=>setScreen("arena"), bg:"linear-gradient(135deg,#7A2E0A,#C05A16)", sh:"#3A1200"},
             {l:"상점",  fn:()=>setScreen("shop"),        bg:"linear-gradient(135deg,#0A2A1A,#0A4A2A)", sh:"#041208"},
             {l:wrongWords.length>0?"복수!":"복수", fn:()=>setScreen("revenge"), bg:wrongWords.length>0?"linear-gradient(135deg,#3A0800,#660A00)":"#1C182E", sh:wrongWords.length>0?"#1A0000":"#080612"},
             {l:"랭킹",  fn:()=>setScreen("leaderboard"), bg:"linear-gradient(135deg,#1A1400,#2A2000)", sh:"#0A0800"},
@@ -3078,6 +4232,10 @@ export default function VocabMon() {
   // 알 부화 화면
   if(eggHatch) {
     const line = CATCH_MON_LINES.find(l=>l.lineId===eggHatch.lineId);
+    const hatchStageMeta = getMonsterStageMeta(eggHatch.mon.id);
+    const hatchDexNo = getDexNo(eggHatch.lineId, hatchStageMeta?.stageIndex ?? 0);
+    const hatchSpecies = getDexSpecies(line, hatchStageMeta?.stageIndex ?? 0);
+    const hatchDexEntry = getRetroDexEntry(line, eggHatch.mon, hatchStageMeta?.stageIndex ?? 0);
     const Sp = eggHatch.mon.Sprite;
     return (
       <div data-testid="egg-hatch-modal" onClick={()=>setEggHatch(null)} style={{
@@ -3105,24 +4263,27 @@ export default function VocabMon() {
           {line?.rarityLabel||"Legendary"}
         </div>
         <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(20px,6vw,36px)",color:"#FFFFFF",textShadow:`0 0 30px ${line?.eggColor}`,textAlign:"center"}}>
-          알이 부화했습니다
+          ... ... ...<br/>아앗! 알이 흔들립니다!
         </div>
         <div className="egg-pop" style={{marginTop:8}}>
           <Sp w={Math.min(160, window.innerWidth*0.38)}/>
         </div>
         <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(18px,5vw,28px)",color:line?.typeClr||"#FFD700",marginTop:4}}>
-          {eggHatch.mon.name}
+          {eggHatch.mon.name}가 태어났다!
         </div>
-        <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(11px,3vw,14px)",color:"#9988CC",textAlign:"center",maxWidth:260,lineHeight:1.5}}>
-          {eggHatch.mon.desc}
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2.2vw,11px)",color:"#F5C842",textAlign:"center"}}>
+          No.{hatchDexNo} · {hatchSpecies}
+        </div>
+        <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(11px,3vw,14px)",color:"#9988CC",textAlign:"center",maxWidth:300,lineHeight:1.5}}>
+          {hatchDexEntry}
         </div>
         <div style={{color:"#6A5888",fontSize:"clamp(10px,2.5vw,13px)",marginTop:4}}>
-          {line?.type} TYPE
+          {line?.type} TYPE · Lv.{eggHatch.hatchLevel ?? 1}
         </div>
         <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(11px,3vw,14px)",color:eggHatch.outcome==="duplicate"?"#FFD37A":"#8FFFC8",textAlign:"center"}}>
           {eggHatch.outcome==="duplicate"
-            ? `중복 보상: 라인 EXP +${eggHatch.reward?.lineExp ?? 0}${(eggHatch.reward?.evolutionCores ?? 0) > 0 ? ` · 코어 +${eggHatch.reward.evolutionCores}` : ""}`
-            : "NEW 몬스터 등록"}
+            ? `이미 만난 몬스터였다! 라인 EXP +${eggHatch.reward?.lineExp ?? 0}${(eggHatch.reward?.evolutionCores ?? 0) > 0 ? ` · 코어 +${eggHatch.reward.evolutionCores}` : ""}`
+            : "도감에 새로운 몬스터가 기록됐다!"}
         </div>
         <button data-testid="egg-hatch-confirm-button" className="big-btn" onClick={()=>setEggHatch(null)} style={{
           marginTop:12,background:`linear-gradient(135deg,${line?.typeClr||"#7B2FBE"},${line?.eggColor||"#5533AA"})`,
@@ -3160,7 +4321,9 @@ export default function VocabMon() {
         <div style={{display:"grid",gridTemplateColumns:"1fr",gap:10,flexShrink:0}}>
           {hatcherySlots.map((slot) => {
             const line = slot.egg ? CATCH_MON_LINES.find((entry) => entry.lineId === slot.egg.lineId) : null;
-            const slotLabel = `부화기 ${slot.slotId}`;
+            const slotMeta = getSlotMeta(slot.slotId);
+            const allowedText = slotMeta.allowedRarities.map((rarity) => getEggRarityMeta(rarity).shortLabel).join(" ");
+            const slotLabel = slot.label || slotMeta.label;
             return (
               <div key={slot.slotId} style={{
                 background:"#16122A",
@@ -3175,8 +4338,8 @@ export default function VocabMon() {
                       {slotLabel}
                     </div>
                     <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#7F70A0",marginTop:4}}>
-                      {!slot.unlocked && "잠겨 있음"}
-                      {slot.unlocked && !slot.egg && "비어 있음"}
+                      {!slot.unlocked && `${slotMeta.desc} · 해금 ${slotMeta.unlockPrice}G`}
+                      {slot.unlocked && !slot.egg && `비어 있음 · 허용 ${allowedText}`}
                       {slot.unlocked && slot.status==="running" && `${line?.eggEmoji || "🥚"} ${line?.rarityLabel || "Egg"} · ${formatHatchRemaining(slot)} 남음`}
                       {slot.unlocked && slot.status==="ready" && `${line?.eggEmoji || "🥚"} ${line?.rarityLabel || "Egg"} · 지금 깨기 가능`}
                     </div>
@@ -3223,7 +4386,10 @@ export default function VocabMon() {
             <div style={{display:"grid",gridTemplateColumns:"repeat(2,minmax(0,1fr))",gap:10}}>
               {pendingEggs.map((egg) => {
                 const line = CATCH_MON_LINES.find((entry) => entry.lineId === egg.lineId);
-                const autoTarget = hatcherySlots.find((slot) => slot.unlocked && !slot.egg);
+                const autoTarget = hatcherySlots.find((slot) => canSlotHatchEgg(slot, egg));
+                const rarityMeta = getEggRarityMeta(egg.rarity);
+                const durationLabel = formatDurationFromMs(getHatchDurationMs(egg.rarity));
+                const lockedCompatibleSlot = hatcherySlots.find((slot) => !slot.unlocked && getSlotMeta(slot.slotId).allowedRarities.includes(egg.rarity));
                 return (
                   <div key={egg.id} style={{
                     background:"#0E0C1A",
@@ -3238,7 +4404,7 @@ export default function VocabMon() {
                           {line?.rarityLabel || "Common Egg"}
                         </div>
                         <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#8C7AAE",marginTop:2}}>
-                          {line?.type || "mystery"} 계열 · {formatHatchRemaining({ finishesAt: Date.now() + (HATCH_DURATIONS_MS[egg.rarity] ?? HATCH_DURATIONS_MS.common) })}
+                          {line?.type || "mystery"} 계열 · {durationLabel} · Lv.{egg.hatchLevel ?? rarityMeta.hatchLevel}
                         </div>
                       </div>
                     </div>
@@ -3247,10 +4413,13 @@ export default function VocabMon() {
                       className="big-btn"
                       disabled={!autoTarget}
                       onClick={()=>{
-                        const targetSlot = hatcherySlots.find((slot) => slot.unlocked && !slot.egg);
-                        if (!targetSlot) { setToast("빈 부화기가 없습니다."); return; }
+                        const targetSlot = hatcherySlots.find((slot) => canSlotHatchEgg(slot, egg));
+                        if (!targetSlot) {
+                          setToast(lockedCompatibleSlot ? `${getSlotMeta(lockedCompatibleSlot.slotId).label} 해금이 필요합니다.` : "맞는 빈 부화기가 없습니다.");
+                          return;
+                        }
                         if (startEggInSlot(targetSlot.slotId, egg)) {
-                          setToast(`${line?.eggEmoji || "🥚"} 알을 부화기 ${targetSlot.slotId}번에 올렸습니다.`);
+                          setToast(`${line?.eggEmoji || "🥚"} 알을 ${targetSlot.label || getSlotMeta(targetSlot.slotId).label}에 올렸습니다.`);
                         }
                       }}
                       style={{
@@ -3264,7 +4433,7 @@ export default function VocabMon() {
                         boxShadow:autoTarget ? "0 4px 0 rgba(20,10,40,.7)" : "0 4px 0 #080612",
                         color:autoTarget ? "#fff" : "#5A4E72"
                       }}>
-                      {autoTarget ? `부화기 ${autoTarget.slotId}에 올리기` : "빈 부화기 없음"}
+                      {autoTarget ? `${autoTarget.label || getSlotMeta(autoTarget.slotId).label}에 올리기` : lockedCompatibleSlot ? "상위 부화기 필요" : "맞는 부화기 없음"}
                     </button>
                   </div>
                 );
@@ -3292,28 +4461,49 @@ export default function VocabMon() {
 // ─────────────────────────────────────────────────────────────────
 //  SHOP SCREEN
   if(screen==="shop") {
+    const nextHatchSlot = getNextLockedSlot(hatcherySlots);
+    const nextHatchSlotMeta = nextHatchSlot ? getSlotMeta(nextHatchSlot.slotId) : null;
     const ITEMS = [
-      { id:"egg_common",   emoji:"🥚", name:"일반 알",      desc:"Common 라인 중심",         price:50,  rarity:"common" },
-      { id:"egg_rare",     emoji:"🥚", name:"레어 알",      desc:"Rare 이상 확률 증가",      price:150, rarity:"rare" },
-      { id:"egg_sr",       emoji:"🌙", name:"슈퍼레어 알",  desc:"Shadow/Bolt 라인 중심",    price:350, rarity:"superrare" },
-      { id:"hatch_now",    emoji:"⚡", name:"즉시 부화",    desc:"진행 중인 첫 알을 바로 완료", price:80,  action:"hatch" },
-      { id:"hatch_slot",   emoji:"🔓", name:"부화기 슬롯",  desc:"잠겨 있는 다음 부화기 해금", price:220, action:"slot" },
+      { id:"egg_common",   emoji:"🥚", name:"일반 알",      desc:"8분 · Common 라인 중심",        price:getEggRarityMeta("common").shopPrice, rarity:"common" },
+      { id:"egg_rare",     emoji:"🥚", name:"레어 알",      desc:"30분 · Rare 이상 확률 증가",     price:getEggRarityMeta("rare").shopPrice, rarity:"rare" },
+      { id:"egg_sr",       emoji:"🌙", name:"슈퍼레어 알",  desc:"2시간 · Shadow/Dragon 계열",     price:getEggRarityMeta("superrare").shopPrice, rarity:"superrare" },
+      { id:"egg_legend",   emoji:"✨", name:"레전드 알",    desc:"6시간 · 최상위 도감 라인",       price:getEggRarityMeta("legendary").shopPrice, rarity:"legendary" },
+      { id:"hatch_boost",  emoji:"⚡", name:"시간 가속기",  desc:"진행 중인 첫 알의 시간을 30분 단축", price:120, action:"boost_hatch" },
+      { id:"hatch_slot",   emoji:"🔓", name:nextHatchSlotMeta ? `${nextHatchSlotMeta.label} 라이선스` : "부화기 슬롯", desc:nextHatchSlotMeta ? nextHatchSlotMeta.desc : "모든 부화기 해금 완료", price:nextHatchSlotMeta?.unlockPrice ?? 9999, action:"slot" },
+      { id:"level_candy",  emoji:"🍬", name:"경험 사탕",    desc:"현재 파트너 EXP +120",          price:160, action:"level_candy" },
+      { id:"evo_core",     emoji:"🔮", name:"진화 코어",    desc:"현재 라인 EXP +80 · 코어 +1",    price:300, action:"evo_core" },
       { id:"shield",       emoji:"🛡️", name:"스트릭 실드", desc:"하루 실수 1회를 막아줌",   price:100, action:"shield" },
+      { id:"arena_ticket",  emoji:"🎫", name:"배틀 티켓",   desc:"친구 아레나 도전권 +3",      price:90,  action:"ticket" },
+      { id:"power_band",    emoji:"💪", name:"훈련 밴드",   desc:"아레나 전투력 영구 +35",     price:180, action:"boost" },
       { id:"title_warrior",emoji:"🏅", name:"칭호: 단어전사", desc:"이름 옆에 칭호 표시",     price:200, action:"title_warrior" },
     ];
 
     function buyItem(item) {
       if (coins < item.price) { setToast("코인이 부족합니다."); return; }
       setCoins(c => c - item.price);
-      if (item.action === "hatch") {
-        if (!instantFinishFirstSlot()) { setCoins(c=>c+item.price); setToast("진행 중인 알이 없습니다."); return; }
-        setToast("첫 번째 부화중인 알을 즉시 완료했습니다.");
+      if (item.action === "boost_hatch") {
+        if (!boostFirstRunningEgg(30)) { setCoins(c=>c+item.price); setToast("진행 중인 알이 없습니다."); return; }
+        setToast("첫 번째 부화중인 알의 시간이 30분 줄었습니다.");
       } else if (item.action === "slot") {
         if (!unlockNextHatchSlot()) { setCoins(c=>c+item.price); setToast("모든 부화기가 이미 열려 있습니다."); return; }
-        setToast("새 부화기 슬롯이 열렸습니다.");
+        setToast(`${nextHatchSlotMeta?.label || "새 부화기"}가 열렸습니다.`);
+      } else if (item.action === "level_candy") {
+        if (!mon) { setCoins(c=>c+item.price); setToast("먼저 파트너 몬스터가 필요합니다."); return; }
+        const result = grantActiveMonsterExp(120);
+        setToast(result.leveled ? `${mon.name}가 Lv.${result.level}이 되었습니다!` : `${mon.name} EXP +120!`);
+      } else if (item.action === "evo_core") {
+        if (!lineId) { setCoins(c=>c+item.price); setToast("먼저 파트너 몬스터가 필요합니다."); return; }
+        grantLineResources(lineId, { lineExp: 80, evolutionCores: 1 });
+        setToast("진화 재료 획득! 라인 EXP +80 · 코어 +1");
       } else if (item.action === "shield") {
         setStreakShields(s => s + 1);
         setToast("스트릭 실드 +1! 하루 실수 1회를 막아줍니다.");
+      } else if (item.action === "ticket") {
+        setBattleTickets(t => t + 3);
+        setToast("배틀 티켓 +3! 친구 아레나에서 도전하세요.");
+      } else if (item.action === "boost") {
+        setBattleBoost(v => v + 35);
+        setToast("훈련 밴드 장착! 아레나 전투력이 올랐습니다.");
       } else if (item.rarity) {
         const possLines = EGG_DROP[item.rarity] || EGG_DROP.common;
         const lineId2 = possLines[Math.floor(Math.random() * possLines.length)];
@@ -3350,8 +4540,8 @@ export default function VocabMon() {
         <div style={{display:"flex",flexDirection:"column",gap:10,flex:1}}>
           {ITEMS.map(item => {
             const canBuy = coins >= item.price;
-            const isHatchDisabled = item.action==="hatch" && runningEggCount===0;
-            const isSlotDisabled = item.action==="slot" && unlockedHatchSlots>=3;
+            const isHatchDisabled = item.action==="boost_hatch" && runningEggCount===0;
+            const isSlotDisabled = item.action==="slot" && !nextHatchSlot;
             const isDisabled = isHatchDisabled || isSlotDisabled;
             return (
               <div key={item.id} style={{
@@ -3419,6 +4609,25 @@ export default function VocabMon() {
     />
   );
 
+  if(screen==="arena") return (
+    <ArenaScreen
+      player={player}
+      mon={mon}
+      progressSnapshot={progressSnapshot}
+      curBook={curBook}
+      battleTickets={battleTickets}
+      setBattleTickets={setBattleTickets}
+      arenaWins={arenaWins}
+      setArenaWins={setArenaWins}
+      arenaRating={arenaRating}
+      setArenaRating={setArenaRating}
+      setCoins={setCoins}
+      setBattleBoost={setBattleBoost}
+      setScreen={setScreen}
+      setToast={setToast}
+    />
+  );
+
   // Collection
   if(screen==="collection") {
     const bookMeta = BOOK_SERIES.find((b) => b.id === (curBook || "ww5"));
@@ -3467,6 +4676,9 @@ export default function VocabMon() {
                       const owned = caughtMons.includes(stage.id);
                       const entry = monsterCollection[stage.id];
                       const Sp = stage.Sprite;
+                      const dexNo = getDexNo(line.lineId, index);
+                      const species = getDexSpecies(line, index);
+                      const dexEntry = getRetroDexEntry(line, stage, index);
                       return (
                         <div key={stage.id} style={{
                           textAlign:"center",
@@ -3481,9 +4693,17 @@ export default function VocabMon() {
                           <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(6px,1.5vmin,8px)",color:owned ? line.typeClr : "#4A2880",marginTop:4}}>
                             {owned ? stage.name : "???"}
                           </div>
+                          <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(5px,1.3vmin,7px)",color:owned ? "#F5C842" : "#3A2A58",marginTop:4,lineHeight:1.5}}>
+                            No.{owned ? dexNo : "???"}<br/>{owned ? species : "미확인 단어몬"}
+                          </div>
                           <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(8px,2vmin,10px)",color:"#7E6A9C",marginTop:3}}>
                             {owned ? `Lv.${entry?.level ?? 1} · 중복 ${entry?.duplicateCount ?? 0}` : `진화 ${index+1}`}
                           </div>
+                          {owned && (
+                            <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(7px,1.8vmin,9px)",color:"#AFA0CC",marginTop:5,lineHeight:1.35,textAlign:"left"}}>
+                              {dexEntry}
+                            </div>
+                          )}
                           <div data-testid={`dex-stage-${stage.id}-evolved-status`} style={{fontFamily:"var(--f-ui)",fontSize:"clamp(7px,1.8vmin,9px)",color:mon?.id===stage.id ? "#F5C842" : "#5E527A",marginTop:3}}>
                             {owned
                               ? (mon?.id===stage.id
