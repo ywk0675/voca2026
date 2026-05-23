@@ -1,0 +1,78 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <style>
+      html,
+      body,
+      #root {
+        margin: 0;
+        min-width: 100%;
+        min-height: 100%;
+        background: transparent;
+      }
+
+      body {
+        overflow: hidden;
+      }
+
+      #sheet {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0;
+        align-items: flex-start;
+        background: transparent;
+      }
+
+      .catchmon-stage {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: var(--catchmon-size, 512px);
+        height: var(--catchmon-size, 512px);
+        background: transparent;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module">
+      import React from "react";
+      import { createRoot } from "react-dom/client";
+      import { CATCH_MON_LINES } from "/src/catchMons.jsx";
+
+      const params = new URLSearchParams(window.location.search);
+      const size = Number(params.get("size") || 512);
+      const spriteSize = Number(params.get("spriteSize") || Math.round(size * 0.875));
+      const stages = CATCH_MON_LINES.flatMap((line) => line.stages);
+
+      document.documentElement.style.setProperty("--catchmon-size", `${size}px`);
+
+      function Sheet() {
+        return React.createElement(
+          "div",
+          { id: "sheet" },
+          stages.map((stage) =>
+            React.createElement(
+              "div",
+              {
+                className: "catchmon-stage",
+                "data-catchmon-id": stage.id,
+                "data-catchmon-name": stage.name,
+                key: stage.id,
+              },
+              React.createElement(stage.Sprite, { w: spriteSize })
+            )
+          )
+        );
+      }
+
+      createRoot(document.getElementById("root")).render(React.createElement(Sheet));
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.__CATCHMON_EXPORT_READY__ = true;
+        });
+      });
+    </script>
+  </body>
+</html>
