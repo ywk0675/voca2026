@@ -168,11 +168,54 @@ const DIFFICULTY_MODES = [
 ];
 
 const ENEMIES = [
-  { id:"forgex",   name:"FORGEX",   Sprite:ForgexSprite,   type:"ERASE", typeClr:"#CC4444", color:"#FF4444", hp:70,  atk:8,  def:4,  bgKey:"plains" },
-  { id:"blankus",  name:"BLANKUS",  Sprite:BlankusSprite,  type:"BLANK", typeClr:"#888888", color:"#AAAAAA", hp:95,  atk:11, def:7,  bgKey:"library"},
-  { id:"confuzor", name:"CONFUZOR", Sprite:ConfuzorSprite, type:"CHAOS", typeClr:"#CC7700", color:"#FF9900", hp:125, atk:15, def:10, bgKey:"cave"   },
-  { id:"nullvoid", name:"NULLVOID", Sprite:NullvoidSprite, type:"VOID",  typeClr:"#7700CC", color:"#9944FF", hp:160, atk:18, def:12, bgKey:"void"   },
+  { id:"forgex",   name:"FORGEX",   Sprite:ForgexSprite,   type:"ERASE", typeClr:"#CC4444", color:"#FF4444", hp:70,  atk:8,  def:4,  bgKey:"plains",  artUrl:"/enemies/forgex.png" },
+  { id:"blankus",  name:"BLANKUS",  Sprite:BlankusSprite,  type:"BLANK", typeClr:"#888888", color:"#AAAAAA", hp:95,  atk:11, def:7,  bgKey:"library", artUrl:"/enemies/blankus.png" },
+  { id:"confuzor", name:"CONFUZOR", Sprite:ConfuzorSprite, type:"CHAOS", typeClr:"#CC7700", color:"#FF9900", hp:125, atk:15, def:10, bgKey:"cave",    artUrl:"/enemies/confuzor.png" },
+  { id:"nullvoid", name:"NULLVOID", Sprite:NullvoidSprite, type:"VOID",  typeClr:"#7700CC", color:"#9944FF", hp:160, atk:18, def:12, bgKey:"void",    artUrl:"/enemies/nullvoid.png", boss:true },
 ];
+
+const ENEMY_TRAITS = {
+  forgex: {
+    icon:"🧨",
+    title:"실수 증폭",
+    short:"오답 피해가 커집니다",
+    desc:"오답을 먹고 공격력이 올라갑니다. 같은 세션에서 두 번 틀리면 더 거칠어집니다.",
+    phase2Text:"FORGEX가 틀린 단어의 흔적을 달궈 2페이즈에 들어갑니다.",
+    reward:{ coins:10, lineExp:8 },
+    bonusTitle:"실수 복구",
+    bonusDesc:"오답 후 다시 흐름을 회복했습니다.",
+  },
+  blankus: {
+    icon:"🕯️",
+    title:"기억 삭제",
+    short:"힌트를 가립니다",
+    desc:"정의와 힌트를 흐리게 만들어 단어 자체 기억을 요구합니다.",
+    phase2Text:"BLANKUS가 남은 힌트를 더 짙게 지웁니다.",
+    reward:{ coins:12, lineExp:9 },
+    bonusTitle:"무힌트 회상",
+    bonusDesc:"힌트 없이 3문제 이상 맞혔습니다.",
+  },
+  confuzor: {
+    icon:"🌀",
+    title:"혼란 압박",
+    short:"시간과 보기를 흔듭니다",
+    desc:"콤보가 끊기면 제한 시간이 줄고 보기 순서가 계속 흔들립니다.",
+    phase2Text:"CONFUZOR가 보기판을 뒤섞으며 2페이즈에 들어갑니다.",
+    reward:{ coins:12, lineExp:10 },
+    bonusTitle:"혼란 돌파",
+    bonusDesc:"혼란 속에서 3콤보 이상을 만들었습니다.",
+  },
+  nullvoid: {
+    icon:"🌌",
+    title:"집중 침식",
+    short:"FOCUS를 갉아먹습니다",
+    desc:"정답으로 얻는 FOCUS가 줄고, 오답 시 FOCUS가 더 많이 사라집니다.",
+    phase2Text:"NULLVOID가 화면을 뒤틀며 보너스 목표를 방해합니다.",
+    reward:{ coins:18, lineExp:14 },
+    bonusTitle:"공허 관통",
+    bonusDesc:"NULLVOID 상대로 FOCUS BURST를 성공시켰습니다.",
+  },
+};
 
 // ─────────────────────────────────────────────────────────────────
 //  UNIT + WORD DATA
@@ -858,6 +901,8 @@ const CSS = `
   .reward-chip small{font-family:var(--f-ui);font-weight:900;font-size:10px;color:#736486;line-height:1.25;}
   .battle-bonus-result{position:relative;margin-top:10px;border-radius:12px;padding:10px 11px;background:rgba(8,7,18,.72);border:1px solid #302846;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;text-align:left;}
   .battle-bonus-result.complete{border-color:#F5C84288;background:linear-gradient(135deg,rgba(245,200,66,.16),rgba(10,8,20,.76));}
+  .battle-bonus-result.enemy{border-color:#78E6FF66;background:linear-gradient(135deg,rgba(120,230,255,.13),rgba(10,8,20,.76));}
+  .battle-bonus-result.enemy.complete{border-color:#78E6FFAA;box-shadow:0 0 18px rgba(120,230,255,.16);}
   .battle-bonus-result > span{font-size:15px;line-height:1;}
   .battle-bonus-result div{min-width:0;}
   .battle-bonus-result b{display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#F5F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -878,6 +923,20 @@ const CSS = `
   .result-next-card span{font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-sm);line-height:1.35;color:#F7F3FF;}
   .battle-system-strip{display:grid;grid-template-columns:1fr minmax(150px,.72fr);gap:8px;flex-shrink:0;}
   .battle-objective-card,.focus-burst-btn{position:relative;min-height:54px;border-radius:12px;padding:9px 10px;overflow:hidden;text-align:left;}
+  .enemy-trait-card{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:9px;align-items:center;min-height:48px;border-radius:12px;padding:8px 10px;background:linear-gradient(135deg,rgba(16,18,34,.96),rgba(18,10,28,.92));border:1px solid color-mix(in srgb,var(--enemy,#78E6FF) 46%,#2A2440);box-shadow:0 4px 0 rgba(0,0,0,.35);overflow:hidden;flex-shrink:0;}
+  .enemy-trait-card::before{content:"";position:absolute;right:-34px;top:-40px;width:108px;height:108px;border-radius:50%;background:var(--enemy,#78E6FF);opacity:.12;filter:blur(3px);}
+  .enemy-trait-card.phase2{border-color:#FF4F7AAA;background:linear-gradient(135deg,rgba(44,8,28,.96),rgba(16,10,30,.92));animation:rewardPulse 1.9s ease-in-out infinite;}
+  .enemy-trait-card > span{position:relative;font-size:clamp(17px,4.4vmin,22px);line-height:1;}
+  .enemy-trait-card b{position:relative;display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);line-height:1.12;color:#F7F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .enemy-trait-card small{position:relative;display:block;margin-top:2px;font-family:var(--f-ui);font-weight:900;font-size:10px;line-height:1.2;color:#9E91B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .enemy-trait-card em{position:relative;font-style:normal;font-family:var(--f-pk);font-size:8px;color:var(--enemy,#78E6FF);white-space:nowrap;}
+  .enemy-skill-banner{position:absolute;left:50%;top:44px;z-index:12;transform:translateX(-50%);width:min(520px,88%);border-radius:14px;padding:9px 12px;background:linear-gradient(135deg,rgba(8,6,18,.92),rgba(24,8,34,.9));border:1px solid color-mix(in srgb,var(--enemy,#78E6FF) 55%,#2A2440);box-shadow:0 16px 36px rgba(0,0,0,.36),0 0 24px color-mix(in srgb,var(--enemy,#78E6FF) 24%,transparent);display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px;align-items:center;animation:feedbackIn .22s ease both;}
+  .enemy-skill-banner span{font-size:22px;line-height:1;}
+  .enemy-skill-banner b{display:block;font-family:var(--f-pk);font-size:clamp(8px,2vmin,11px);color:var(--enemy,#78E6FF);line-height:1.25;}
+  .enemy-skill-banner small{display:block;margin-top:2px;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);line-height:1.25;color:#F4EEFF;}
+  .enemy-art{display:block;object-fit:contain;filter:drop-shadow(0 18px 22px rgba(0,0,0,.55));}
+  .enemy-art.phase2{filter:drop-shadow(0 20px 24px rgba(0,0,0,.58)) drop-shadow(0 0 24px rgba(255,62,118,.35));}
+  .enemy-aura{position:absolute;inset:12% -8% -6% -8%;z-index:-1;border-radius:50%;background:radial-gradient(circle,var(--enemy,#78E6FF),transparent 62%);opacity:.2;filter:blur(10px);transform:scale(.95);}
   .battle-objective-card{background:linear-gradient(135deg,#111226,#1A1426);border:1px solid #342B4A;}
   .battle-objective-card::before{content:"";position:absolute;right:-24px;top:-28px;width:80px;height:80px;border-radius:50%;background:#F5C842;opacity:.1;}
   .battle-objective-card b{position:relative;display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#F7F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -930,6 +989,9 @@ const CSS = `
     .reward-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
     .result-goal-panel{grid-template-columns:1fr;}
     .battle-system-strip{grid-template-columns:1fr;}
+    .enemy-trait-card{grid-template-columns:auto minmax(0,1fr);min-height:42px;padding:7px 9px;}
+    .enemy-trait-card em{display:none;}
+    .enemy-skill-banner{top:38px;width:92%;padding:8px 10px;}
   }
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:#3A2A50;border-radius:2px;}
@@ -1088,6 +1150,30 @@ function Nameplate({name,typeName,typeClr,hp,maxHp,lv,isEnemy=false}) {
       {!isEnemy&&<div style={{textAlign:"right",fontSize:"clamp(8px,2vmin,10px)",color:"#666",marginTop:3}}>{hp}/{maxHp}</div>}
     </div>
   );
+}
+
+function EnemyVisual({ enemy, w = 88, hurt = false, phase2 = false }) {
+  const [imgFailed, setImgFailed] = React.useState(false);
+  const Sprite = enemy?.Sprite;
+  const size = enemy?.boss ? Math.round(w * 1.18) : w;
+  if (enemy?.artUrl && !imgFailed) {
+    return (
+      <img
+        className={`enemy-art ${phase2 ? "phase2" : ""}`}
+        src={enemy.artUrl}
+        alt=""
+        draggable={false}
+        onError={() => setImgFailed(true)}
+        style={{
+          width: size,
+          height: size,
+          opacity: hurt ? .72 : 1,
+          transform: phase2 ? "scale(1.06)" : "none",
+        }}
+      />
+    );
+  }
+  return Sprite ? <Sprite w={size} hurt={hurt}/> : null;
 }
 
 // Stars display
@@ -2188,6 +2274,70 @@ function evaluateBattleObjective(objective, result) {
   return false;
 }
 
+function getEnemyTrait(enemyOrId) {
+  const id = typeof enemyOrId === "string" ? enemyOrId : enemyOrId?.id;
+  return ENEMY_TRAITS[id] || null;
+}
+
+function createEnemyBattleState(enemy) {
+  return {
+    enemyId: enemy?.id || "forgex",
+    phase2: false,
+    traitTriggered: false,
+    wrongHits: 0,
+    recoveredAfterWrong: false,
+    blankusCorrect: 0,
+    confuzorBestCombo: 0,
+    nullvoidFocus: false,
+  };
+}
+
+function getEnemyTimerSec(enemy, difficultyKey) {
+  const modeInfo = DIFFICULTY_MODES.find((m) => m.key === difficultyKey);
+  if (enemy?.id !== "confuzor") return modeInfo?.timerSec ?? null;
+  if (difficultyKey === "easy") return null;
+  const base = modeInfo?.timerSec ?? 30;
+  return Math.max(8, Math.round(base * 0.8));
+}
+
+function getEnemyAdjustedOptions(enemy, word, stage, bookId, unitId, fallbackOptions = []) {
+  if (!word || enemy?.id !== "confuzor") return fallbackOptions;
+  const answer = stage === 2 ? word.m : word.w;
+  const pool = getWordsForUnit(bookId || "ww5", parseInt(unitId || word.unit || 1))
+    .filter((item) => item.w !== word.w && item.m !== word.m);
+  const sorted = [...pool].sort((a, b) => {
+    const aValue = stage === 2 ? a.m : a.w;
+    const bValue = stage === 2 ? b.m : b.w;
+    const target = stage === 2 ? word.m : word.w;
+    const aScore = Math.abs((aValue || "").length - (target || "").length);
+    const bScore = Math.abs((bValue || "").length - (target || "").length);
+    return aScore - bScore;
+  });
+  const distractors = sorted.map((item) => stage === 2 ? item.m : item.w).filter(Boolean);
+  const unique = [...new Set([answer, ...distractors])].slice(0, 4);
+  return shuffle(unique.length >= 2 ? unique : fallbackOptions);
+}
+
+function evaluateEnemyBonus(enemy, enemyState, result) {
+  const trait = getEnemyTrait(enemy);
+  if (!trait || !result?.didWin) return null;
+  let completed = false;
+  if (enemy?.id === "forgex") completed = !!enemyState?.recoveredAfterWrong;
+  if (enemy?.id === "blankus") completed = (enemyState?.blankusCorrect || 0) >= Math.min(3, Math.max(1, result.total || 0));
+  if (enemy?.id === "confuzor") completed = result.maxCombo >= 3 || (enemyState?.confuzorBestCombo || 0) >= 3;
+  if (enemy?.id === "nullvoid") completed = !!result.focusBurstUsed || !!enemyState?.nullvoidFocus;
+  return {
+    enemyId: enemy?.id,
+    icon: trait.icon,
+    title: trait.bonusTitle,
+    desc: trait.bonusDesc,
+    completed,
+    rewardText: `+${trait.reward.coins}G +${trait.reward.lineExp} 라인EXP`,
+    coins: completed ? trait.reward.coins : 0,
+    lineExp: completed ? trait.reward.lineExp : 0,
+  };
+}
+
 function getWordMemoryKey(word, fallbackBook = "ww5", fallbackUnit = "u") {
   const book = word?.book || fallbackBook || "ww5";
   const unit = word?.unit || fallbackUnit || "u";
@@ -2412,12 +2562,15 @@ export default function VocabMon() {
   const [battleFocus, setBattleFocus] = useState(0);
   const [focusBurstUsed, setFocusBurstUsed] = useState(false);
   const [battleObjective, setBattleObjective] = useState(null);
+  const [enemyBattleState, setEnemyBattleState] = useState(null);
+  const [enemyNotice, setEnemyNotice] = useState(null);
   const [dmgVal,   setDmgVal]   = useState(null);
   const [curOpts,  setCurOpts]  = useState([]);
   const [wrongCount,setWrongCount]=useState(0);
   const [correctCount,setCorrectCount]=useState(0);
   const [won,      setWon]      = useState(false);
   const [lastBattleReward, setLastBattleReward] = useState(null);
+  const [enemyKills, setEnemyKills] = useState({});
   const [evoAnim,  setEvoAnim]  = useState(false);
   const [showEvoModal,setShowEvoModal]=useState(false);
   const [newMonName,setNewMonName]=useState("");
@@ -2709,6 +2862,7 @@ export default function VocabMon() {
       setHatcherySlots(syncHatcherySlots(migratedEggState.hatcherySlots));
       if (saved.wrongWords)   setWrongWords(saved.wrongWords);
       if (saved.wordMemory)   setWordMemory(saved.wordMemory);
+      if (saved.enemyKills)   setEnemyKills(saved.enemyKills);
       if (saved.streakShields) { setStreakShields(saved.streakShields); restoredShields = saved.streakShields; }
       const restoredMonsterId = restoredLineId
         ? (getCatchStage(restoredLineId, saved.stageIdx ?? 0)?.id ?? null)
@@ -2805,6 +2959,7 @@ export default function VocabMon() {
     hatcherySlots,
     wrongWords,
     wordMemory,
+    enemyKills,
     dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
     dailyMissionDate: new Date().toDateString(),
   }), [
@@ -2812,7 +2967,7 @@ export default function VocabMon() {
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons, pendingEggs, monsterCollection, eggInventory, hatcherySlots,
-    wrongWords, wordMemory, dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
+    wrongWords, wordMemory, enemyKills, dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
   ]);
 
   useEffect(() => {
@@ -3045,6 +3200,27 @@ export default function VocabMon() {
     return shuffle([word.m, ...shuffled.map(w=>w.m)]);
   }
 
+  function showEnemyNotice(enemy, title, body) {
+    const trait = getEnemyTrait(enemy);
+    const notice = {
+      id: `${enemy?.id || "enemy"}-${Date.now()}-${Math.random()}`,
+      enemyId: enemy?.id,
+      icon: trait?.icon || "⚠️",
+      title,
+      body,
+      color: enemy?.color || "#78E6FF",
+    };
+    setEnemyNotice(notice);
+    setTimeout(() => {
+      setEnemyNotice((current) => current?.id === notice.id ? null : current);
+    }, 2200);
+  }
+
+  function buildBattleOptions(word, stg, enemy = curEnemy, bookId = curBook || "ww5", unitId = curUnit) {
+    const base = stg === 2 ? getMasterOpts(word) : getOpts(word);
+    return getEnemyAdjustedOptions(enemy, word, stg, bookId, unitId || word?.unit, base);
+  }
+
   function startBattle(uid, stg=0, bookId=null, diff="easy", subIdx=0) {
     const bk = bookId||curBook||"ww5";
     const allWords = getWordsForUnit(bk, uid);
@@ -3057,14 +3233,16 @@ export default function VocabMon() {
     if(bookId) setCurBook(bookId);
     const scaledEnemy = {...enemy, hp: words.length};
     setDifficulty(diff);
-    const modeInfo = DIFFICULTY_MODES.find(m => m.key === diff);
-    setTimer(modeInfo?.timerSec ?? null);
+    const trait = getEnemyTrait(enemy);
+    setTimer(getEnemyTimerSec(enemy, diff));
     setCurUnit(uid); setBattleStage(stg); setCurSubStage(subIdx); setCurEnemy(scaledEnemy);
     setQueue(words); setWrongQueue([]); setQIdx(0);
-    setCurOpts(stg===2 ? getMasterOpts(words[0]) : getOpts(words[0]));
+    setCurOpts(getEnemyAdjustedOptions(enemy, words[0], stg, bk, uid, stg===2 ? getMasterOpts(words[0]) : getOpts(words[0])));
     setPHp(effMon.hp); setEHp(words.length);
     setWrongCount(0); setCorrectCount(0);
     setLastBattleReward(null);
+    setEnemyBattleState(createEnemyBattleState(enemy));
+    setEnemyNotice(null);
     setMaxCombo(0);
     setBattleFocus(0);
     setFocusBurstUsed(false);
@@ -3075,11 +3253,13 @@ export default function VocabMon() {
     setLog([
       `A wild ${enemy.name} appeared!`,
       `${stgLabel} · ${subLabel}`,
+      trait ? `학습 방해자 능력: ${trait.title} - ${trait.short}` : null,
       `보너스 목표: ${objective.title}`,
       stg===0 ? "뜻을 보고 영어 단어를 고르세요." : stg===1 ? "소리를 듣고 영어 단어를 고르세요." : "영어 단어 뜻을 직접 떠올리세요.",
-    ]);
+    ].filter(Boolean));
     setPhase("question"); setSel(null); setComboStr(0); setDmgVal(null);
     sfxBattleStart();
+    if (trait) showEnemyNotice(enemy, `학습 방해자 능력 · ${trait.title}`, trait.desc);
     setScreen("battle");
   }
 
@@ -3099,16 +3279,34 @@ export default function VocabMon() {
     if(correct) {
       const ns=comboStr+1; setComboStr(ns);
       setMaxCombo(m => Math.max(m, ns));
-      const focusGain = ns >= 3 ? 34 : 24;
+      const baseFocusGain = ns >= 3 ? 34 : 24;
+      const focusGain = curEnemy?.id === "nullvoid" ? Math.max(1, Math.round(baseFocusGain * 0.7)) : baseFocusGain;
       setBattleFocus(prev => Math.min(100, prev + focusGain));
       const base=calcDmg(eff.atk,curEnemy.def);
       const final=ns>=3?Math.floor(base*1.65):base;
       const newE=Math.max(0,eHp-1);
+      const trait = getEnemyTrait(curEnemy);
+      const phase2Triggered = enemyBattleState && !enemyBattleState.phase2 && newE > 0 && newE <= Math.ceil(curEnemy.hp * 0.4);
       setCorrectCount(c=>c+1);
+      setEnemyBattleState(prev => prev ? ({
+        ...prev,
+        recoveredAfterWrong: prev.recoveredAfterWrong || (curEnemy?.id === "forgex" && (prev.wrongHits || 0) > 0),
+        blankusCorrect: curEnemy?.id === "blankus" ? (prev.blankusCorrect || 0) + 1 : prev.blankusCorrect,
+        confuzorBestCombo: curEnemy?.id === "confuzor" ? Math.max(prev.confuzorBestCombo || 0, ns) : prev.confuzorBestCombo,
+      }) : prev);
       setWordMemory(prev => updateWordMemoryMap(prev, word, { correct: true, book: curBook || "ww5", unit: curUnit }));
-      setLog(p=>[...p,`${ns>=3?`콤보 ${ns}! `:""}정답 "${battleStage===2?word.m:word.w}" · -${final}HP`]);
+      setLog(p=>[
+        ...p,
+        `${ns>=3?`콤보 ${ns}! `:""}정답 "${battleStage===2?word.m:word.w}" · -${final}HP`,
+        phase2Triggered && trait ? trait.phase2Text : null,
+      ].filter(Boolean));
+      if (phase2Triggered) {
+        setEnemyBattleState(prev => prev ? ({ ...prev, phase2: true, traitTriggered: true }) : prev);
+        showEnemyNotice(curEnemy, "2페이즈 돌입", trait?.phase2Text || `${curEnemy.name}의 압박이 강해집니다.`);
+        sfxWrong();
+      }
       const expGain = 22 + (ns>=3?10:0);
-      setFeedback({type:"correct", msg:`정답! +${expGain} EXP${ns>=3?` · 콤보 ${ns}`:""}`});
+      setFeedback({type:"correct", msg:`정답! +${expGain} EXP${curEnemy?.id==="nullvoid"?" · FOCUS 침식":ns>=3?` · 콤보 ${ns}`:""}`});
       setTimeout(()=>setFeedback(null), 800);
 
       // 미션 진행 업데이트
@@ -3136,11 +3334,19 @@ export default function VocabMon() {
 
     } else {
       setComboStr(0);
-      setBattleFocus(prev => Math.max(0, prev - 18));
-      const ed=calcDmg(curEnemy.atk,8);
+      const focusLoss = curEnemy?.id === "nullvoid" ? 30 : 18;
+      setBattleFocus(prev => Math.max(0, prev - focusLoss));
+      const baseEnemyDmg=calcDmg(curEnemy.atk,8);
+      const forgexMult = curEnemy?.id === "forgex" ? (wrongCount + 1 >= 2 ? 1.4 : 1.25) : 1;
+      const ed=Math.round(baseEnemyDmg * forgexMult);
       const newP=Math.max(0,pHp-ed);
       const newWC=wrongCount+1;
       setWrongCount(newWC);
+      setEnemyBattleState(prev => prev ? ({
+        ...prev,
+        traitTriggered: true,
+        wrongHits: (prev.wrongHits || 0) + 1,
+      }) : prev);
       const missedWord = { ...word, book: curBook || "ww5", unit: curUnit, memoryKey: getWordMemoryKey(word, curBook || "ww5", curUnit) };
       setWordMemory(prev => updateWordMemoryMap(prev, missedWord, { correct: false, book: curBook || "ww5", unit: curUnit }));
       setWrongQueue(q=>[...q,missedWord]);
@@ -3149,7 +3355,17 @@ export default function VocabMon() {
         if (prev.some(x=>x.w===word.w && x.m===word.m)) return prev;
         return [...prev, missedWord];
       });
-      setLog(p=>[...p,`오답 "${battleStage===2?word.m:word.w}" · -${ed}HP`]);
+      const traitLine = curEnemy?.id === "forgex"
+        ? `FORGEX 실수 증폭! 피해 x${forgexMult.toFixed(2)}`
+        : curEnemy?.id === "nullvoid"
+          ? "NULLVOID 집중 침식! FOCUS 추가 감소"
+          : null;
+      setLog(p=>[...p,`오답 "${battleStage===2?word.m:word.w}" · -${ed}HP`, traitLine].filter(Boolean));
+      if (curEnemy?.id === "forgex") {
+        showEnemyNotice(curEnemy, "실수 증폭 발동", wrongCount + 1 >= 2 ? "반복 오답으로 공격 피해가 더 크게 올랐습니다." : "오답을 먹고 이번 공격 피해가 증가했습니다.");
+      } else if (curEnemy?.id === "nullvoid") {
+        showEnemyNotice(curEnemy, "집중 침식 발동", "오답으로 FOCUS가 추가로 무너졌습니다.");
+      }
       // VOC-105: 오답 피드백 (랜덤 메시지)
       const revMsgs = [
         "다음엔 복습랜드에서 다시 잡자.",
@@ -3184,6 +3400,9 @@ export default function VocabMon() {
     if (!word) return false;
     const correctAns = battleStage === 2 ? word.m : word.w;
     setFocusBurstUsed(true);
+    if (curEnemy?.id === "nullvoid") {
+      setEnemyBattleState(prev => prev ? ({ ...prev, nullvoidFocus: true, traitTriggered: true }) : prev);
+    }
     setBattleFocus(0);
     setDailyMissions(prev => updateMissionProgress(prev, { focus1: 1 }));
     setWeeklyMissions(prev => updateMissionProgress(prev, { weeklyFocus: 1 }));
@@ -3199,10 +3418,9 @@ export default function VocabMon() {
     if(nxt>=queue.length){endBattle(true,wc);return;}
     setQIdx(nxt);
     const w=queue[nxt];
-    setCurOpts(battleStage===2?getMasterOpts(w):getOpts(w));
+    setCurOpts(buildBattleOptions(w, battleStage, curEnemy));
     setSel(null); setPhase("question");
-    const modeInfo = DIFFICULTY_MODES.find(m => m.key === difficulty);
-    if (modeInfo?.timerSec) setTimer(modeInfo.timerSec);
+    setTimer(getEnemyTimerSec(curEnemy, difficulty));
   }
 
   useEffect(() => {
@@ -3248,21 +3466,32 @@ export default function VocabMon() {
         hpPct,
         stars,
       });
+      const enemyBonus = evaluateEnemyBonus(curEnemy, enemyBattleState, {
+        didWin,
+        wrongCount: wc,
+        total,
+        maxCombo,
+        focusBurstUsed,
+      });
       const bonusCoins = objectiveComplete ? (battleObjective?.bonusCoins || 0) : 0;
       const bonusExp = objectiveComplete ? (battleObjective?.bonusExp || 0) : 0;
       const bonusLineExp = objectiveComplete ? (battleObjective?.bonusLineExp || 0) : 0;
-      const ec = Math.round((20+curUnit*8) * diffMult) + bonusCoins;
+      const enemyBonusCoins = enemyBonus?.coins || 0;
+      const enemyBonusLineExp = enemyBonus?.lineExp || 0;
+      const ec = Math.round((20+curUnit*8) * diffMult) + bonusCoins + enemyBonusCoins;
       const ex = Math.round((40+curUnit*12) * diffMult) + bonusExp;
       setCoins(c=>c+ec);
       if(!dailyDone){ setDailyDone(true); }
       const levelResult = grantActiveMonsterExp(ex);
-      const lineExpGain = Math.round((10 + stars * 6) * diffMult) + bonusLineExp;
+      const lineExpGain = Math.round((10 + stars * 6) * diffMult) + bonusLineExp + enemyBonusLineExp;
       const coreGain = difficulty === "hell" && stars >= 2 ? 1 : 0;
       grantLineResources(lineId, { lineExp: lineExpGain, evolutionCores: coreGain });
+      setEnemyKills(prev => ({ ...prev, [curEnemy.id]: (prev[curEnemy.id] || 0) + 1 }));
       setLog(p=>[
         ...p,
         `Victory! +${ec}G +${ex}EXP · 라인EXP +${lineExpGain}${coreGain ? " · 코어 +1" : ""} · ${stars}★`,
         objectiveComplete ? `보너스 목표 완료! ${battleObjective.rewardText}` : null,
+        enemyBonus?.completed ? `적 공략 보너스 완료! ${enemyBonus.rewardText}` : null,
         levelResult.leveled ? `${mon.name} grew to Lv.${levelResult.level}!` : null,
       ].filter(Boolean));
 
@@ -3303,6 +3532,7 @@ export default function VocabMon() {
           ...battleObjective,
           completed: objectiveComplete,
         } : null,
+        enemyBonus,
         leveled: levelResult.leveled,
         level: levelResult.level,
       });
@@ -3318,6 +3548,7 @@ export default function VocabMon() {
           ...battleObjective,
           completed: false,
         } : null,
+        enemyBonus: evaluateEnemyBonus(curEnemy, enemyBattleState, { didWin:false, wrongCount: wc, total: queue.length, maxCombo, focusBurstUsed }),
       });
     }
     setTimeout(()=>{
@@ -3366,6 +3597,9 @@ export default function VocabMon() {
         lastBattleReward,
         battleFocus,
         battleObjective,
+        curEnemyId: curEnemy?.id || null,
+        enemyBattleState,
+        enemyKills,
         focusBurstUsed,
         maxCombo,
       }),
@@ -3442,7 +3676,7 @@ export default function VocabMon() {
     qIdx, queue, phase, won, eggInventory.length, readyEggCount, runningEggCount, dexProgress,
     activeMonsterEntry, monsterCollection, hatcherySlots, evoRequirement, progressSnapshot,
     wrongWords, wordMemory, dailyMissions, weeklyMissions, lastBattleReward,
-    battleFocus, battleObjective, focusBurstUsed, maxCombo, curOpts,
+    battleFocus, battleObjective, curEnemy, enemyBattleState, enemyKills, focusBurstUsed, maxCombo, curOpts,
   ]);
   // ─────────────────────────────────────────────────────────────────
   //  SCREENS
@@ -4551,14 +4785,17 @@ export default function VocabMon() {
     const stgColor=["#44CC77","#FF9933","#CC66FF"][battleStage];
     const stgLabel=["EXPLORE","RECALL","MASTER"][battleStage];
     const bgSvg=BG_MAP[curEnemy.bgKey]||BG_PLAINS;
+    const enemyTrait = getEnemyTrait(curEnemy);
+    const enemyPhase2 = !!enemyBattleState?.phase2;
 
     // What to show in the question panel
     const isDefOnly = difficulty !== "easy";
+    const isBlankusHintHidden = curEnemy.id === "blankus";
 
     const qPrompt = battleStage===0 ? word?.def
                   : battleStage===1 ? (isDefOnly ? word?.def : `뜻 ${word?.m}`)
                   : `단어 ${word?.w}`;
-    const qHint = isDefOnly ? null
+    const qHint = (isDefOnly || isBlankusHintHidden) ? null
                 : battleStage===0 ? `뜻 ${word?.m}`
                 : battleStage===1 ? word?.def
                 : word?.def;
@@ -4576,6 +4813,15 @@ export default function VocabMon() {
         {/* Battle field */}
         <div style={{position:"relative",flex:"0 0 auto",height:"clamp(160px,30vh,240px)",overflow:"hidden"}}>
           {bgSvg}
+          {enemyNotice&&(
+            <div data-testid="enemy-skill-banner" className="enemy-skill-banner" style={{"--enemy": enemyNotice.color}}>
+              <span>{enemyNotice.icon}</span>
+              <div>
+                <b>{enemyNotice.title}</b>
+                <small>{enemyNotice.body}</small>
+              </div>
+            </div>
+          )}
 
           {/* Enemy nameplate ??top left */}
           <div style={{position:"absolute",top:8,left:8,zIndex:3}}>
@@ -4601,11 +4847,17 @@ export default function VocabMon() {
               ? "enemyCharge .8s cubic-bezier(.3,.7,.4,1) forwards"
               : shakeE
               ? "hitRecoil .4s ease"
-              : "floatBob 3s ease-in-out infinite"
+              : enemyPhase2
+                ? "comboZoom .9s ease-in-out infinite"
+                : "floatBob 3s ease-in-out infinite"
           }}>
-            <curEnemy.Sprite
+            <div className="enemy-aura" style={{"--enemy": curEnemy.color, opacity: enemyPhase2 ? .34 : .2}}/>
+            <EnemyVisual
+              enemy={curEnemy}
               w={Math.min(86,Math.max(52,Math.floor(window.innerHeight*.14)))}
-              hurt={shakeE}/>
+              hurt={shakeE}
+              phase2={enemyPhase2}
+            />
           </div>
 
           {/* Damage pop ??appears at receiver location */}
@@ -4706,7 +4958,7 @@ export default function VocabMon() {
           </div>
 
           {timer !== null && (() => {
-            const maxSec = DIFFICULTY_MODES.find(m=>m.key===difficulty)?.timerSec || 30;
+            const maxSec = getEnemyTimerSec(curEnemy, difficulty) || DIFFICULTY_MODES.find(m=>m.key===difficulty)?.timerSec || 30;
             const pct = Math.max(0, (timer / maxSec) * 100);
             const tc = timer <= 5 ? "#FF2222" : timer <= 10 ? "#FF9933" : "#44CC77";
             return (
@@ -4726,6 +4978,22 @@ export default function VocabMon() {
               </div>
             );
           })()}
+
+          {enemyTrait&&(
+            <div data-testid="enemy-trait-card" className={`enemy-trait-card ${enemyPhase2 ? "phase2" : ""}`} style={{"--enemy":curEnemy.color}}>
+              <span>{enemyTrait.icon}</span>
+              <div>
+                <b>학습 방해자 능력 · {enemyTrait.title}</b>
+                <small>
+                  {curEnemy.id==="blankus" ? "기억 삭제 활성화 · 힌트 숨김" :
+                   curEnemy.id==="confuzor" ? "혼란 압박 활성화 · 보기/시간 교란" :
+                   curEnemy.id==="nullvoid" ? "집중 침식 활성화 · FOCUS 획득 감소" :
+                   `실수 증폭 활성화 · 오답 ${enemyBattleState?.wrongHits || 0}회`}
+                </small>
+              </div>
+              <em>{enemyPhase2 ? "PHASE 2" : "ACTIVE"}</em>
+            </div>
+          )}
 
           <div className="battle-system-strip">
             <div className="battle-objective-card" data-testid="battle-objective-card">
@@ -4754,6 +5022,9 @@ export default function VocabMon() {
               <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",
                 color:"#888",marginBottom:5,textTransform:"uppercase",letterSpacing:".04em"}}>
                 {battleStage===0?"Definition -> Word":battleStage===1?"Korean -> Word":"Word -> Korean"}
+                {isBlankusHintHidden&&(
+                  <span style={{marginLeft:8,color:"#7B6E8E",fontWeight:1000}}>기억 삭제</span>
+                )}
               </div>
               <div data-testid="battle-question-prompt" style={{fontFamily:"var(--f-ui)",fontWeight:800,
                 fontSize:"clamp(14px,3.8vmin,17px)",
@@ -4927,6 +5198,16 @@ export default function VocabMon() {
                   <span>{reward.objective.completed ? `완료 · ${reward.objective.rewardText}` : `미완료 · ${reward.objective.desc}`}</span>
                 </div>
                 <em>{reward.objective.completed ? "BONUS" : "NEXT"}</em>
+              </div>
+            )}
+            {reward.enemyBonus && (
+              <div className={`battle-bonus-result enemy ${reward.enemyBonus.completed ? "complete" : ""}`} data-testid="enemy-bonus-result">
+                <span>{reward.enemyBonus.completed ? "🧠" : reward.enemyBonus.icon}</span>
+                <div>
+                  <b>적 공략 보너스 · {reward.enemyBonus.title}</b>
+                  <span>{reward.enemyBonus.completed ? `완료 · ${reward.enemyBonus.rewardText}` : `미완료 · ${reward.enemyBonus.desc}`}</span>
+                </div>
+                <em>{reward.enemyBonus.completed ? "HUNT" : "TIP"}</em>
               </div>
             )}
           </div>
