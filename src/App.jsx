@@ -183,6 +183,22 @@ const getEnemy  = uid=>ENEMIES[Math.min(Math.floor((uid-1)/3),ENEMIES.length-1)]
 const shuffle   = a=>[...a].sort(()=>Math.random()-0.5);
 const getOpts   = w=>shuffle(w.opts);
 const hpColor   = pct=>pct>50?"#44CC77":pct>25?"#EE9920":"#EE2222";
+const ARENA_MAX_TICKETS = 5;
+const ARENA_DAILY_FLOOR = 3;
+const ARENA_TICKET_REGEN_MS = 60 * 60 * 1000;
+
+function recoverArenaTickets(tickets = ARENA_DAILY_FLOOR, updatedAt = Date.now(), now = Date.now()) {
+  const safeTickets = Math.max(0, Math.min(ARENA_MAX_TICKETS, Number(tickets) || 0));
+  const safeUpdatedAt = Number(updatedAt) || now;
+  if (safeTickets >= ARENA_MAX_TICKETS) return { tickets: safeTickets, updatedAt: now };
+  const gained = Math.floor(Math.max(0, now - safeUpdatedAt) / ARENA_TICKET_REGEN_MS);
+  if (gained <= 0) return { tickets: safeTickets, updatedAt: safeUpdatedAt };
+  const nextTickets = Math.min(ARENA_MAX_TICKETS, safeTickets + gained);
+  const nextUpdatedAt = nextTickets >= ARENA_MAX_TICKETS
+    ? now
+    : safeUpdatedAt + gained * ARENA_TICKET_REGEN_MS;
+  return { tickets: nextTickets, updatedAt: nextUpdatedAt };
+}
 
 // star unlock thresholds for each first-stage mon
 const MON_UNLOCK_STARS = PARTNER_UNLOCK_STARS;
@@ -779,6 +795,31 @@ const CSS = `
   .big-btn:hover{transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,0.5);}
   .big-btn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,0.5);}
 
+  .screen-topbar{position:sticky;top:0;z-index:40;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;padding:8px;border:1px solid color-mix(in srgb,var(--accent,#F5C842) 38%,#2A2440);border-radius:12px;background:linear-gradient(135deg,rgba(24,20,44,.94),rgba(14,12,26,.88));box-shadow:0 8px 22px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.08);backdrop-filter:blur(12px);flex-shrink:0;}
+  .screen-topbar__icon{width:46px;height:46px;border-radius:10px;display:grid;place-items:center;background:radial-gradient(circle at 50% 20%,color-mix(in srgb,var(--accent,#F5C842) 30%,transparent),rgba(255,255,255,.04));border:1px solid color-mix(in srgb,var(--accent,#F5C842) 40%,transparent);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.1);}
+  .screen-topbar__copy{min-width:0;}
+  .screen-topbar__title{font-family:var(--f-pk);font-size:clamp(11px,2.7vmin,15px);line-height:1.25;color:var(--accent,#F5C842);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .screen-topbar__subtitle{margin-top:3px;font-family:var(--f-ui);font-size:var(--fs-xs);font-weight:900;color:#9B8EBE;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .nav-chip{min-width:46px;height:42px;border:1px solid #3A2A60;border-radius:10px;background:#120E24;color:#E7DCFF;font-family:var(--f-ui);font-size:var(--fs-xs);font-weight:900;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;box-shadow:0 3px 0 rgba(0,0,0,.45);}
+  .nav-chip:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--accent,#F5C842) 60%,#3A2A60);}
+  .screen-bottom-nav{display:flex;gap:8px;flex-shrink:0;width:100%;}
+  .screen-bottom-nav .nav-chip{flex:1;height:48px;}
+  .nav-glyph{width:26px;height:26px;display:block;color:var(--accent,#F5C842);filter:drop-shadow(0 8px 12px rgba(0,0,0,.35));}
+  .screen-topbar__icon .nav-glyph{width:28px;height:28px;color:var(--accent,#F5C842);}
+
+  .system-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex-shrink:0;}
+  .system-card{position:relative;min-height:82px;border:none;border-radius:12px;padding:8px;background:linear-gradient(135deg,#16122A,#211A3A);color:#EAE2FF;box-shadow:0 4px 0 #080612;cursor:pointer;overflow:hidden;text-align:left;display:flex;align-items:center;gap:8px;}
+  .system-card::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 82% 12%,var(--accent,#F5C842) 0,transparent 38%);opacity:.2;pointer-events:none;}
+  .system-card__icon{position:relative;z-index:1;width:46px;height:54px;flex:0 0 46px;display:grid;place-items:center;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);}
+  .system-card__icon::before{content:"";position:absolute;inset:8px;border-radius:50%;background:color-mix(in srgb,var(--accent,#F5C842) 28%,transparent);filter:blur(8px);}
+  .system-card__icon .nav-glyph{position:relative;width:28px;height:28px;}
+  .system-card__copy{position:relative;z-index:1;min-width:0;display:flex;flex-direction:column;gap:4px;}
+  .system-card__label{font-family:var(--f-ui);font-weight:1000;font-size:clamp(12px,2.8vmin,15px);line-height:1.1;color:#fff;}
+  .system-card__meta{font-family:var(--f-ui);font-weight:900;font-size:clamp(9px,2.2vmin,11px);line-height:1.2;color:#AFA2CE;}
+  .system-card__badge{position:absolute;right:7px;top:6px;z-index:2;font-family:var(--f-pk);font-size:7px;color:#FFE08A;}
+  .system-card:hover{transform:translateY(-2px);box-shadow:0 6px 0 #080612;}
+  .system-card:active{transform:translateY(1px);box-shadow:0 2px 0 #080612;}
+
   /* VOC-101/102: interactive cards */
   .card-btn{transition:transform .12s,box-shadow .12s,background .12s;outline:none;}
   .card-btn:hover:not([aria-disabled="true"]){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.5)!important;}
@@ -806,10 +847,65 @@ const CSS = `
   @media(max-width:420px){
     :root{--fs-xs:11px;--fs-sm:13px;--fs-md:15px;--fs-lg:19px;--fs-xl:27px;}
     .move-btn{font-size:13px!important;padding:11px 10px!important;}
+    .screen-topbar{grid-template-columns:auto auto minmax(0,1fr);gap:8px;}
+    .screen-topbar .nav-chip:last-child{display:none;}
+    .screen-topbar__icon{width:40px;height:40px;}
+    .system-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .system-card{min-height:76px;}
   }
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:#3A2A50;border-radius:2px;}
 `;
+
+const NAV_ICON = { dex:"dex", eggs:"eggs", arena:"arena", revenge:"revenge", ranking:"ranking", shop:"shop", partner:"partner", book:"book" };
+
+function NavIcon({ name }) {
+  const common = { className:"nav-glyph", viewBox:"0 0 24 24", fill:"none", stroke:"currentColor", strokeWidth:1.9, strokeLinecap:"round", strokeLinejoin:"round", "aria-hidden":"true" };
+  if (name === "eggs") return <svg {...common}><path d="M12 3c4 3.2 6.2 7.2 6.2 11.1A6.2 6.2 0 0 1 12 20.3a6.2 6.2 0 0 1-6.2-6.2C5.8 10.2 8 6.2 12 3Z"/><path d="M8.4 14.2c1.1.7 2.2.7 3.3 0 1.1-.7 2.2-.7 3.3 0"/></svg>;
+  if (name === "arena") return <svg {...common}><path d="m14.5 5 4.5 4.5-9.8 9.8-4.5.7.7-4.5L14.5 5Z"/><path d="m13 6.5 4.5 4.5"/><path d="M5 5l4 4"/><path d="M7 3l4 4"/></svg>;
+  if (name === "revenge") return <svg {...common}><path d="M12 3 4.5 6v5.6c0 4.5 3.1 7.8 7.5 9.4 4.4-1.6 7.5-4.9 7.5-9.4V6L12 3Z"/><path d="m9 12 2 2 4-5"/></svg>;
+  if (name === "ranking") return <svg {...common}><path d="M8 4h8v4a4 4 0 0 1-8 0V4Z"/><path d="M8 6H5.5a2 2 0 0 0 0 4H8"/><path d="M16 6h2.5a2 2 0 0 1 0 4H16"/><path d="M12 12v4"/><path d="M8.5 20h7"/><path d="M10 16h4"/></svg>;
+  if (name === "shop") return <svg {...common}><path d="M6.5 9h11l-.8 10H7.3L6.5 9Z"/><path d="M9 9a3 3 0 0 1 6 0"/><path d="M8 13h8"/><path d="M10 16h4"/></svg>;
+  if (name === "partner") return <svg {...common}><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/><path d="M17.5 5.5 20 3"/><path d="M6.5 5.5 4 3"/></svg>;
+  if (name === "book") return <svg {...common}><path d="M5 4.5h7a3 3 0 0 1 3 3V20a3 3 0 0 0-3-3H5V4.5Z"/><path d="M19 4.5h-4a3 3 0 0 0-3 3"/><path d="M19 4.5V17h-4"/></svg>;
+  return <svg {...common}><path d="M5 5.5h6v13H5z"/><path d="M13 5.5h6v13h-6z"/><path d="M8 9h.01"/><path d="M16 9h.01"/><path d="M8 13h.01"/><path d="M16 13h.01"/></svg>;
+}
+
+function ScreenTopBar({ title, subtitle, icon, accent = "#F5C842", onBack, onHome, meta }) {
+  return (
+    <div className="screen-topbar" style={{ "--accent": accent }}>
+      <button className="nav-chip" onClick={onBack} aria-label="뒤로가기">← 뒤로</button>
+      <span className="screen-topbar__icon" aria-hidden="true">{icon ? <NavIcon name={icon} /> : null}</span>
+      <div className="screen-topbar__copy">
+        <div className="screen-topbar__title">{title}</div>
+        {subtitle && <div className="screen-topbar__subtitle">{subtitle}</div>}
+      </div>
+      {meta || <button className="nav-chip" onClick={onHome} aria-label="홈으로">홈</button>}
+    </div>
+  );
+}
+
+function ScreenBottomNav({ onBack, onHome, backLabel = "뒤로", homeLabel = "홈" }) {
+  return (
+    <div className="screen-bottom-nav">
+      <button className="nav-chip" onClick={onBack}>← {backLabel}</button>
+      <button className="nav-chip" onClick={onHome}>{homeLabel}</button>
+    </div>
+  );
+}
+
+function SystemCard({ label, meta, badge, icon, accent, onClick, testId }) {
+  return (
+    <button data-testid={testId} className="system-card" onClick={onClick} style={{ "--accent": accent }}>
+      {badge && <span className="system-card__badge">{badge}</span>}
+      <span className="system-card__icon" aria-hidden="true"><NavIcon name={icon} /></span>
+      <span className="system-card__copy">
+        <span className="system-card__label">{label}</span>
+        <span className="system-card__meta">{meta}</span>
+      </span>
+    </button>
+  );
+}
 
 // HP bar
 function HPBar({cur,max}) {
@@ -1302,15 +1398,7 @@ function LeaderboardScreen({ player, mon, setScreen }) {
       padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2vh,14px)",
       background:"radial-gradient(ellipse at top,#1A1400,#0C0A18)"}}>
       <style>{CSS}</style>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FFD700"}}>🏆 RANKING</div>
-        <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888"}}>
-          {player?.classCode || "CLASS"}
-        </div>
-      </div>
-      <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#6A5888",textAlign:"center",flexShrink:0}}>
-        진화로 완성한 라인이 많을수록 순위가 올라갑니다.
-      </div>
+      <ScreenTopBar title="랭킹" subtitle="완성 라인과 별 개수 기준" icon={NAV_ICON.ranking} accent="#FFD700" onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} meta={<div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-xs)",color:"#FFD700",textAlign:"right"}}>{player?.classCode || "CLASS"}</div>} />
       {lbData===null?(
         <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",
           fontFamily:"var(--f-pk)",color:"#4A3A60",fontSize:"var(--fs-sm)"}}>불러오는 중...</div>
@@ -1350,11 +1438,7 @@ function LeaderboardScreen({ player, mon, setScreen }) {
           })}
         </div>
       )}
-      <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
-        padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-        color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612",flexShrink:0}}>
-        BACK
-      </button>
+      <ScreenBottomNav onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
     </div>
   );
 }
@@ -1434,10 +1518,11 @@ function ArenaScreen({
       return;
     }
     if (battleTickets <= 0) {
-      setToast("배틀 티켓이 부족합니다. 상점에서 구매할 수 있어요.");
+      setToast("배틀 티켓이 부족합니다. 1시간마다 1장씩 회복됩니다.");
       return;
     }
     setBattleTickets((v) => Math.max(0, v - 1));
+    setArenaTicketUpdatedAt(Date.now());
     const oppPower = nextOpponent.power;
     const myHp = 90 + Math.floor(myPower / 8);
     const enemyHp = 90 + Math.floor(oppPower / 8);
@@ -1627,17 +1712,7 @@ function ArenaScreen({
       padding:"clamp(12px,3vw,20px)",gap:12,
       background:"radial-gradient(ellipse at top,#1F1300,#0C0A18)"}}>
       <style>{CSS}</style>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div>
-          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FFB84A"}}>BATTLE ARENA</div>
-          <div style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-xs)",color:"#8A6A44",marginTop:4}}>
-            친구 저장 팀에 도전해서 배틀왕 점수를 올리세요.
-          </div>
-        </div>
-        <div style={{textAlign:"right",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#F5C842"}}>
-          티켓 {battleTickets}<br/>R {arenaRating}
-        </div>
-      </div>
+      <ScreenTopBar title="아레나" subtitle="1시간마다 티켓 1장 회복" icon={NAV_ICON.arena} accent="#FFB84A" onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} meta={<div style={{textAlign:"right",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#F5C842"}}>티켓 {battleTickets}/{ARENA_MAX_TICKETS}<br/>R {arenaRating}</div>} />
 
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8}}>
         {[
@@ -1685,11 +1760,7 @@ function ArenaScreen({
         </div>
       )}
 
-      <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
-        padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-        color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
-        BACK
-      </button>
+      <ScreenBottomNav onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
     </div>
   );
 }
@@ -1938,6 +2009,7 @@ export default function VocabMon() {
   const [monExp,  setMonExp]  = useState(0);
   const [coins,   setCoins]   = useState(120);
   const [battleTickets, setBattleTickets] = useState(3);
+  const [arenaTicketUpdatedAt, setArenaTicketUpdatedAt] = useState(Date.now());
   const [arenaWins, setArenaWins] = useState(0);
   const [arenaRating, setArenaRating] = useState(1000);
   const [battleBoost, setBattleBoost] = useState(0);
@@ -2081,6 +2153,17 @@ export default function VocabMon() {
     }, 1000);
     return () => clearInterval(timer);
   }, [hatcherySlots]);
+
+  useEffect(() => {
+    const applyRecovery = () => {
+      const recovered = recoverArenaTickets(battleTickets, arenaTicketUpdatedAt);
+      if (recovered.tickets !== battleTickets) setBattleTickets(recovered.tickets);
+      if (recovered.updatedAt !== arenaTicketUpdatedAt) setArenaTicketUpdatedAt(recovered.updatedAt);
+    };
+    applyRecovery();
+    const timer = setInterval(applyRecovery, 60 * 1000);
+    return () => clearInterval(timer);
+  }, [battleTickets, arenaTicketUpdatedAt]);
 
   const addEggToInventory = useCallback((rarity, lineId, source = "reward") => {
     setEggInventory((prev) => [...prev, createEgg(rarity, lineId, source)]);
@@ -2252,7 +2335,11 @@ export default function VocabMon() {
         setUnitStars(migrated);
       }
       if (saved.coins)        setCoins(saved.coins);
-      if (saved.battleTickets !== undefined) setBattleTickets(saved.battleTickets);
+      if (saved.battleTickets !== undefined) {
+        const recovered = recoverArenaTickets(saved.battleTickets, saved.arenaTicketUpdatedAt || Date.now());
+        setBattleTickets(recovered.tickets);
+        setArenaTicketUpdatedAt(recovered.updatedAt);
+      }
       if (saved.arenaWins !== undefined) setArenaWins(saved.arenaWins);
       if (saved.arenaRating !== undefined) setArenaRating(saved.arenaRating);
       if (saved.battleBoost !== undefined) setBattleBoost(saved.battleBoost);
@@ -2300,6 +2387,8 @@ export default function VocabMon() {
       }
       setLoginDays(d => restoredLoginDays + 1);
       setLastLogin(today);
+      setBattleTickets((v) => Math.max(v, ARENA_DAILY_FLOOR));
+      setArenaTicketUpdatedAt(Date.now());
     }
     setStreak(newStreak);
 
@@ -2343,7 +2432,7 @@ export default function VocabMon() {
   // 자동 저장: 필요한 상태 스냅샷으로 Supabase에 저장
   const progressSnapshot = useMemo(() => ({
     unitStars, monLv, monExp, coins,
-    battleTickets, arenaWins, arenaRating, battleBoost,
+    battleTickets, arenaTicketUpdatedAt, arenaWins, arenaRating, battleBoost,
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons,
@@ -2355,7 +2444,7 @@ export default function VocabMon() {
     dailyMissions, dailyEggDate, streakShields,
     dailyMissionDate: new Date().toDateString(),
   }), [
-    unitStars, monLv, monExp, coins, battleTickets, arenaWins, arenaRating, battleBoost,
+    unitStars, monLv, monExp, coins, battleTickets, arenaTicketUpdatedAt, arenaWins, arenaRating, battleBoost,
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons, pendingEggs, monsterCollection, eggInventory, hatcherySlots,
@@ -2910,13 +2999,7 @@ export default function VocabMon() {
       }}>
         <style>{CSS}</style>
 
-        {/* Header */}
-        <div style={{textAlign:"center",flexShrink:0}}>
-          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>📘 교재 선택</div>
-          <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888",marginTop:4}}>
-            공부할 교재를 고르세요
-          </div>
-        </div>
+        <ScreenTopBar title="교재 선택" subtitle="공부할 교재를 고르세요" icon={NAV_ICON.book} accent="#44CC77" onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
 
         {/* Series tab bar */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:6,flexShrink:0}}>
@@ -2996,11 +3079,7 @@ export default function VocabMon() {
           })}
         </div>
 
-        <button data-testid="bookselect-back-button" className="big-btn" onClick={()=>setScreen(mon?"world":"title")}
-          style={{padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-            color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612",flexShrink:0}}>
-          BACK
-        </button>
+        <ScreenBottomNav onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
       </div>
     );
   }
@@ -3155,7 +3234,7 @@ export default function VocabMon() {
               </div>
             </div>
             <div style={{textAlign:"right",flexShrink:0}}>
-              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842"}}>BP {battlePower}</div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842"}}>BP {battlePower}</div>
               <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-xs)",color:"#8C7AAE",marginTop:4}}>
                 보상 {storyChapter.reward}
               </div>
@@ -3166,7 +3245,7 @@ export default function VocabMon() {
             border:"none",borderRadius:10,padding:"10px 12px",fontFamily:"var(--f-ui)",fontWeight:900,
             fontSize:"var(--fs-sm)",cursor:"pointer",boxShadow:"0 4px 0 #3A1200",
           }}>
-            친구 아레나 입장 · 티켓 {battleTickets}
+            친구 아레나 입장 · 티켓 {battleTickets}/{ARENA_MAX_TICKETS}
           </button>
         </div>
 
@@ -3279,21 +3358,21 @@ export default function VocabMon() {
           </div>
         )}
 
-        {/* 하단 버튼 그리드 */}
-        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8,flexShrink:0}}>
+        {/* 하단 시스템 그리드 */}
+        <div className="system-grid">
           {[
-            {l:"도감", fn:()=>setScreen("collection"), bg:"linear-gradient(135deg,#2A1880,#4A2AAA)"},
-            {l:`🥚 알${readyEggCount>0?" !":""}`, fn:()=>setScreen("eggs"), bg:readyEggCount>0?"linear-gradient(135deg,#5A1CA8,#8E4BFF)":"#16122A"},
-            {l:`아레나 ${battleTickets}`, fn:()=>setScreen("arena"), bg:"linear-gradient(135deg,#7A2E0A,#C05A16)"},
-            {l:`복수${wrongWords.length>0?" !":""}`, fn:()=>setScreen("revenge"), bg:wrongWords.length>0?"linear-gradient(135deg,#3A0800,#660A00)":"#16122A"},
-            {l:"랭킹", fn:()=>setScreen("leaderboard"), bg:"linear-gradient(135deg,#1A1400,#2A2200)"},
-            {l:`상점 ${caughtMons.length>0?coins+"G":"--"}`, fn:()=>setScreen("shop"), bg:"linear-gradient(135deg,#0A2A1A,#0A4A2A)"},
-            {l:"파트너", fn:()=>setScreen("select"), bg:"#16122A"},
-            {l:"교재", fn:()=>setScreen("bookselect"), bg:"#16122A"},
+            {l:"도감", meta:`${dexProgress.completedLines}/${dexProgress.totalLines} 완성`, icon:NAV_ICON.dex, accent:"#C77DFF", fn:()=>setScreen("collection")},
+            {l:"알", meta:`대기 ${pendingEggs.length} · 완료 ${readyEggCount}`, badge:readyEggCount>0?"READY":"", icon:NAV_ICON.eggs, accent:"#FF8844", fn:()=>setScreen("eggs")},
+            {l:"아레나", meta:`티켓 ${battleTickets}/${ARENA_MAX_TICKETS}`, icon:NAV_ICON.arena, accent:"#FFB84A", fn:()=>setScreen("arena")},
+            {l:"복수", meta:`오답 ${wrongWords.length}`, badge:wrongWords.length>0?"GO":"", icon:NAV_ICON.revenge, accent:"#FF6644", fn:()=>setScreen("revenge")},
+            {l:"랭킹", meta:`반 ${player?.classCode || ""}`, icon:NAV_ICON.ranking, accent:"#FFD700", fn:()=>setScreen("leaderboard")},
+            {l:"상점", meta:`${caughtMons.length>0?coins+"G":"코인 없음"}`, icon:NAV_ICON.shop, accent:"#44FF88", fn:()=>setScreen("shop")},
+            {l:"파트너", meta:mon?.name || "선택", icon:NAV_ICON.partner, accent:"#78E6FF", fn:()=>setScreen("select")},
+            {l:"교재", meta:BOOK_SERIES.find(b=>b.id===(curBook||"ww5"))?.subtitle || "선택", icon:NAV_ICON.book, accent:"#44CC77", fn:()=>setScreen("bookselect")},
           ].map((b,i)=>(
-            <button
+            <SystemCard
               key={i}
-              data-testid={
+              testId={
                 b.l.includes("도감") ? "nav-collection" :
                 b.l.includes("알") ? "nav-eggs" :
                 b.l.includes("아레나") ? "nav-arena" :
@@ -3302,11 +3381,13 @@ export default function VocabMon() {
                 b.l.includes("교재") ? "nav-bookselect" :
                 undefined
               }
-              className="big-btn" onClick={b.fn}
-              style={{padding:"clamp(9px,2.2vmin,12px) 4px",fontSize:"clamp(11px,3vw,13px)",
-                color:"#E0D8FF",background:b.bg,boxShadow:"0 3px 0 #080612"}}>
-              {b.l}
-            </button>
+              label={b.l}
+              meta={b.meta}
+              badge={b.badge}
+              icon={b.icon}
+              accent={b.accent}
+              onClick={b.fn}
+            />
           ))}
         </div>
       </div>
@@ -3327,15 +3408,10 @@ export default function VocabMon() {
     return (
       <div data-testid="select-screen" className="crt page slide-up" style={{
         alignItems:"center",padding:"clamp(10px,2.5vw,18px)",gap:"clamp(8px,2vh,14px)",
-        background:"radial-gradient(ellipse at 50% -10%,#1A0E2E,#0C0A18)"
+      background:"radial-gradient(ellipse at 50% -10%,#1A0E2E,#0C0A18)"
       }}>
         <style>{CSS}</style>
-        <div style={{textAlign:"center",flexShrink:0}}>
-          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>PARTNER SELECT</div>
-          <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",color:"#6A5888",marginTop:4}}>
-            {ownedPartners.length > 0 ? "보유한 몬스터 중 대표 파트너를 고르세요." : "아직 보유 몬스터가 없습니다. 첫 라인을 선택하세요."}
-          </div>
-        </div>
+        <ScreenTopBar title="파트너 선택" subtitle={ownedPartners.length > 0 ? "대표 몬스터를 고르세요" : "첫 라인을 선택하세요"} icon={NAV_ICON.partner} accent="#78E6FF" onBack={()=>setScreen("title")} onHome={()=>setScreen("title")} />
 
         <div style={{width:"100%",maxWidth:540,flex:1,display:"flex",flexDirection:"column",gap:"clamp(8px,2vh,12px)",justifyContent:"flex-start",overflowY:"auto"}}>
           {ownedPartners.length > 0 ? (
@@ -3468,12 +3544,8 @@ export default function VocabMon() {
           </div>
         </div>
 
-        <div style={{display:"flex",gap:8,flexShrink:0,width:"100%",maxWidth:520}}>
-          <button className="big-btn" onClick={()=>setScreen("title")}
-            style={{flex:1,padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-              color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
-            BACK
-          </button>
+        <div style={{width:"100%",maxWidth:520,flexShrink:0}}>
+          <ScreenBottomNav onBack={()=>setScreen("title")} onHome={()=>setScreen("title")} />
         </div>
       </div>
     );
@@ -4304,19 +4376,11 @@ export default function VocabMon() {
         <style>{CSS}</style>
         {toastEl}
 
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <div>
-            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#D6B2FF"}}>EGG HATCHERY</div>
-            <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#7F70A0",marginTop:4}}>
-              알을 부화기에 올리고 시간이 끝나면 직접 깨서 몬스터를 획득합니다.
-            </div>
-          </div>
-          <div style={{textAlign:"right",fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#A996D8"}}>
+        <ScreenTopBar title="알 부화실" subtitle="부화기에 올리고 깨서 몬스터를 획득" icon={NAV_ICON.eggs} accent="#C77DFF" onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} meta={<div style={{textAlign:"right",fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",fontWeight:900,color:"#D6B2FF"}}>
             <div data-testid="eggs-inventory-count">인벤토리 {pendingEggs.length}</div>
             <div data-testid="eggs-running-summary">부화중 {runningEggCount}</div>
             <div data-testid="eggs-ready-summary">수령대기 {readyEggCount}</div>
-          </div>
-        </div>
+          </div>} />
 
         <div style={{display:"grid",gridTemplateColumns:"1fr",gap:10,flexShrink:0}}>
           {hatcherySlots.map((slot) => {
@@ -4442,18 +4506,7 @@ export default function VocabMon() {
           )}
         </div>
 
-        <div style={{display:"flex",gap:8,flexShrink:0}}>
-          <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
-            flex:1,padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-            color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
-            BACK
-          </button>
-          <button data-testid="eggs-home-button" className="big-btn" onClick={()=>setScreen("title")} style={{
-            flex:1,padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-            color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
-            홈으로
-          </button>
-        </div>
+        <ScreenBottomNav onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
       </div>
     );
   }
@@ -4464,10 +4517,10 @@ export default function VocabMon() {
     const nextHatchSlot = getNextLockedSlot(hatcherySlots);
     const nextHatchSlotMeta = nextHatchSlot ? getSlotMeta(nextHatchSlot.slotId) : null;
     const ITEMS = [
-      { id:"egg_common",   emoji:"🥚", name:"일반 알",      desc:"8분 · Common 라인 중심",        price:getEggRarityMeta("common").shopPrice, rarity:"common" },
-      { id:"egg_rare",     emoji:"🥚", name:"레어 알",      desc:"30분 · Rare 이상 확률 증가",     price:getEggRarityMeta("rare").shopPrice, rarity:"rare" },
-      { id:"egg_sr",       emoji:"🌙", name:"슈퍼레어 알",  desc:"2시간 · Shadow/Dragon 계열",     price:getEggRarityMeta("superrare").shopPrice, rarity:"superrare" },
-      { id:"egg_legend",   emoji:"✨", name:"레전드 알",    desc:"6시간 · 최상위 도감 라인",       price:getEggRarityMeta("legendary").shopPrice, rarity:"legendary" },
+      { id:"egg_common",   emoji:"🥚", name:"일반 알",      desc:"5분 · Common 라인 중심",        price:getEggRarityMeta("common").shopPrice, rarity:"common" },
+      { id:"egg_rare",     emoji:"🥚", name:"레어 알",      desc:"20분 · Rare 이상 확률 증가",     price:getEggRarityMeta("rare").shopPrice, rarity:"rare" },
+      { id:"egg_sr",       emoji:"🌙", name:"슈퍼레어 알",  desc:"90분 · Shadow/Dragon 계열",     price:getEggRarityMeta("superrare").shopPrice, rarity:"superrare" },
+      { id:"egg_legend",   emoji:"✨", name:"레전드 알",    desc:"4시간 · 최상위 도감 라인",       price:getEggRarityMeta("legendary").shopPrice, rarity:"legendary" },
       { id:"hatch_boost",  emoji:"⚡", name:"시간 가속기",  desc:"진행 중인 첫 알의 시간을 30분 단축", price:120, action:"boost_hatch" },
       { id:"hatch_slot",   emoji:"🔓", name:nextHatchSlotMeta ? `${nextHatchSlotMeta.label} 라이선스` : "부화기 슬롯", desc:nextHatchSlotMeta ? nextHatchSlotMeta.desc : "모든 부화기 해금 완료", price:nextHatchSlotMeta?.unlockPrice ?? 9999, action:"slot" },
       { id:"level_candy",  emoji:"🍬", name:"경험 사탕",    desc:"현재 파트너 EXP +120",          price:160, action:"level_candy" },
@@ -4499,8 +4552,9 @@ export default function VocabMon() {
         setStreakShields(s => s + 1);
         setToast("스트릭 실드 +1! 하루 실수 1회를 막아줍니다.");
       } else if (item.action === "ticket") {
-        setBattleTickets(t => t + 3);
-        setToast("배틀 티켓 +3! 친구 아레나에서 도전하세요.");
+        setBattleTickets(t => Math.min(ARENA_MAX_TICKETS, t + 3));
+        setArenaTicketUpdatedAt(Date.now());
+        setToast(`배틀 티켓 +3! 최대 ${ARENA_MAX_TICKETS}장까지 보유합니다.`);
       } else if (item.action === "boost") {
         setBattleBoost(v => v + 35);
         setToast("훈련 밴드 장착! 아레나 전투력이 올랐습니다.");
@@ -4520,14 +4574,7 @@ export default function VocabMon() {
         background:"radial-gradient(ellipse at top,#001A0A,#0C0A18)"}}>
         <style>{CSS}</style>
         {toastEl}
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#44FF88"}}>🛒 SHOP</div>
-          <div style={{background:"#1A2A1A",borderRadius:20,padding:"6px 14px",
-            border:"1px solid #226633",display:"flex",alignItems:"center",gap:6}}>
-            <span style={{fontSize:16}}>💰</span>
-            <span style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:"#F5C842",fontWeight:800}}>{coins}G</span>
-          </div>
-        </div>
+        <ScreenTopBar title="상점" subtitle="알, 부스터, 성장 아이템" icon={NAV_ICON.shop} accent="#44FF88" onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} meta={<div style={{background:"#1A2A1A",borderRadius:10,padding:"7px 10px",border:"1px solid #226633",fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#F5C842"}}>{coins}G</div>} />
 
         {/* 스트릭 실드 */}
         {streakShields > 0 && (
@@ -4573,18 +4620,7 @@ export default function VocabMon() {
           })}
         </div>
 
-        <div style={{display:"flex",gap:8,flexShrink:0}}>
-          <button data-testid="shop-home-button" className="big-btn" onClick={()=>setScreen(mon?"world":"title")} style={{
-            flex:1,padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-            color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
-            BACK
-          </button>
-          <button className="big-btn" onClick={()=>setScreen("title")} style={{
-            flex:1,padding:"clamp(10px,2.2vmin,13px)",fontSize:"var(--fs-sm)",
-            color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612"}}>
-            홈으로
-          </button>
-        </div>
+        <ScreenBottomNav onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
       </div>
     );
   }
@@ -4638,22 +4674,14 @@ export default function VocabMon() {
         background:"radial-gradient(ellipse at top,#1A0A2E,#0C0A18)"}}>
         <style>{CSS}</style>
 
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <div>
-            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>MONSTER DEX</div>
-                <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#8C7AAE",marginTop:4}}>
-              진화로 최종 완성한 라인 기준 진행률
-            </div>
-          </div>
-          <div style={{textAlign:"right"}}>
+        <ScreenTopBar title="몬스터 도감" subtitle="최종 진화 라인 기준 진행률" icon={NAV_ICON.dex} accent="#F5C842" onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} meta={<div style={{textAlign:"right"}}>
             <div data-testid="dex-progress-completed-lines" style={{fontFamily:"var(--f-ui)",fontWeight:800,fontSize:"var(--fs-sm)",color:"#F5C842"}}>
               {dexProgress.completedLines}/{dexProgress.totalLines}
             </div>
             <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#8C7AAE",marginTop:4}}>
               발견 {dexProgress.ownedMonsters}/{dexProgress.totalMonsters}
             </div>
-          </div>
-        </div>
+          </div>} />
 
         <div style={{background:"#16122A",borderRadius:12,padding:12,border:"1px solid #7B2FBE44",flexShrink:0}}>
           <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#C77DFF",marginBottom:10}}>수집 몬스터</div>
@@ -4798,11 +4826,7 @@ export default function VocabMon() {
           </div>
         </div>
 
-        <button data-testid="collection-back-button" className="big-btn" onClick={()=>setScreen(mon?"world":"title")}
-          style={{padding:"clamp(10px,2.2vmin,14px)",fontSize:"var(--fs-sm)",
-            color:"#8878AA",background:"#1C182E",boxShadow:"0 4px 0 #080612",marginBottom:8}}>
-          BACK
-        </button>
+        <ScreenBottomNav onBack={()=>setScreen(mon?"world":"title")} onHome={()=>setScreen("title")} />
       </div>
     );
   }
