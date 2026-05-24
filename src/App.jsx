@@ -3,6 +3,7 @@ import LoginScreen from "./LoginScreen.jsx";
 import TeacherDashboard from "./TeacherDashboard.jsx";
 import { loadProgress, saveProgress, supabase } from "./supabase.js";
 import { CATCH_MON_LINES, EGG_DROP, PARTNER_UNLOCK_STARS, getCatchLineById, getCatchStage, rollEggRarity, rollMonsterFromLine } from "./catchMons.jsx";
+import { getMonsterAsset } from "./monsterAssets.js";
 import { startBGM, stopBGM, sfxCorrect, sfxWrong, sfxHitEnemy, sfxHitPlayer, sfxVictory, sfxDefeat, sfxBattleStart, sfxHatch, sfxEvolveStart, sfxEvolveDone, setMuted, isMuted } from "./audio.js";
 import { BOOK_SERIES, getUnitInfo, getWordsForUnit, getSubStages } from "./wordData.js";
 import {
@@ -3589,6 +3590,7 @@ export default function VocabMon() {
             </div>
             {CATCH_MON_LINES.map((line) => {
               const starter = line.stages[0];
+              const starterAsset = getMonsterAsset(starter.id);
               const locked = !unlockLine(line.lineId);
               const needStars = MON_UNLOCK_STARS[line.lineId];
               return (
@@ -3614,12 +3616,23 @@ export default function VocabMon() {
                     cursor:locked ? "not-allowed" : "pointer",opacity:locked ? .4 : 1,
                     display:"flex",alignItems:"center",gap:"clamp(12px,3vw,18px)"
                   }}>
-                  <div style={{display:"flex",alignItems:"flex-end",gap:0,flexShrink:0,minWidth:"clamp(108px,32vw,160px)"}}>
-                    {line.stages.map((st, si)=>(
-                      <div key={si} style={{opacity:locked ? .35 : .52+si*.22,marginLeft:si===0?0:-18,animation:`floatBob ${2.2+si*.4}s ease-in-out infinite`}}>
-                        <st.Sprite w={Math.min(60+si*18,Math.max(42+si*12,Math.floor(window.innerWidth*(0.11+si*.03))))}/>
-                      </div>
-                    ))}
+                  <div style={{
+                    flexShrink:0,width:"clamp(82px,25vw,118px)",height:"clamp(82px,25vw,118px)",
+                    borderRadius:16,display:"grid",placeItems:"center",
+                    background:`radial-gradient(circle at 50% 20%,${starter.glow}33,rgba(255,255,255,.04) 58%)`,
+                    border:`1px solid ${starter.color}44`,
+                    overflow:"hidden"
+                  }}>
+                    {starterAsset ? (
+                      <img src={starterAsset.artUrl} alt="" style={{
+                        width:"86%",height:"86%",objectFit:"contain",
+                        filter:`drop-shadow(0 12px 16px rgba(0,0,0,.42)) drop-shadow(0 0 14px ${starter.glow}66)`,
+                        opacity:locked ? .32 : 1,
+                        animation:locked ? "none" : "floatBob 2.4s ease-in-out infinite"
+                      }}/>
+                    ) : (
+                      <starter.Sprite w={Math.min(78,Math.max(58,Math.floor(window.innerWidth*.18)))}/>
+                    )}
                   </div>
                   <div style={{flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
