@@ -820,6 +820,27 @@ const CSS = `
   .system-card:hover{transform:translateY(-2px);box-shadow:0 6px 0 #080612;}
   .system-card:active{transform:translateY(1px);box-shadow:0 2px 0 #080612;}
 
+  .launch-panel{position:relative;display:grid;grid-template-columns:1.1fr .9fr;gap:10px;padding:12px;border-radius:16px;background:linear-gradient(135deg,#151128,#231633);border:1px solid #4B3672;box-shadow:0 8px 24px rgba(0,0,0,.32);overflow:hidden;flex-shrink:0;}
+  .launch-panel::before{content:"";position:absolute;inset:auto -10% -65% 18%;height:180px;background:radial-gradient(circle,rgba(245,200,66,.22),transparent 64%);pointer-events:none;}
+  .launch-copy{position:relative;z-index:1;min-width:0;}
+  .launch-eyebrow{font-family:var(--f-pk);font-size:clamp(7px,1.6vmin,9px);color:#78E6FF;margin-bottom:8px;}
+  .launch-title{font-family:var(--f-ui);font-weight:1000;font-size:clamp(18px,4.6vmin,28px);line-height:1.08;color:#FFF4C4;}
+  .launch-sub{margin-top:6px;font-family:var(--f-ui);font-weight:900;font-size:var(--fs-xs);line-height:1.45;color:#AFA2CE;}
+  .launch-stats{position:relative;z-index:1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;}
+  .launch-stat{border-radius:12px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);padding:9px;}
+  .launch-stat b{display:block;font-family:var(--f-pk);font-size:clamp(11px,2.8vmin,14px);color:#F5C842;line-height:1.2;}
+  .launch-stat span{display:block;margin-top:5px;font-family:var(--f-ui);font-size:var(--fs-xs);font-weight:900;color:#8C7AAE;line-height:1.2;}
+
+  .questline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex-shrink:0;}
+  .quest-card{position:relative;display:block;border:none;border-radius:14px;padding:11px;background:linear-gradient(135deg,#12101E,#1D1730);border:1px solid color-mix(in srgb,var(--accent,#F5C842) 30%,#2A2440);box-shadow:0 4px 0 #080612;cursor:pointer;text-align:left;overflow:hidden;min-height:112px;}
+  .quest-card::before{content:"";position:absolute;right:-28px;top:-34px;width:92px;height:92px;border-radius:50%;background:var(--accent,#F5C842);opacity:.13;filter:blur(2px);}
+  .quest-card__top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+  .quest-card__icon{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.08);}
+  .quest-card__step{font-family:var(--f-pk);font-size:clamp(7px,1.6vmin,9px);color:var(--accent,#F5C842);}
+  .quest-card__title{position:relative;display:block;margin-top:9px;font-family:var(--f-ui);font-weight:1000;font-size:clamp(13px,3.1vmin,16px);color:#F4EEFF;line-height:1.1;}
+  .quest-card__meta{position:relative;display:block;margin-top:4px;font-family:var(--f-ui);font-weight:900;font-size:var(--fs-xs);color:#9B8EBE;line-height:1.25;}
+  .quest-card__cta{position:relative;display:block;margin-top:10px;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:var(--accent,#F5C842);}
+
   /* VOC-101/102: interactive cards */
   .card-btn{transition:transform .12s,box-shadow .12s,background .12s;outline:none;}
   .card-btn:hover:not([aria-disabled="true"]){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.5)!important;}
@@ -852,6 +873,10 @@ const CSS = `
     .screen-topbar__icon{width:40px;height:40px;}
     .system-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
     .system-card{min-height:76px;}
+    .launch-panel{grid-template-columns:1fr;}
+    .launch-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .questline{grid-template-columns:1fr;}
+    .quest-card{min-height:94px;}
   }
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:#3A2A50;border-radius:2px;}
@@ -907,6 +932,20 @@ function SystemCard({ label, meta, badge, icon, accent, onClick, testId }) {
   );
 }
 
+function QuestCard({ step, title, meta, cta, icon, accent, onClick }) {
+  return (
+    <button className="quest-card" onClick={onClick} style={{ "--accent": accent }}>
+      <span className="quest-card__top">
+        <span className="quest-card__icon" aria-hidden="true"><NavIcon name={icon} /></span>
+        <span className="quest-card__step">{step}</span>
+      </span>
+      <span className="quest-card__title">{title}</span>
+      <span className="quest-card__meta">{meta}</span>
+      <span className="quest-card__cta">{cta}</span>
+    </button>
+  );
+}
+
 // HP bar
 function HPBar({cur,max}) {
   const pct=Math.max(0,(cur/max)*100);
@@ -926,10 +965,10 @@ function HPBar({cur,max}) {
 // ─────────────────────────────────────────────────────────────────
 //  TUTORIAL OVERLAY
 const TUTORIAL_STEPS = [
-  { emoji:"📚", title:"VOCA MON에 오신 걸 환영해요!", body:"영어 단어를 맞히면서 몬스터를 모으는 게임입니다.\n플레이할수록 더 강하고 멋진 몬스터를 만날 수 있어요." },
-  { emoji:"🥚", title:"알이 항상 기다리고 있어요", body:"교재를 선택하고 전투를 진행하면 알을 얻을 수 있습니다.\n알을 부화기에 올리고 직접 깨서 몬스터를 획득하세요." },
-  { emoji:"⚔️", title:"틀린 단어도 복수하세요!", body:"틀린 단어는 Revenge Land에 쌓입니다.\n복습 전투에서 다시 맞히면 추가 보상까지 챙길 수 있어요." },
-  { emoji:"🏆", title:"진화와 도감 완성을 노리세요", body:"몬스터를 키우고 진화시키면 도감이 완성됩니다.\n오늘 한 판만 더 해도 확실히 성장합니다!", last:true },
+  { emoji:"📚", title:"첫 목표는 한 유닛 클리어", body:"단어를 맞히고 전투를 끝내면 보상과 성장 재료를 얻습니다.\n짧게 한 판만 해도 진행률이 남아요." },
+  { emoji:"🥚", title:"보상은 알과 몬스터로 이어집니다", body:"받은 알은 부화기에 올리세요.\n부화 시간이 끝나면 새 몬스터나 진화 재료를 얻습니다." },
+  { emoji:"⚔️", title:"틀린 단어는 복수 노트로", body:"실수한 단어는 사라지지 않고 복습 전투로 돌아옵니다.\n맞히면 코인과 경험치를 다시 챙길 수 있어요." },
+  { emoji:"🏆", title:"오늘의 루프만 따라가면 됩니다", body:"학습하기, 알 확인하기, 도감 보기.\n타이틀의 세 카드가 매일 다음 행동을 알려줍니다.", last:true },
 ];
 
 function TutorialOverlay({ step, onNext, onSkip }) {
@@ -3177,6 +3216,40 @@ export default function VocabMon() {
       setToast("무료 알을 받았습니다. 알 탭에서 부화를 시작하세요.");
     }
 
+    const activeBook = BOOK_SERIES.find(b=>b.id===(curBook||"ww5"));
+    const primaryCta = readyEggCount > 0
+      ? { label:"부화 완료 알 확인", fn:()=>setScreen("eggs") }
+      : { label:(lineId && totalStars > 0) ? "학습 계속하기" : "게임 시작", fn:()=>setScreen(mon?"world":"bookselect") };
+    const focusCards = [
+      {
+        step:"01",
+        title:"오늘의 학습",
+        meta:allMissionsDone ? "미션 완료 · 추가 학습 가능" : `미션 ${doneMissions}/${dailyMissions.length || 3} · ${activeBook?.subtitle || "교재 선택"}`,
+        cta:mon ? "월드로 이동" : "교재 고르기",
+        icon:NAV_ICON.book,
+        accent:"#44CC77",
+        fn:()=>setScreen(mon?"world":"bookselect"),
+      },
+      {
+        step:"02",
+        title:readyEggCount > 0 ? "부화 완료" : "알 관리",
+        meta:readyEggCount > 0 ? `${readyEggCount}개 수령 대기` : runningEggCount > 0 ? `${runningEggCount}개 부화 중` : hasFreeEgg ? "오늘의 무료 알 가능" : `보관 ${pendingEggs.length}개`,
+        cta:readyEggCount > 0 ? "지금 깨기" : "부화실 열기",
+        icon:NAV_ICON.eggs,
+        accent:"#FF8844",
+        fn:()=>setScreen("eggs"),
+      },
+      {
+        step:"03",
+        title:"수집 목표",
+        meta:`도감 ${dexProgress.completedLines}/${dexProgress.totalLines} 라인 · 발견 ${dexProgress.ownedMonsters}/${dexProgress.totalMonsters}`,
+        cta:"도감 보기",
+        icon:NAV_ICON.dex,
+        accent:"#C77DFF",
+        fn:()=>setScreen("collection"),
+      },
+    ];
+
     return (
       <div data-testid="title-screen" className="crt page-y slide-up" style={{
         padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.2vh,14px)",
@@ -3214,13 +3287,44 @@ export default function VocabMon() {
           </div>
         </div>
 
+        <div className="launch-panel">
+          <div className="launch-copy">
+            <div className="launch-eyebrow">TODAY ROUTE</div>
+            <div className="launch-title">{readyEggCount > 0 ? "보상이 기다리고 있어요" : "한 판만 해도 성장합니다"}</div>
+            <div className="launch-sub">
+              학습, 보상, 수집이 한 흐름으로 이어집니다. 아래 카드 순서대로 진행하면 오늘 할 일이 끝납니다.
+            </div>
+          </div>
+          <div className="launch-stats">
+            <div className="launch-stat"><b>{streak}</b><span>연속 출석</span></div>
+            <div className="launch-stat"><b>{doneMissions}/{dailyMissions.length || 3}</b><span>오늘 미션</span></div>
+            <div className="launch-stat"><b>{readyEggCount}</b><span>수령 대기</span></div>
+            <div className="launch-stat"><b>{dexProgress.completedLines}</b><span>완성 라인</span></div>
+          </div>
+        </div>
+
         {/* 시작 버튼 */}
-        <button data-testid="title-start-button" className="big-btn" onClick={()=>setScreen(mon?"world":"bookselect")}
+        <button data-testid="title-start-button" className="big-btn" onClick={primaryCta.fn}
           style={{padding:"clamp(13px,3vmin,18px)",fontSize:"clamp(15px,4vmin,18px)",
             color:"#fff",background:"linear-gradient(135deg,#3C7020,#5AA030)",
             boxShadow:"0 5px 0 #1E3A10",flexShrink:0,letterSpacing:1}}>
-          {(lineId && totalStars > 0) ? "이어서 플레이" : "게임 시작"}
+          {primaryCta.label}
         </button>
+
+        <div className="questline">
+          {focusCards.map(card=>(
+            <QuestCard
+              key={card.step}
+              step={card.step}
+              title={card.title}
+              meta={card.meta}
+              cta={card.cta}
+              icon={card.icon}
+              accent={card.accent}
+              onClick={card.fn}
+            />
+          ))}
+        </div>
 
         <div style={{background:"linear-gradient(135deg,#1A1024,#241330)",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
           border:"2px solid #7B4A2A88",flexShrink:0}}>
