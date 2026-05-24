@@ -832,7 +832,7 @@ const CSS = `
   .launch-stat b{display:block;font-family:var(--f-pk);font-size:clamp(11px,2.8vmin,14px);color:#F5C842;line-height:1.2;}
   .launch-stat span{display:block;margin-top:5px;font-family:var(--f-ui);font-size:var(--fs-xs);font-weight:900;color:#8C7AAE;line-height:1.2;}
 
-  .questline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;flex-shrink:0;}
+  .questline{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;flex-shrink:0;}
   .quest-card{position:relative;display:block;border:none;border-radius:14px;padding:11px;background:linear-gradient(135deg,#12101E,#1D1730);border:1px solid color-mix(in srgb,var(--accent,#F5C842) 30%,#2A2440);box-shadow:0 4px 0 #080612;cursor:pointer;text-align:left;overflow:hidden;min-height:112px;}
   .quest-card::before{content:"";position:absolute;right:-28px;top:-34px;width:92px;height:92px;border-radius:50%;background:var(--accent,#F5C842);opacity:.13;filter:blur(2px);}
   .quest-card__top{position:relative;display:flex;align-items:center;justify-content:space-between;gap:8px;}
@@ -1020,7 +1020,7 @@ function HPBar({cur,max}) {
 const TUTORIAL_STEPS = [
   { emoji:"📚", title:"첫 목표는 한 유닛 클리어", body:"단어를 맞히고 전투를 끝내면 보상과 성장 재료를 얻습니다.\n짧게 한 판만 해도 진행률이 남아요." },
   { emoji:"🥚", title:"보상은 알과 몬스터로 이어집니다", body:"받은 알은 부화기에 올리세요.\n부화 시간이 끝나면 새 몬스터나 진화 재료를 얻습니다." },
-  { emoji:"⚔️", title:"틀린 단어는 복수 노트로", body:"실수한 단어는 사라지지 않고 복습 전투로 돌아옵니다.\n맞히면 코인과 경험치를 다시 챙길 수 있어요." },
+  { emoji:"🧠", title:"틀린 단어는 복습 노트로", body:"실수한 단어는 사라지지 않고 복습 전투로 돌아옵니다.\n맞히면 코인과 경험치를 다시 챙길 수 있어요." },
   { emoji:"🏆", title:"오늘의 루프만 따라가면 됩니다", body:"학습하기, 알 확인하기, 도감 보기.\n타이틀의 세 카드가 매일 다음 행동을 알려줍니다.", last:true },
 ];
 
@@ -1701,7 +1701,7 @@ function ArenaScreen({
       finished: true,
       log: [
         ...finalBattle.log.slice(-4),
-        didWin ? "아레나 승리! 친구에게 복수 알림을 남겼습니다." : "패배. 팀 세팅과 단어를 더 준비하세요.",
+        didWin ? "아레나 승리! 친구에게 도전 알림을 남겼습니다." : "패배. 팀 세팅과 단어를 더 준비하세요.",
       ],
     });
     if (didWin) {
@@ -1859,8 +1859,9 @@ function ArenaScreen({
 
 // ─────────────────────────────────────────────────────────────────
 //  REVENGE LAND SCREEN (위치 고정 — Rules of Hooks)
-function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, setMonExp,
-  coins, setCoins, pendingEggs, setPendingEggs, addEggToInventory, dailyMissions, setDailyMissions, setScreen, setToast }) {
+function RevengeLandScreen({ wrongWords, setWrongWords, wordMemory, setWordMemory, mon, monLv, setMonLv, setMonExp,
+  lineId, grantLineResources, coins, setCoins, pendingEggs, setPendingEggs, addEggToInventory,
+  dailyMissions, setDailyMissions, weeklyMissions, setWeeklyMissions, setScreen, setToast }) {
 
   // 모든 훅은 최상위에서 선언 (Rules of Hooks)
   const [rMode,    setRMode]    = React.useState(null);
@@ -1869,40 +1870,69 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
   const [rCorrect, setRCorrect] = React.useState(0);
   const [rStreak,  setRStreak]  = React.useState(0);
   const [rDone,    setRDone]    = React.useState(false);
+  const [rDeckId,  setRDeckId]  = React.useState(null);
+  const [rOutcomes,setROutcomes]= React.useState({});
+  const [rSessionWords,setRSessionWords]=React.useState([]);
 
-  const words = wrongWords.slice(0, 10);
+  const decks = buildReviewDecks(wrongWords, wordMemory, "ww5");
+  const deckList = [decks.mistakes, decks.due, decks.weak];
+  const activeDeck = deckList.find((deck) => deck.id === rDeckId) || deckList.find((deck) => deck.words.length > 0) || deckList[0];
+  const deckWords = activeDeck.words.slice(0, 10);
+  const words = rMode ? rSessionWords : deckWords;
   const cur   = words[rIdx];
 
   // 단어가 없음
-  if(words.length === 0) return (
-    <div className="crt page slide-up" style={{alignItems:"center",justifyContent:"center",gap:20,
+  if(deckList.every((deck) => deck.words.length === 0)) return (
+    <div data-testid="reviewland-empty" className="crt page slide-up" style={{alignItems:"center",justifyContent:"center",gap:20,
       background:"radial-gradient(ellipse at top,#0A1A0A,#0C0A18)"}}>
       <style>{CSS}</style>
-      <div style={{fontSize:"clamp(48px,14vw,80px)"}}>🧹</div>
-      <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-lg)",color:"#44FF88",textAlign:"center"}}>복습할 단어가 없습니다</div>
-      <div style={{fontFamily:"var(--f-ui)",color:"#6A5888",fontSize:"var(--fs-sm)"}}>틀린 단어를 먼저 쌓아야 Revenge Land가 열립니다.</div>
+      <div style={{fontSize:"clamp(48px,14vw,80px)"}}>🌱</div>
+      <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-lg)",color:"#44FF88",textAlign:"center"}}>복습랜드가 조용합니다</div>
+      <div style={{fontFamily:"var(--f-ui)",color:"#6A5888",fontSize:"var(--fs-sm)",textAlign:"center",lineHeight:1.6}}>
+        새 전투를 진행하면 오답, 복습 예정, 약점 단어가 자동으로 쌓입니다.
+      </div>
       <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")}>BACK</button>
     </div>
   );
 
   // 모드 선택
   if(rMode === null) return (
-    <div className="crt page slide-up" style={{
+    <div data-testid="reviewland-select" className="crt page slide-up" style={{
       padding:"clamp(14px,3vw,22px)",gap:"clamp(12px,3vh,18px)",alignItems:"center",
-      background:"radial-gradient(ellipse at top,#14000A,#0C0A18)"}}>
+      background:"radial-gradient(circle at 50% 0%,rgba(120,230,255,.18),transparent 30%),radial-gradient(circle at 22% 76%,rgba(255,136,68,.16),transparent 28%),radial-gradient(circle at 82% 70%,rgba(199,125,255,.14),transparent 30%),linear-gradient(180deg,#090716,#0C0617 58%,#06040D)"}}>
       <style>{CSS}</style>
       <div style={{textAlign:"center",flexShrink:0}}>
-        <div style={{fontSize:"clamp(36px,10vmin,52px)",animation:"floatBob 2s ease-in-out infinite"}}>⚔️</div>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FF6644",marginTop:6}}>REVENGE LAND</div>
-        <div style={{fontFamily:"var(--f-ui)",fontSize:"var(--fs-xs)",color:"#884422",marginTop:4}}>
-          {words.length}개 단어가 복수를 기다리고 있습니다
+        <div style={{fontSize:"clamp(44px,11vmin,64px)",animation:"floatBob 2s ease-in-out infinite",filter:"drop-shadow(0 14px 22px rgba(120,230,255,.28))"}}>🧠</div>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#78E6FF",marginTop:6,textShadow:"0 0 18px rgba(120,230,255,.45)"}}>복습랜드</div>
+        <div style={{fontFamily:"var(--f-ui)",fontWeight:1000,fontSize:"var(--fs-xs)",color:"#E7A56A",marginTop:6}}>
+          지난 단어를 다시 꺼내면 몬스터가 더 빨리 성장합니다
         </div>
       </div>
-      <div style={{background:"#1A0A0E",border:"1px solid #3A1A1A",borderRadius:12,
-        padding:"10px 16px",width:"100%",maxWidth:340,flexShrink:0}}>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",color:"#884422",marginBottom:8}}>클리어 보상</div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,minmax(0,1fr))",gap:12,width:"100%",maxWidth:720,flexShrink:0}}>
+        {deckList.map((deck) => {
+          const active = activeDeck.id === deck.id;
+          return (
+            <button key={deck.id} data-testid={`review-deck-${deck.id}`} onClick={()=>{setRDeckId(deck.id);setRIdx(0);setRSel(null);setRCorrect(0);setRStreak(0);setROutcomes({});setRSessionWords([]);}} style={{
+              minHeight:"clamp(118px,15vh,142px)",borderRadius:14,padding:"clamp(11px,1.5vw,15px)",
+              background:active?"linear-gradient(135deg,#12364C,#171F46)":"linear-gradient(135deg,#151126,#100D1B)",
+              border:`2px solid ${active?"#78E6FF88":"#2A2440"}`,
+              color:"#fff",cursor:"pointer",textAlign:"left",boxShadow:active?"0 0 22px rgba(120,230,255,.14),0 4px 0 rgba(0,0,0,.55)":"0 4px 0 rgba(0,0,0,.48)"
+            }}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:6}}>
+                <span style={{fontSize:"clamp(18px,5vmin,24px)"}}>{deck.icon}</span>
+                <span style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",color:active?"#78E6FF":"#6A5888"}}>{deck.words.length}</span>
+              </div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:1000,fontSize:"var(--fs-xs)",color:active?"#F4EEFF":"#D7CCE8",marginTop:8,lineHeight:1.15}}>{deck.title}</div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"10px",color:active?"#A9DCEF":"#9588AA",marginTop:5,lineHeight:1.35}}>{deck.words.length ? deck.desc : deck.empty}</div>
+            </button>
+          );
+        })}
+      </div>
+      <div style={{background:"linear-gradient(135deg,#271018,#160B16)",border:"1px solid #FF884455",borderRadius:12,
+        padding:"clamp(11px,1.8vw,16px) clamp(16px,2.4vw,24px)",width:"100%",maxWidth:560,flexShrink:0,boxShadow:"0 12px 28px rgba(0,0,0,.28)"}}>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",color:"#FF995C",marginBottom:8}}>클리어 보상</div>
         <div style={{display:"flex",gap:12,justifyContent:"center"}}>
-          {[{icon:"💰",label:`${words.length*15}G`},{icon:"✨",label:`${words.length*20} EXP`},{icon:"🥚",label:"완벽 클리어 알"}].map((r,i)=>(
+          {[{icon:"💰",label:`${Math.round(words.length*12)}G`},{icon:"✨",label:`EXP x${activeDeck.expMult}`},{icon:"🧬",label:`라인EXP +${activeDeck.lineExpPerCorrect}/정답`}].map((r,i)=>(
             <div key={i} style={{textAlign:"center"}}>
               <div style={{fontSize:"clamp(16px,4.5vmin,22px)"}}>{r.icon}</div>
               <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(7px,1.8vmin,9px)",color:"#FFAA44",marginTop:3}}>{r.label}</div>
@@ -1910,21 +1940,21 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
           ))}
         </div>
       </div>
-      <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:340,flexShrink:0}}>
+      <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:560,flexShrink:0}}>
         {[
           {id:"light", icon:"💧",label:"라이트", desc:"2지선다 + 자동 힌트", clr:"#44AAFF",bg:"linear-gradient(135deg,#081828,#0C2840)"},
           {id:"normal",icon:"⚔️",label:"노멀", desc:"4지선다 기본 모드", clr:"#FF8844",bg:"linear-gradient(135deg,#1A0808,#2A1010)"},
           {id:"hard",  icon:"🔥",label:"챌린지", desc:"4지선다 + 보상 2배", clr:"#FF4444",bg:"linear-gradient(135deg,#1A0010,#2A0020)"},
         ].map(m=>(
-          <button key={m.id} onClick={()=>setRMode(m.id)} style={{
+          <button key={m.id} data-testid={`review-mode-${m.id}`} onClick={()=>{ if(deckWords.length){ setRSessionWords(deckWords); setRMode(m.id); } }} disabled={!deckWords.length} style={{
             background:m.bg,border:`2px solid ${m.clr}44`,borderRadius:14,
             padding:"clamp(12px,3vw,16px) clamp(14px,3.5vw,20px)",
             display:"flex",alignItems:"center",gap:14,cursor:"pointer",
-            boxShadow:"0 3px 0 rgba(0,0,0,0.5)",textAlign:"left"}}>
+              boxShadow:"0 4px 0 rgba(0,0,0,0.55)",textAlign:"left",opacity:deckWords.length?1:.45}}>
             <div style={{fontSize:"clamp(22px,6vmin,30px)",flexShrink:0}}>{m.icon}</div>
             <div style={{flex:1}}>
               <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(12px,3.2vmin,15px)",color:m.clr}}>{m.label}</div>
-              <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(9px,2.3vmin,11px)",color:"#664433",marginTop:3}}>{m.desc}</div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"clamp(9px,2.3vmin,11px)",color:"#B59BC8",marginTop:3}}>{m.desc}</div>
             </div>
             {m.id==="light"&&<div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(7px,1.8vmin,9px)",
               background:"#44AAFF22",color:"#44AAFF",padding:"3px 8px",borderRadius:6,flexShrink:0}}>추천</div>}
@@ -1932,7 +1962,7 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
         ))}
       </div>
       <button className="big-btn" onClick={()=>setScreen(mon?"world":"title")}
-        style={{background:"transparent",border:"1px solid #2A1A1A",color:"#443333",width:"100%",maxWidth:340}}>
+        style={{background:"rgba(12,8,24,.72)",border:"1px solid #2A2340",color:"#8F82AE",width:"100%",maxWidth:560}}>
         BACK
       </button>
     </div>
@@ -1943,17 +1973,20 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
     const isHard = rMode==="hard";
     const isPerfect = rCorrect === words.length;
     const ratio = rCorrect / words.length;
-    const coinReward = Math.round(words.length * 15 * (isHard&&isPerfect?2:1) * (ratio>=0.5?ratio:0.3));
-    const expReward  = Math.round(words.length * 20 * (isHard&&isPerfect?2:1) * (ratio>=0.5?ratio:0.3));
-    const giveEgg = isPerfect && words.length >= 5;
+    const challengeMult = isHard&&isPerfect?2:1;
+    const coinReward = Math.round(words.length * 12 * challengeMult * (ratio>=0.5?ratio:0.3));
+    const expReward  = Math.round(words.length * 18 * activeDeck.expMult * challengeMult * (ratio>=0.5?ratio:0.3));
+    const lineExpReward = Math.round(rCorrect * activeDeck.lineExpPerCorrect * (isPerfect ? 1.25 : 1));
+    const coreReward = activeDeck.coreOnPerfect && isPerfect ? 1 : 0;
+    const giveEgg = isPerfect && words.length >= 5 && activeDeck.id !== "due";
     return (
-      <div className="crt page slide-up" style={{alignItems:"center",justifyContent:"center",gap:16,
+      <div data-testid="reviewland-result" className="crt page slide-up" style={{alignItems:"center",justifyContent:"center",gap:16,
         padding:24,background:"radial-gradient(ellipse at top,#0A0A1A,#0C0A18)"}}>
         <style>{CSS}</style>
         <div style={{fontSize:"clamp(48px,14vw,72px)"}}>{isPerfect?"🏆":ratio>=0.5?"⚔️":"💡"}</div>
         <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-lg)",textAlign:"center",
           color:isPerfect?"#FFD700":ratio>=0.5?"#FF8844":"#9988CC"}}>
-          {isPerfect?"완벽 복수!":ratio>=0.5?"잘했어요!":"다시 도전!"}
+          {isPerfect?"완벽 복습!":ratio>=0.5?"기억 회복!":"다시 도전!"}
         </div>
         <div style={{fontFamily:"var(--f-ui)",color:"#9988CC",fontSize:"var(--fs-sm)",textAlign:"center"}}>
           {rCorrect}/{words.length} 정답 ({Math.round(ratio*100)}%)
@@ -1968,27 +2001,34 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
               <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(9px,2.3vmin,11px)",color:"#88CCFF"}}>+{expReward} EXP</div></div>
             {giveEgg&&<div style={{textAlign:"center"}}><div style={{fontSize:24}}>🥚</div>
               <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(9px,2.3vmin,11px)",color:"#CC88FF"}}>+알 1개</div></div>}
+            {lineExpReward>0&&<div style={{textAlign:"center"}}><div style={{fontSize:24}}>🧬</div>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(9px,2.3vmin,11px)",color:"#8DFF9A"}}>+{lineExpReward} LINE</div></div>}
           </div>
         </div>
-        <button className="big-btn" style={{
+        <button data-testid="review-claim-button" className="big-btn" style={{
           background:isPerfect?"linear-gradient(135deg,#8800AA,#CC22EE)":"linear-gradient(135deg,#AA2200,#CC4400)",
           width:"100%",maxWidth:280,padding:"clamp(13px,3vmin,17px)"
         }} onClick={()=>{
           setCoins(c=>c+coinReward);
           setMonExp(e=>{const ne=e+expReward;const th=60+monLv*20;if(ne>=th){setMonLv(l=>l+1);return ne-th;}return ne;});
-          if(isPerfect) setWrongWords(prev=>prev.slice(words.length));
+          if(lineExpReward>0 || coreReward>0) grantLineResources?.(lineId, { lineExp: lineExpReward, evolutionCores: coreReward });
+          if(rCorrect>0) {
+            const clearedKeys = new Set(words.filter((word)=>rOutcomes[word.memoryKey] !== false).map((word)=>word.memoryKey));
+            setWrongWords(prev=>prev.filter((word)=>!clearedKeys.has(normalizeReviewWord(word)?.memoryKey)));
+          }
           if(giveEgg){
             const rLines=["flame","wave","leaf","bolt"];
             const rewardLine = rLines[Math.floor(Math.random()*rLines.length)];
             addEggToInventory("common", rewardLine, "revenge");
           }
-          setDailyMissions(prev=>updateMissionProgress(prev, { revenge: 1 }));
+          setDailyMissions(prev=>updateMissionProgress(prev, { revenge: 1, review5: rCorrect }));
+          setWeeklyMissions?.(prev=>updateMissionProgress(prev, { weeklyReview: rCorrect }));
           setToast(isPerfect
-            ? `완벽 복수 성공! +${coinReward}G +${expReward}EXP${giveEgg ? " +알 1개" : ""}`
-            : `보상 획득! +${coinReward}G +${expReward}EXP`);
+            ? `완벽 복습! +${coinReward}G +${expReward}EXP · 라인EXP +${lineExpReward}${coreReward ? " · 코어 +1" : ""}`
+            : `복습 보상! +${coinReward}G +${expReward}EXP · 라인EXP +${lineExpReward}`);
           setScreen(mon?"world":"title");
         }}>
-          {isPerfect ? "단어 제압 완료" : "보상 받기"}
+          {isPerfect ? "기억 안정화 완료" : "보상 받기"}
         </button>
         {!isPerfect&&(
           <button className="big-btn" onClick={()=>{setRIdx(0);setRSel(null);setRCorrect(0);setRStreak(0);setRDone(false);setRMode(null);}}
@@ -2007,12 +2047,12 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
   const opts = cur ? shuffle([cur.m,...wrongChoices]) : [];
 
   return (
-    <div className="crt page slide-up" style={{
+    <div data-testid="reviewland-quiz" className="crt page slide-up" style={{
       padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.5vh,14px)",
       background:"radial-gradient(ellipse at top,#0A0118,#0C0A18)"}}>
       <style>{CSS}</style>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#FF4444"}}>⚔️ REVENGE</div>
+        <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#78E6FF"}}>{activeDeck.icon} {activeDeck.title}</div>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
           {rStreak>=2&&<div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",
             background:"linear-gradient(135deg,#FF6600,#FFCC00)",color:"#fff",padding:"2px 8px",borderRadius:8}}>콤보 {rStreak}</div>}
@@ -2034,7 +2074,7 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
         <div style={{fontSize:"clamp(36px,10vmin,54px)",animation:"floatBob 2s ease-in-out infinite"}}>🧠</div>
         <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",
           color:rMode==="light"?"#44AAFF":rMode==="hard"?"#FF4444":"#FF6644",marginTop:2}}>
-          {rMode==="light"?"라이트 모드":rMode==="hard"?"챌린지 모드":"노멀 모드"}로 복수를 진행 중
+          {rMode==="light"?"라이트 모드":rMode==="hard"?"챌린지 모드":"노멀 모드"}로 기억을 복구 중
         </div>
       </div>
       <div style={{background:"linear-gradient(135deg,#1A0010,#2A0518)",borderRadius:16,
@@ -2048,7 +2088,7 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
         )}
       </div>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(8px,2vw,12px)",flex:1}}>
-        {opts.map(opt=>{
+        {opts.map((opt,i)=>{
           const isCorrect=opt===cur?.m;
           const selected=rSel!==null;
           let bg="linear-gradient(135deg,#1C0A28,#28103A)";
@@ -2056,10 +2096,12 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
           if(selected&&opt===rSel){bg=isCorrect?"linear-gradient(135deg,#0A3A1A,#0A5A22)":"linear-gradient(135deg,#3A0A0A,#5A0A0A)";border=isCorrect?"2px solid #44FF66":"2px solid #FF4444";}
           else if(selected&&isCorrect){bg="linear-gradient(135deg,#0A3A1A,#0A5A22)";border="2px solid #44FF66";}
           return (
-            <button key={opt} onClick={()=>{
+            <button key={opt} data-testid={`review-option-${i}`} onClick={()=>{
               if(rSel!==null)return;
               setRSel(opt);
               const correct=opt===cur?.m;
+              setROutcomes(prev=>({...prev,[cur.memoryKey]:correct}));
+              setWordMemory(prev=>updateWordMemoryMap(prev, cur, { correct, book: cur.book, unit: cur.unit }));
               if(correct){setRCorrect(c=>c+1);setRStreak(s=>s+1);}
               else setRStreak(0);
               setTimeout(()=>{
@@ -2108,6 +2150,7 @@ function makeWeeklyMissions() {
     { id:"weeklyClears", emoji:"🏁", label:"스테이지 5회 클리어", target:5, progress:0, done:false },
     { id:"weeklyHatches", emoji:"🥚", label:"알 3개 부화", target:3, progress:0, done:false },
     { id:"weeklyFocus", emoji:"⚡", label:"집중 폭발 5회 사용", target:5, progress:0, done:false },
+    { id:"weeklyReview", emoji:"🧠", label:"복습 단어 25개 안정화", target:25, progress:0, done:false },
   ];
 }
 
@@ -2143,6 +2186,152 @@ function evaluateBattleObjective(objective, result) {
   if (objective.id === "guard") return result.hpPct >= 70;
   if (objective.id === "focus") return result.focusBurstUsed;
   return false;
+}
+
+function getWordMemoryKey(word, fallbackBook = "ww5", fallbackUnit = "u") {
+  const book = word?.book || fallbackBook || "ww5";
+  const unit = word?.unit || fallbackUnit || "u";
+  return `${book}::${unit}::${word?.w || ""}::${word?.m || ""}`;
+}
+
+function reviewIntervalDays(streak = 0) {
+  if (streak >= 4) return 14;
+  if (streak >= 3) return 7;
+  if (streak >= 2) return 3;
+  return 1;
+}
+
+function memoryStatus(mastery = 0, wrong = 0) {
+  if (wrong >= 3) return "약점";
+  if (mastery >= 100) return "마스터";
+  if (mastery >= 70) return "안정";
+  if (mastery >= 35) return "학습 중";
+  return "불안정";
+}
+
+function updateWordMemoryMap(prev, word, { correct, book, unit, now = Date.now() } = {}) {
+  if (!word?.w || !word?.m) return prev;
+  const memoryKey = word.memoryKey || word.key || getWordMemoryKey(word, book, unit);
+  const old = prev?.[memoryKey] || {};
+  const nextCorrect = (old.correct || 0) + (correct ? 1 : 0);
+  const nextWrong = (old.wrong || 0) + (correct ? 0 : 1);
+  const nextStreak = correct ? (old.streak || 0) + 1 : 0;
+  const mastery = Math.max(0, Math.min(100, (old.mastery || 0) + (correct ? 28 + Math.min(12, nextStreak * 3) : -32)));
+  const nextReviewAt = correct
+    ? now + reviewIntervalDays(nextStreak) * 86400000
+    : now;
+  const bookId = word.book || book || old.book || "ww5";
+  const unitId = word.unit || unit || old.unit || "u";
+  return {
+    ...prev,
+    [memoryKey]: {
+      key: memoryKey,
+      book: bookId,
+      unit: unitId,
+      w: word.w,
+      m: word.m,
+      def: word.def || old.def || "",
+      opts: word.opts || old.opts || [],
+      correct: nextCorrect,
+      wrong: nextWrong,
+      streak: nextStreak,
+      mastery,
+      status: memoryStatus(mastery, nextWrong),
+      leech: nextWrong >= 3,
+      lastSeenAt: now,
+      nextReviewAt,
+    },
+  };
+}
+
+function normalizeReviewWord(word, fallbackBook = "ww5") {
+  if (!word?.w || !word?.m) return null;
+  const normalized = {
+    ...word,
+    book: word.book || fallbackBook,
+    unit: word.unit || "review",
+  };
+  return {
+    ...normalized,
+    memoryKey: word.memoryKey || word.key || getWordMemoryKey(normalized, normalized.book, normalized.unit),
+  };
+}
+
+function dedupeReviewWords(words, fallbackBook = "ww5") {
+  const seen = new Set();
+  return (words || []).map((word) => normalizeReviewWord(word, fallbackBook)).filter((word) => {
+    if (!word) return false;
+    const k = word.memoryKey;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+}
+
+function buildReviewDecks(wrongWords = [], wordMemory = {}, fallbackBook = "ww5") {
+  const now = Date.now();
+  const memoryWords = Object.values(wordMemory || {}).map((entry) => normalizeReviewWord(entry, entry.book || fallbackBook)).filter(Boolean);
+  const mistakeWords = dedupeReviewWords([
+    ...wrongWords,
+    ...memoryWords.filter((word) => (word.wrong || 0) > 0 && (word.mastery || 0) < 70),
+  ], fallbackBook);
+  const dueWords = dedupeReviewWords(
+    memoryWords
+      .filter((word) => word.nextReviewAt && word.nextReviewAt <= now && !word.leech)
+      .sort((a, b) => (a.nextReviewAt || 0) - (b.nextReviewAt || 0)),
+    fallbackBook
+  );
+  const weakWords = dedupeReviewWords(
+    memoryWords
+      .filter((word) => word.leech || (word.wrong || 0) >= 2)
+      .sort((a, b) => (b.wrong || 0) - (a.wrong || 0)),
+    fallbackBook
+  );
+  return {
+    mistakes: {
+      id: "mistakes",
+      icon: "🧯",
+      title: "오답 추적",
+      desc: "방금 틀린 단어를 바로 복구",
+      empty: "오답이 없습니다",
+      expMult: 1.5,
+      lineExpPerCorrect: 2,
+      words: mistakeWords,
+    },
+    due: {
+      id: "due",
+      icon: "🕯️",
+      title: "기억 순찰",
+      desc: "오늘 다시 꺼내야 하는 단어",
+      empty: "오늘 복습 예정 단어가 없습니다",
+      expMult: 1.8,
+      lineExpPerCorrect: 3,
+      words: dueWords,
+    },
+    weak: {
+      id: "weak",
+      icon: "👁️",
+      title: "약점 보스",
+      desc: "여러 번 틀린 단어 집중 공략",
+      empty: "약점 보스가 없습니다",
+      expMult: 2.2,
+      lineExpPerCorrect: 5,
+      coreOnPerfect: true,
+      words: weakWords,
+    },
+  };
+}
+
+function getMemoryStats(wordMemory = {}, wrongWords = []) {
+  const entries = Object.values(wordMemory || {});
+  const now = Date.now();
+  return {
+    total: entries.length,
+    due: entries.filter((entry) => entry.nextReviewAt && entry.nextReviewAt <= now && !entry.leech).length,
+    weak: entries.filter((entry) => entry.leech || (entry.wrong || 0) >= 2).length,
+    mastered: entries.filter((entry) => (entry.mastery || 0) >= 100).length,
+    mistakes: wrongWords.length,
+  };
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -2254,6 +2443,7 @@ export default function VocabMon() {
   const setPendingEggs = setEggInventory;
   const [eggHatch,      setEggHatch]      = useState(null); // {mon,lineId,outcome,reward} 부화 연출
   const [wrongWords,    setWrongWords]    = useState([]); // 영구 오답 단어
+  const [wordMemory,    setWordMemory]    = useState({});
 
   // Duolingo 미션 시스템
   const [dailyMissions, setDailyMissions] = useState([]); // [{id,label,emoji,target,progress,done}]
@@ -2457,7 +2647,8 @@ export default function VocabMon() {
       { id:"unit1",     emoji:"📘", label:"유닛 1개 완료하기", target:1, progress:0, done:false },
       { id:"combo5",    emoji:"🔥", label:"5연속 정답 달성", target:5, progress:0, done:false },
       { id:"focus1",    emoji:"⚡", label:"집중 폭발 1회 사용", target:1, progress:0, done:false },
-      { id:"revenge",   emoji:"⚔️", label:"Revenge Land 클리어", target:1, progress:0, done:false },
+      { id:"review5",   emoji:"🧠", label:"복습 단어 5개 안정화", target:5, progress:0, done:false },
+      { id:"revenge",   emoji:"🧠", label:"복습랜드 1회 클리어", target:1, progress:0, done:false },
       { id:"words15",   emoji:"🧠", label:"단어 15개 학습", target:15, progress:0, done:false },
     ];
     // 날짜 기준으로 3개 선택 (같은 날 같은 미션)
@@ -2517,6 +2708,7 @@ export default function VocabMon() {
       setEggInventory(migratedEggState.eggInventory);
       setHatcherySlots(syncHatcherySlots(migratedEggState.hatcherySlots));
       if (saved.wrongWords)   setWrongWords(saved.wrongWords);
+      if (saved.wordMemory)   setWordMemory(saved.wordMemory);
       if (saved.streakShields) { setStreakShields(saved.streakShields); restoredShields = saved.streakShields; }
       const restoredMonsterId = restoredLineId
         ? (getCatchStage(restoredLineId, saved.stageIdx ?? 0)?.id ?? null)
@@ -2612,6 +2804,7 @@ export default function VocabMon() {
     eggInventory,
     hatcherySlots,
     wrongWords,
+    wordMemory,
     dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
     dailyMissionDate: new Date().toDateString(),
   }), [
@@ -2619,7 +2812,7 @@ export default function VocabMon() {
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons, pendingEggs, monsterCollection, eggInventory, hatcherySlots,
-    wrongWords, dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
+    wrongWords, wordMemory, dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
   ]);
 
   useEffect(() => {
@@ -2912,6 +3105,7 @@ export default function VocabMon() {
       const final=ns>=3?Math.floor(base*1.65):base;
       const newE=Math.max(0,eHp-1);
       setCorrectCount(c=>c+1);
+      setWordMemory(prev => updateWordMemoryMap(prev, word, { correct: true, book: curBook || "ww5", unit: curUnit }));
       setLog(p=>[...p,`${ns>=3?`콤보 ${ns}! `:""}정답 "${battleStage===2?word.m:word.w}" · -${final}HP`]);
       const expGain = 22 + (ns>=3?10:0);
       setFeedback({type:"correct", msg:`정답! +${expGain} EXP${ns>=3?` · 콤보 ${ns}`:""}`});
@@ -2947,18 +3141,20 @@ export default function VocabMon() {
       const newP=Math.max(0,pHp-ed);
       const newWC=wrongCount+1;
       setWrongCount(newWC);
-      setWrongQueue(q=>[...q,word]);
-      // 영구 오답 저장 (Revenge Land)
+      const missedWord = { ...word, book: curBook || "ww5", unit: curUnit, memoryKey: getWordMemoryKey(word, curBook || "ww5", curUnit) };
+      setWordMemory(prev => updateWordMemoryMap(prev, missedWord, { correct: false, book: curBook || "ww5", unit: curUnit }));
+      setWrongQueue(q=>[...q,missedWord]);
+      // 영구 오답 저장 (복습랜드)
       setWrongWords(prev => {
         if (prev.some(x=>x.w===word.w && x.m===word.m)) return prev;
-        return [...prev, {w:word.w, m:word.m, def:word.def||"", opts:word.opts||[]}];
+        return [...prev, missedWord];
       });
       setLog(p=>[...p,`오답 "${battleStage===2?word.m:word.w}" · -${ed}HP`]);
       // VOC-105: 오답 피드백 (랜덤 메시지)
       const revMsgs = [
-        "다음엔 꼭 복수하자.",
-        "틀린 단어가 Revenge Land에 쌓였습니다.",
-        "복수 후보 등록 완료.",
+        "다음엔 복습랜드에서 다시 잡자.",
+        "틀린 단어가 복습랜드에 쌓였습니다.",
+        "복습 후보 등록 완료.",
         "실수 포착. 다시 도전하세요.",
         "약점 발견. 다음엔 잡습니다.",
       ];
@@ -3164,6 +3360,9 @@ export default function VocabMon() {
         hatcherySlots,
         dailyMissions,
         weeklyMissions,
+        wrongWords,
+        wordMemory,
+        memoryStats: getMemoryStats(wordMemory, wrongWords),
         lastBattleReward,
         battleFocus,
         battleObjective,
@@ -3182,6 +3381,20 @@ export default function VocabMon() {
         if (!word) return false;
         const correctAns = battleStage === 2 ? word.m : word.w;
         answer(correctAns);
+        return true;
+      },
+      answerWrong: () => {
+        if (screen !== "battle" || phase !== "question") return false;
+        const word = queue[qIdx];
+        if (!word) return false;
+        const correctAns = battleStage === 2 ? word.m : word.w;
+        const wrongAns = (curOpts || []).find((option) => option !== correctAns);
+        if (!wrongAns) return false;
+        answer(wrongAns);
+        return true;
+      },
+      setScreenForTest: (nextScreen) => {
+        setScreen(nextScreen);
         return true;
       },
       prepareEvolution: () => {
@@ -3228,6 +3441,8 @@ export default function VocabMon() {
     screen, player, curBook, curUnit, battleStage, lineId, stageIdx, mon, monLv, monExp, coins,
     qIdx, queue, phase, won, eggInventory.length, readyEggCount, runningEggCount, dexProgress,
     activeMonsterEntry, monsterCollection, hatcherySlots, evoRequirement, progressSnapshot,
+    wrongWords, wordMemory, dailyMissions, weeklyMissions, lastBattleReward,
+    battleFocus, battleObjective, focusBurstUsed, maxCombo, curOpts,
   ]);
   // ─────────────────────────────────────────────────────────────────
   //  SCREENS
@@ -3415,6 +3630,7 @@ export default function VocabMon() {
     const weeklyList = weeklyMissions.length > 0 ? weeklyMissions : makeWeeklyMissions();
     const weeklyDone = weeklyList.filter(m=>m.done).length;
     const allWeeklyDone = weeklyDone >= weeklyList.length && weeklyList.length > 0;
+    const memoryStats = getMemoryStats(wordMemory, wrongWords);
     const firstEgg = pendingEggs[0];
     const eggLine = firstEgg ? CATCH_MON_LINES.find(l=>l.lineId===firstEgg.lineId) : null;
     const storyChapter = getStoryChapter({
@@ -3449,6 +3665,15 @@ export default function VocabMon() {
       },
       {
         step:"02",
+        title:memoryStats.due > 0 ? "오늘 복습" : memoryStats.weak > 0 ? "약점 공략" : "복습랜드",
+        meta:`예정 ${memoryStats.due}개 · 약점 ${memoryStats.weak}개 · 오답 ${memoryStats.mistakes}개`,
+        cta:"기억 회복",
+        icon:NAV_ICON.revenge,
+        accent:"#78E6FF",
+        fn:()=>setScreen("revenge"),
+      },
+      {
+        step:"03",
         title:readyEggCount > 0 ? "부화 완료" : "알 관리",
         meta:readyEggCount > 0 ? `${readyEggCount}개 수령 대기` : runningEggCount > 0 ? `${runningEggCount}개 부화 중` : hasFreeEgg ? "오늘의 무료 알 가능" : `보관 ${pendingEggs.length}개`,
         cta:readyEggCount > 0 ? "지금 깨기" : "부화실 열기",
@@ -3457,7 +3682,7 @@ export default function VocabMon() {
         fn:()=>setScreen("eggs"),
       },
       {
-        step:"03",
+        step:"04",
         title:"수집 목표",
         meta:`도감 ${dexProgress.completedLines}/${dexProgress.totalLines} 라인 · 발견 ${dexProgress.ownedMonsters}/${dexProgress.totalMonsters}`,
         cta:"도감 보기",
@@ -3515,7 +3740,7 @@ export default function VocabMon() {
           <div className="launch-stats">
             <div className="launch-stat"><b>{streak}</b><span>연속 출석</span></div>
             <div className="launch-stat"><b>{doneMissions}/{dailyMissions.length || 3}</b><span>오늘 미션</span></div>
-            <div className="launch-stat"><b>{readyEggCount}</b><span>수령 대기</span></div>
+            <div className="launch-stat"><b>{memoryStats.due + memoryStats.weak}</b><span>복습 타겟</span></div>
             <div className="launch-stat"><b>{dexProgress.completedLines}</b><span>완성 라인</span></div>
           </div>
         </div>
@@ -3695,8 +3920,8 @@ export default function VocabMon() {
           </div>
         </div>
 
-        {/* Revenge Land 진입 배너 (오답 3개 이상일 때) */}
-        {wrongWords.length >= 3 && (
+        {/* 복습랜드 진입 배너 */}
+        {(memoryStats.due + memoryStats.weak + wrongWords.length) >= 3 && (
           <div onClick={()=>setScreen("revenge")} style={{
             background:"linear-gradient(135deg,#2A0500,#4A0800)",
             border:"2px solid #FF440088",borderRadius:14,padding:"10px 14px",
@@ -3707,10 +3932,10 @@ export default function VocabMon() {
             <div style={{fontSize:"clamp(22px,6vmin,30px)",animation:"floatBob 1.5s ease-in-out infinite"}}>⚔️</div>
             <div style={{flex:1}}>
               <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(10px,2.8vmin,13px)",color:"#FF8844"}}>
-                Revenge Land 입장 가능
+                복습랜드 보상 가능
               </div>
               <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(9px,2.3vmin,11px)",color:"#884422",marginTop:2}}>
-                {wrongWords.length}개 단어가 복수를 기다리고 있습니다. 추가 보상도 준비되어 있습니다.
+                복습 타겟 {memoryStats.due + memoryStats.weak}개와 오답 {wrongWords.length}개가 있습니다. 성장 보상이 준비됐습니다.
               </div>
             </div>
             <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(10px,2.5vmin,12px)",color:"#FF6644",flexShrink:0}}>GO</div>
@@ -3723,7 +3948,7 @@ export default function VocabMon() {
             {l:"도감", meta:`${dexProgress.completedLines}/${dexProgress.totalLines} 완성`, icon:NAV_ICON.dex, accent:"#C77DFF", fn:()=>setScreen("collection")},
             {l:"알", meta:`대기 ${pendingEggs.length} · 완료 ${readyEggCount}`, badge:readyEggCount>0?"READY":"", icon:NAV_ICON.eggs, accent:"#FF8844", fn:()=>setScreen("eggs")},
             {l:"아레나", meta:`티켓 ${battleTickets}/${ARENA_MAX_TICKETS}`, icon:NAV_ICON.arena, accent:"#FFB84A", fn:()=>setScreen("arena")},
-            {l:"복수", meta:`오답 ${wrongWords.length}`, badge:wrongWords.length>0?"GO":"", icon:NAV_ICON.revenge, accent:"#FF6644", fn:()=>setScreen("revenge")},
+            {l:"복습", meta:`예정 ${memoryStats.due} · 약점 ${memoryStats.weak}`, badge:(memoryStats.due+memoryStats.weak+wrongWords.length)>0?"GO":"", icon:NAV_ICON.revenge, accent:"#78E6FF", fn:()=>setScreen("revenge")},
             {l:"랭킹", meta:`반 ${player?.classCode || ""}`, icon:NAV_ICON.ranking, accent:"#FFD700", fn:()=>setScreen("leaderboard")},
             {l:"상점", meta:`${caughtMons.length>0?coins+"G":"코인 없음"}`, icon:NAV_ICON.shop, accent:"#44FF88", fn:()=>setScreen("shop")},
             {l:"파트너", meta:mon?.name || "선택", icon:NAV_ICON.partner, accent:"#78E6FF", fn:()=>setScreen("select")},
@@ -3738,6 +3963,7 @@ export default function VocabMon() {
                 b.l.includes("상점") ? "nav-shop" :
                 b.l.includes("파트너") ? "nav-select" :
                 b.l.includes("교재") ? "nav-bookselect" :
+                b.l.includes("복습") ? "nav-revenge" :
                 undefined
               }
               label={b.l}
@@ -3942,6 +4168,7 @@ export default function VocabMon() {
   // World map
   if(screen==="world"&&mon) {
     const bookInfo = BOOK_SERIES.find((b)=>b.id===(curBook||"ww5"));
+    const worldMemoryStats = getMemoryStats(wordMemory, wrongWords);
     const expPct=Math.min(100,(monExp/(60+monLv*20))*100);
     return (
       <div data-testid="world-screen" className="crt page slide-up" style={{
@@ -4079,7 +4306,7 @@ export default function VocabMon() {
             {l:`🥚 알${readyEggCount>0?"!":""}`, fn:()=>setScreen("eggs"), bg:readyEggCount>0?"linear-gradient(135deg,#4A1880,#7B2FBE)":"#1C182E", sh:readyEggCount>0?"#200A40":"#080612", dt:"world-eggs-button"},
             {l:`아레나 ${battleTickets}`, fn:()=>setScreen("arena"), bg:"linear-gradient(135deg,#7A2E0A,#C05A16)", sh:"#3A1200"},
             {l:"상점",  fn:()=>setScreen("shop"),        bg:"linear-gradient(135deg,#0A2A1A,#0A4A2A)", sh:"#041208"},
-            {l:wrongWords.length>0?"복수!":"복수", fn:()=>setScreen("revenge"), bg:wrongWords.length>0?"linear-gradient(135deg,#3A0800,#660A00)":"#1C182E", sh:wrongWords.length>0?"#1A0000":"#080612"},
+            {l:(worldMemoryStats.due + worldMemoryStats.weak + wrongWords.length)>0?"복습!":"복습", fn:()=>setScreen("revenge"), bg:(worldMemoryStats.due + worldMemoryStats.weak + wrongWords.length)>0?"linear-gradient(135deg,#08313A,#0C5266)":"#1C182E", sh:(worldMemoryStats.due + worldMemoryStats.weak + wrongWords.length)>0?"#031A22":"#080612", dt:"world-revenge-button"},
             {l:"랭킹",  fn:()=>setScreen("leaderboard"), bg:"linear-gradient(135deg,#1A1400,#2A2000)", sh:"#0A0800"},
             {l:"진화",  fn:tryEvolve, bg:evoReady?"linear-gradient(135deg,#6600CC,#AA44FF)":"#1C182E", sh:evoReady?"#330066":"#080612", disabled:!evoReady, dt:"world-evolve-button"},
             {l:"홈",    fn:()=>setScreen("title"),        bg:"#1C182E",                                 sh:"#080612",       dt:"world-home-button"},
@@ -4784,12 +5011,12 @@ export default function VocabMon() {
             maxWidth:320,width:"100%",textAlign:"center",
             boxShadow:"0 0 40px #FF220033"
           }}>
-            <div style={{fontSize:"clamp(36px,10vmin,52px)",marginBottom:10,animation:"floatBob 1.5s ease-in-out infinite"}}>⚔️</div>
-            <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(13px,3.5vmin,16px)",color:"#FF8844",marginBottom:8}}>복수의 기회!</div>
+            <div style={{fontSize:"clamp(36px,10vmin,52px)",marginBottom:10,animation:"floatBob 1.5s ease-in-out infinite"}}>🧠</div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(13px,3.5vmin,16px)",color:"#78E6FF",marginBottom:8}}>복습랜드 오픈!</div>
             <div style={{fontFamily:"var(--f-ui)",fontSize:"clamp(10px,2.6vmin,12px)",color:"#AA6633",lineHeight:1.6,marginBottom:20}}>
-              틀린 단어 <strong style={{color:"#FF6644"}}>{wrongWords.length}개</strong>가 복수를 기다리고 있습니다.<br/>
-              지금 Revenge Land에서<br/>
-              <strong style={{color:"#FFB844"}}>코인 + 추가 보상</strong>을 챙기세요.
+              틀린 단어 <strong style={{color:"#78E6FF"}}>{wrongWords.length}개</strong>가 복습을 기다리고 있습니다.<br/>
+              지금 복습랜드에서<br/>
+              <strong style={{color:"#FFB844"}}>코인 + 성장 보상</strong>을 챙기세요.
             </div>
             <div style={{display:"flex",gap:10}}>
               <button onClick={()=>setShowRevengePrompt(false)} style={{
@@ -4800,7 +5027,7 @@ export default function VocabMon() {
                 flex:2,fontFamily:"var(--f-pk)",fontSize:"clamp(12px,3vmin,14px)",
                 background:"linear-gradient(135deg,#AA1100,#CC3300)",
                 border:"none",color:"#fff",padding:"10px 8px",borderRadius:12,
-                cursor:"pointer",boxShadow:"0 4px 0 #550000",fontWeight:700}}>바로 복수하러 가기</button>
+                cursor:"pointer",boxShadow:"0 4px 0 #550000",fontWeight:700}}>복습하러 가기</button>
             </div>
           </div>
         </div>
@@ -5138,11 +5365,14 @@ export default function VocabMon() {
   if(screen==="revenge") return (
     <RevengeLandScreen
       wrongWords={wrongWords} setWrongWords={setWrongWords}
+      wordMemory={wordMemory} setWordMemory={setWordMemory}
       mon={mon} monLv={monLv} setMonLv={setMonLv} setMonExp={setMonExp}
+      lineId={lineId} grantLineResources={grantLineResources}
       coins={coins} setCoins={setCoins}
       pendingEggs={pendingEggs} setPendingEggs={setPendingEggs}
       addEggToInventory={addEggToInventory}
       dailyMissions={dailyMissions} setDailyMissions={setDailyMissions}
+      weeklyMissions={weeklyMissions} setWeeklyMissions={setWeeklyMissions}
       setScreen={setScreen} setToast={setToast}
     />
   );
