@@ -856,6 +856,13 @@ const CSS = `
   .reward-chip strong{font-family:var(--f-pk);font-size:clamp(12px,3.1vmin,18px);line-height:1;color:var(--accent,#F5C842);text-shadow:0 0 16px color-mix(in srgb,var(--accent,#F5C842) 45%,transparent);}
   .reward-chip span{font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#B8ACC8;}
   .reward-chip small{font-family:var(--f-ui);font-weight:900;font-size:10px;color:#736486;line-height:1.25;}
+  .battle-bonus-result{position:relative;margin-top:10px;border-radius:12px;padding:10px 11px;background:rgba(8,7,18,.72);border:1px solid #302846;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:9px;text-align:left;}
+  .battle-bonus-result.complete{border-color:#F5C84288;background:linear-gradient(135deg,rgba(245,200,66,.16),rgba(10,8,20,.76));}
+  .battle-bonus-result > span{font-size:15px;line-height:1;}
+  .battle-bonus-result div{min-width:0;}
+  .battle-bonus-result b{display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#F5F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .battle-bonus-result div span{display:block;margin-top:2px;font-family:var(--f-ui);font-weight:900;font-size:10px;color:#9E91B8;line-height:1.35;}
+  .battle-bonus-result em{font-style:normal;font-family:var(--f-pk);font-size:8px;color:#FFE08A;white-space:nowrap;}
   .result-goal-panel{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px;}
   .result-goal-card{border-radius:14px;padding:12px;background:rgba(10,8,20,.72);border:1px solid #2F244A;text-align:left;}
   .result-goal-card b{display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-sm);color:#F3ECFF;line-height:1.15;}
@@ -869,6 +876,20 @@ const CSS = `
   .result-next-card{width:100%;border-radius:16px;padding:12px;background:linear-gradient(135deg,rgba(18,48,38,.92),rgba(18,18,34,.92));border:1px solid rgba(120,230,255,.28);text-align:left;}
   .result-next-card b{display:block;font-family:var(--f-pk);font-size:clamp(9px,2.2vmin,12px);color:#78E6FF;margin-bottom:5px;}
   .result-next-card span{font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-sm);line-height:1.35;color:#F7F3FF;}
+  .battle-system-strip{display:grid;grid-template-columns:1fr minmax(150px,.72fr);gap:8px;flex-shrink:0;}
+  .battle-objective-card,.focus-burst-btn{position:relative;min-height:54px;border-radius:12px;padding:9px 10px;overflow:hidden;text-align:left;}
+  .battle-objective-card{background:linear-gradient(135deg,#111226,#1A1426);border:1px solid #342B4A;}
+  .battle-objective-card::before{content:"";position:absolute;right:-24px;top:-28px;width:80px;height:80px;border-radius:50%;background:#F5C842;opacity:.1;}
+  .battle-objective-card b{position:relative;display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#F7F0FF;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .battle-objective-card span{position:relative;display:block;margin-top:4px;font-family:var(--f-ui);font-weight:900;font-size:10px;line-height:1.2;color:#8F83AA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .focus-burst-btn{border:1px solid #2E3A50;background:linear-gradient(135deg,#0C1222,#12172B);color:#DCE9FF;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;box-shadow:0 3px 0 rgba(0,0,0,.45);}
+  .focus-burst-btn:disabled{cursor:not-allowed;opacity:.72;}
+  .focus-burst-btn.ready{border-color:#78E6FF;background:linear-gradient(135deg,#072638,#14304A);box-shadow:0 4px 0 rgba(0,0,0,.45),0 0 18px rgba(120,230,255,.25);animation:rewardPulse 2.1s ease-in-out infinite;}
+  .focus-burst-btn b{display:block;font-family:var(--f-pk);font-size:clamp(8px,1.9vmin,10px);color:#78E6FF;line-height:1.2;}
+  .focus-burst-btn span{display:block;margin-top:4px;font-family:var(--f-ui);font-weight:900;font-size:10px;color:#8FA3C8;line-height:1.2;}
+  .focus-burst-btn strong{font-family:var(--f-pk);font-size:clamp(10px,2.6vmin,13px);color:#F5C842;line-height:1;}
+  .focus-meter{position:absolute;left:0;right:0;bottom:0;height:4px;background:#182238;}
+  .focus-meter i{display:block;height:100%;background:linear-gradient(90deg,#78E6FF,#F5C842);transition:width .28s ease;border-radius:0 99px 99px 0;}
 
   /* VOC-101/102: interactive cards */
   .card-btn{transition:transform .12s,box-shadow .12s,background .12s;outline:none;}
@@ -908,6 +929,7 @@ const CSS = `
     .quest-card{min-height:94px;}
     .reward-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
     .result-goal-panel{grid-template-columns:1fr;}
+    .battle-system-strip{grid-template-columns:1fr;}
   }
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:#3A2A50;border-radius:2px;}
@@ -2085,7 +2107,42 @@ function makeWeeklyMissions() {
     { id:"weeklyStars", emoji:"⭐", label:"별 12개 모으기", target:12, progress:0, done:false },
     { id:"weeklyClears", emoji:"🏁", label:"스테이지 5회 클리어", target:5, progress:0, done:false },
     { id:"weeklyHatches", emoji:"🥚", label:"알 3개 부화", target:3, progress:0, done:false },
+    { id:"weeklyFocus", emoji:"⚡", label:"집중 폭발 5회 사용", target:5, progress:0, done:false },
   ];
+}
+
+function normalizeWeeklyMissions(missions) {
+  const saved = new Map((missions || []).map((mission) => [mission.id, mission]));
+  return makeWeeklyMissions().map((base) => {
+    const old = saved.get(base.id);
+    if (!old) return base;
+    return {
+      ...base,
+      progress: Math.min(base.target, old.progress || 0),
+      done: !!old.done || (old.progress || 0) >= base.target,
+    };
+  });
+}
+
+function rollBattleObjective(wordsLength = 5) {
+  const pool = [
+    { id:"perfect", icon:"💎", title:"무결점 클리어", desc:"오답 없이 승리", rewardText:"+12G +8 라인EXP", bonusCoins:12, bonusExp:0, bonusLineExp:8 },
+    { id:"combo3", icon:"🔥", title:"콤보 러시", desc:"3연속 정답 달성", rewardText:"+10G +10EXP", bonusCoins:10, bonusExp:10, bonusLineExp:0 },
+    { id:"guard", icon:"🛡️", title:"체력 관리", desc:"HP 70% 이상으로 승리", rewardText:"+8G +8EXP", bonusCoins:8, bonusExp:8, bonusLineExp:0 },
+  ];
+  if (wordsLength >= 5) {
+    pool.push({ id:"focus", icon:"⚡", title:"집중 폭발", desc:"FOCUS 스킬 1회 사용", rewardText:"+14G +10 라인EXP", bonusCoins:14, bonusExp:0, bonusLineExp:10 });
+  }
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function evaluateBattleObjective(objective, result) {
+  if (!objective) return false;
+  if (objective.id === "perfect") return result.wrongCount === 0;
+  if (objective.id === "combo3") return result.maxCombo >= 3;
+  if (objective.id === "guard") return result.hpPct >= 70;
+  if (objective.id === "focus") return result.focusBurstUsed;
+  return false;
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -2162,6 +2219,10 @@ export default function VocabMon() {
   const [attackP,  setAttackP]  = useState(false); // player charges enemy
   const [attackE,  setAttackE]  = useState(false); // enemy charges player
   const [comboStr, setComboStr] = useState(0);
+  const [maxCombo, setMaxCombo] = useState(0);
+  const [battleFocus, setBattleFocus] = useState(0);
+  const [focusBurstUsed, setFocusBurstUsed] = useState(false);
+  const [battleObjective, setBattleObjective] = useState(null);
   const [dmgVal,   setDmgVal]   = useState(null);
   const [curOpts,  setCurOpts]  = useState([]);
   const [wrongCount,setWrongCount]=useState(0);
@@ -2395,6 +2456,7 @@ export default function VocabMon() {
       { id:"correct20", emoji:"🎯", label:"정답 20개 맞히기", target:20, progress:0, done:false },
       { id:"unit1",     emoji:"📘", label:"유닛 1개 완료하기", target:1, progress:0, done:false },
       { id:"combo5",    emoji:"🔥", label:"5연속 정답 달성", target:5, progress:0, done:false },
+      { id:"focus1",    emoji:"⚡", label:"집중 폭발 1회 사용", target:1, progress:0, done:false },
       { id:"revenge",   emoji:"⚔️", label:"Revenge Land 클리어", target:1, progress:0, done:false },
       { id:"words15",   emoji:"🧠", label:"단어 15개 학습", target:15, progress:0, done:false },
     ];
@@ -2502,7 +2564,7 @@ export default function VocabMon() {
 
     const currentWeekKey = getMissionWeekKey();
     if (saved?.weeklyMissionKey === currentWeekKey && Array.isArray(saved?.weeklyMissions)) {
-      setWeeklyMissions(saved.weeklyMissions);
+      setWeeklyMissions(normalizeWeeklyMissions(saved.weeklyMissions));
       setWeeklyMissionKey(currentWeekKey);
     } else {
       setWeeklyMissions(makeWeeklyMissions());
@@ -2810,11 +2872,17 @@ export default function VocabMon() {
     setPHp(effMon.hp); setEHp(words.length);
     setWrongCount(0); setCorrectCount(0);
     setLastBattleReward(null);
+    setMaxCombo(0);
+    setBattleFocus(0);
+    setFocusBurstUsed(false);
+    const objective = rollBattleObjective(words.length);
+    setBattleObjective(objective);
     const stgLabel=["EXPLORE","RECALL","MASTER"][stg];
     const subLabel = subIdx === 4 ? "👑 BOSS" : `Stage ${subIdx+1}`;
     setLog([
       `A wild ${enemy.name} appeared!`,
       `${stgLabel} · ${subLabel}`,
+      `보너스 목표: ${objective.title}`,
       stg===0 ? "뜻을 보고 영어 단어를 고르세요." : stg===1 ? "소리를 듣고 영어 단어를 고르세요." : "영어 단어 뜻을 직접 떠올리세요.",
     ]);
     setPhase("question"); setSel(null); setComboStr(0); setDmgVal(null);
@@ -2837,6 +2905,9 @@ export default function VocabMon() {
 
     if(correct) {
       const ns=comboStr+1; setComboStr(ns);
+      setMaxCombo(m => Math.max(m, ns));
+      const focusGain = ns >= 3 ? 34 : 24;
+      setBattleFocus(prev => Math.min(100, prev + focusGain));
       const base=calcDmg(eff.atk,curEnemy.def);
       const final=ns>=3?Math.floor(base*1.65):base;
       const newE=Math.max(0,eHp-1);
@@ -2871,6 +2942,7 @@ export default function VocabMon() {
 
     } else {
       setComboStr(0);
+      setBattleFocus(prev => Math.max(0, prev - 18));
       const ed=calcDmg(curEnemy.atk,8);
       const newP=Math.max(0,pHp-ed);
       const newWC=wrongCount+1;
@@ -2908,6 +2980,22 @@ export default function VocabMon() {
       setTimeout(()=>{ setDmgVal(null); }, 1200);
       setTimeout(()=>{ newP<=0?endBattle(false,newWC):nextWord(newWC); }, 1050);
     }
+  }
+
+  function useFocusBurst() {
+    if (phase !== "question" || sel || battleFocus < 100) return false;
+    const word = queue[qIdx];
+    if (!word) return false;
+    const correctAns = battleStage === 2 ? word.m : word.w;
+    setFocusBurstUsed(true);
+    setBattleFocus(0);
+    setDailyMissions(prev => updateMissionProgress(prev, { focus1: 1 }));
+    setWeeklyMissions(prev => updateMissionProgress(prev, { weeklyFocus: 1 }));
+    setLog(p => [...p, "FOCUS BURST! 확신의 일격을 사용했습니다."]);
+    setFeedback({ type:"correct", msg:"집중 폭발! 정답을 꿰뚫었습니다." });
+    sfxReward();
+    setTimeout(() => answer(correctAns), 30);
+    return true;
   }
 
   function nextWord(wc=wrongCount) {
@@ -2956,16 +3044,29 @@ export default function VocabMon() {
       const key=`${curBook||"ww5"}_${curUnit}_${battleStage}_${subLabel}_${difficulty}`;
       setUnitStars(prev=>({...prev,[key]:Math.max(prev[key]||0,stars)}));
       const diffMult = {easy:1, normal:1.2, hard:1.5, hell:2}[difficulty] || 1;
-      const ec = Math.round((20+curUnit*8) * diffMult); const ex = Math.round((40+curUnit*12) * diffMult);
+      const hpPct = Math.round((pHp / Math.max(1, mon.hp)) * 100);
+      const objectiveComplete = evaluateBattleObjective(battleObjective, {
+        wrongCount: wc,
+        maxCombo,
+        focusBurstUsed,
+        hpPct,
+        stars,
+      });
+      const bonusCoins = objectiveComplete ? (battleObjective?.bonusCoins || 0) : 0;
+      const bonusExp = objectiveComplete ? (battleObjective?.bonusExp || 0) : 0;
+      const bonusLineExp = objectiveComplete ? (battleObjective?.bonusLineExp || 0) : 0;
+      const ec = Math.round((20+curUnit*8) * diffMult) + bonusCoins;
+      const ex = Math.round((40+curUnit*12) * diffMult) + bonusExp;
       setCoins(c=>c+ec);
       if(!dailyDone){ setDailyDone(true); }
       const levelResult = grantActiveMonsterExp(ex);
-      const lineExpGain = Math.round((10 + stars * 6) * diffMult);
+      const lineExpGain = Math.round((10 + stars * 6) * diffMult) + bonusLineExp;
       const coreGain = difficulty === "hell" && stars >= 2 ? 1 : 0;
       grantLineResources(lineId, { lineExp: lineExpGain, evolutionCores: coreGain });
       setLog(p=>[
         ...p,
         `Victory! +${ec}G +${ex}EXP · 라인EXP +${lineExpGain}${coreGain ? " · 코어 +1" : ""} · ${stars}★`,
+        objectiveComplete ? `보너스 목표 완료! ${battleObjective.rewardText}` : null,
         levelResult.leveled ? `${mon.name} grew to Lv.${levelResult.level}!` : null,
       ].filter(Boolean));
 
@@ -3000,6 +3101,12 @@ export default function VocabMon() {
         eggLineId: pickedLine,
         wrongCount: wc,
         total,
+        maxCombo,
+        focusBurstUsed,
+        objective: battleObjective ? {
+          ...battleObjective,
+          completed: objectiveComplete,
+        } : null,
         leveled: levelResult.leveled,
         level: levelResult.level,
       });
@@ -3009,6 +3116,12 @@ export default function VocabMon() {
         won: false,
         wrongCount: wc,
         total: queue.length,
+        maxCombo,
+        focusBurstUsed,
+        objective: battleObjective ? {
+          ...battleObjective,
+          completed: false,
+        } : null,
       });
     }
     setTimeout(()=>{
@@ -3052,7 +3165,17 @@ export default function VocabMon() {
         dailyMissions,
         weeklyMissions,
         lastBattleReward,
+        battleFocus,
+        battleObjective,
+        focusBurstUsed,
+        maxCombo,
       }),
+      chargeFocus: () => {
+        if (screen !== "battle") return false;
+        setBattleFocus(100);
+        return true;
+      },
+      useFocusBurst: () => useFocusBurst(),
       answerCorrect: () => {
         if (screen !== "battle" || phase !== "question") return false;
         const word = queue[qIdx];
@@ -4377,6 +4500,27 @@ export default function VocabMon() {
             );
           })()}
 
+          <div className="battle-system-strip">
+            <div className="battle-objective-card" data-testid="battle-objective-card">
+              <b>{battleObjective?.icon || "🎯"} {battleObjective?.title || "보너스 목표"}</b>
+              <span>{battleObjective?.desc || "이번 전투의 추가 목표"} · {battleObjective?.rewardText || "추가 보상"}</span>
+            </div>
+            <button
+              data-testid="focus-burst-button"
+              className={`focus-burst-btn ${battleFocus >= 100 ? "ready" : ""}`}
+              disabled={phase !== "question" || !!sel || battleFocus < 100}
+              onClick={useFocusBurst}
+              title="정답을 맞히며 충전하고, 100%에서 확정 일격을 사용합니다."
+            >
+              <span>
+                <b>FOCUS BURST</b>
+                <span>{battleFocus >= 100 ? "사용 가능" : "정답으로 충전"}</span>
+              </span>
+              <strong>{battleFocus}%</strong>
+              <i className="focus-meter" aria-hidden="true"><i style={{width:`${battleFocus}%`}} /></i>
+            </button>
+          </div>
+
           {/* Question card */}
           {word&&(
             <div className="battle-panel" style={{padding:"clamp(9px,2vmin,13px) clamp(10px,2.5vw,15px)",flexShrink:0}}>
@@ -4548,6 +4692,16 @@ export default function VocabMon() {
                 <small>{rewardEggLine?.name || "새 몬스터 후보"}</small>
               </div>
             </div>
+            {reward.objective && (
+              <div className={`battle-bonus-result ${reward.objective.completed ? "complete" : ""}`}>
+                <span>{reward.objective.completed ? "🏆" : "🎯"}</span>
+                <div>
+                  <b>{reward.objective.title}</b>
+                  <span>{reward.objective.completed ? `완료 · ${reward.objective.rewardText}` : `미완료 · ${reward.objective.desc}`}</span>
+                </div>
+                <em>{reward.objective.completed ? "BONUS" : "NEXT"}</em>
+              </div>
+            )}
           </div>
         )}
 
