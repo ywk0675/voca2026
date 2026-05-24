@@ -3571,7 +3571,23 @@ export default function VocabMon() {
               );
             })
           ) : (
-            CATCH_MON_LINES.map((line) => {
+            <>
+            <div style={{
+              borderRadius:16,
+              padding:"clamp(12px,3vw,16px)",
+              background:"linear-gradient(135deg,#101B2A,#1A1230)",
+              border:"1px solid #2E6A8A66",
+              boxShadow:"0 6px 18px rgba(0,0,0,.28)",
+              flexShrink:0
+            }}>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:1000,fontSize:"clamp(15px,3.8vw,18px)",color:"#EAF8FF"}}>
+                첫 파트너 라인을 고르세요
+              </div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-xs)",lineHeight:1.45,color:"#8FB6D8",marginTop:4}}>
+                처음 선택한 몬스터로 바로 Unit 1을 시작합니다. 나중에 도감에서 보유 몬스터를 파트너로 바꿀 수 있어요.
+              </div>
+            </div>
+            {CATCH_MON_LINES.map((line) => {
               const starter = line.stages[0];
               const locked = !unlockLine(line.lineId);
               const needStars = MON_UNLOCK_STARS[line.lineId];
@@ -3591,17 +3607,17 @@ export default function VocabMon() {
                     setScreen("world");
                   }}
                   style={{
-                    borderRadius:14,padding:"clamp(10px,2.2vh,16px)",
+                    borderRadius:16,padding:"clamp(12px,2.4vh,18px)",
                     background:locked ? "#0E0C1A" : `linear-gradient(135deg,#12101E,${starter.color}18)`,
                     border:`2px solid ${locked ? "#1A1828" : starter.color+"55"}`,
                     boxShadow:locked ? "none" : `0 0 20px ${starter.glow}22,0 4px 0 rgba(0,0,0,.6)`,
                     cursor:locked ? "not-allowed" : "pointer",opacity:locked ? .4 : 1,
-                    display:"flex",alignItems:"center",gap:"clamp(10px,2.5vw,16px)"
+                    display:"flex",alignItems:"center",gap:"clamp(12px,3vw,18px)"
                   }}>
-                  <div style={{display:"flex",alignItems:"flex-end",gap:4,flexShrink:0}}>
+                  <div style={{display:"flex",alignItems:"flex-end",gap:0,flexShrink:0,minWidth:"clamp(108px,32vw,160px)"}}>
                     {line.stages.map((st, si)=>(
-                      <div key={si} style={{opacity:.4+si*.3,animation:`floatBob ${2.2+si*.4}s ease-in-out infinite`}}>
-                        <st.Sprite w={Math.min(32+si*14,Math.max(22+si*10,Math.floor(window.innerWidth*(0.05+si*.02))))}/>
+                      <div key={si} style={{opacity:locked ? .35 : .52+si*.22,marginLeft:si===0?0:-18,animation:`floatBob ${2.2+si*.4}s ease-in-out infinite`}}>
+                        <st.Sprite w={Math.min(60+si*18,Math.max(42+si*12,Math.floor(window.innerWidth*(0.11+si*.03))))}/>
                       </div>
                     ))}
                   </div>
@@ -3627,7 +3643,8 @@ export default function VocabMon() {
                   </div>
                 </div>
               );
-            })
+            })}
+            </>
           )}
 
           <div style={{borderRadius:14,padding:"clamp(8px,2vh,12px)",
