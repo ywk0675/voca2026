@@ -93,6 +93,16 @@ export function sfxVictory() {
   });
 }
 
+export function sfxReward() {
+  if (_muted) return;
+  const ac = ctx();
+  const t = ac.currentTime;
+  [[659, 0], [784, 0.07], [988, 0.15], [1319, 0.27]].forEach(([f, dt], index) => {
+    osc(ac, index < 2 ? "square" : "triangle", f, t + dt, 0.16, 0.11);
+  });
+  noise(ac, t + 0.02, 0.05, 0.06);
+}
+
 export function sfxDefeat() {
   if (_muted) return;
   const ac = ctx();

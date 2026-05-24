@@ -4,7 +4,7 @@ import TeacherDashboard from "./TeacherDashboard.jsx";
 import { loadProgress, saveProgress, supabase } from "./supabase.js";
 import { CATCH_MON_LINES, EGG_DROP, PARTNER_UNLOCK_STARS, getCatchLineById, getCatchStage, rollEggRarity, rollMonsterFromLine } from "./catchMons.jsx";
 import { getMonsterAsset } from "./monsterAssets.js";
-import { startBGM, stopBGM, sfxCorrect, sfxWrong, sfxHitEnemy, sfxHitPlayer, sfxVictory, sfxDefeat, sfxBattleStart, sfxHatch, sfxEvolveStart, sfxEvolveDone, setMuted, isMuted } from "./audio.js";
+import { startBGM, stopBGM, sfxCorrect, sfxWrong, sfxHitEnemy, sfxHitPlayer, sfxVictory, sfxReward, sfxDefeat, sfxBattleStart, sfxHatch, sfxEvolveStart, sfxEvolveDone, setMuted, isMuted } from "./audio.js";
 import { BOOK_SERIES, getUnitInfo, getWordsForUnit, getSubStages } from "./wordData.js";
 import {
   createDefaultHatcherySlots,
@@ -842,6 +842,34 @@ const CSS = `
   .quest-card__meta{position:relative;display:block;margin-top:4px;font-family:var(--f-ui);font-weight:900;font-size:var(--fs-xs);color:#9B8EBE;line-height:1.25;}
   .quest-card__cta{position:relative;display:block;margin-top:10px;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:var(--accent,#F5C842);}
 
+  @keyframes rewardRise{0%{opacity:0;transform:translateY(16px) scale(.96)}100%{opacity:1;transform:none}}
+  @keyframes rewardPulse{0%,100%{box-shadow:0 6px 0 rgba(0,0,0,.45),0 0 0 rgba(245,200,66,0)}50%{box-shadow:0 6px 0 rgba(0,0,0,.45),0 0 22px rgba(245,200,66,.22)}}
+  @keyframes rewardSpark{0%{transform:translateY(8px) scale(.6);opacity:0}40%{opacity:1}100%{transform:translateY(-28px) scale(1.1);opacity:0}}
+  .result-shell{position:relative;z-index:1;width:100%;max-width:760px;margin:0 auto;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .reward-panel{position:relative;width:100%;border-radius:18px;padding:14px;background:linear-gradient(135deg,rgba(20,18,34,.94),rgba(35,22,42,.92));border:1px solid rgba(245,200,66,.32);box-shadow:0 10px 30px rgba(0,0,0,.36),inset 0 1px 0 rgba(255,255,255,.08);overflow:hidden;animation:rewardRise .38s ease both,rewardPulse 2.8s ease-in-out infinite;}
+  .reward-panel::before{content:"";position:absolute;inset:-45% -10% auto 45%;height:160px;background:radial-gradient(circle,rgba(245,200,66,.28),transparent 68%);pointer-events:none;}
+  .reward-spark{position:absolute;color:#FFE99A;font-family:var(--f-pk);font-size:9px;animation:rewardSpark 1.4s ease-in-out infinite;pointer-events:none;}
+  .reward-title{position:relative;display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;font-family:var(--f-pk);font-size:clamp(9px,2.1vmin,12px);color:#FFE08A;}
+  .reward-title span:last-child{font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#9FE9FF;}
+  .reward-grid{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;}
+  .reward-chip{min-height:76px;border-radius:13px;padding:10px;background:linear-gradient(135deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.09);display:flex;flex-direction:column;justify-content:space-between;text-align:left;}
+  .reward-chip strong{font-family:var(--f-pk);font-size:clamp(12px,3.1vmin,18px);line-height:1;color:var(--accent,#F5C842);text-shadow:0 0 16px color-mix(in srgb,var(--accent,#F5C842) 45%,transparent);}
+  .reward-chip span{font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-xs);color:#B8ACC8;}
+  .reward-chip small{font-family:var(--f-ui);font-weight:900;font-size:10px;color:#736486;line-height:1.25;}
+  .result-goal-panel{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+  .result-goal-card{border-radius:14px;padding:12px;background:rgba(10,8,20,.72);border:1px solid #2F244A;text-align:left;}
+  .result-goal-card b{display:block;font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-sm);color:#F3ECFF;line-height:1.15;}
+  .result-goal-card p{margin:5px 0 0;font-family:var(--f-ui);font-weight:900;font-size:var(--fs-xs);line-height:1.4;color:#9C90B4;}
+  .mission-mini-list{display:flex;flex-direction:column;gap:6px;margin-top:8px;}
+  .mission-mini{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;background:#111022;border:1px solid #2A2440;}
+  .mission-mini.done{background:#082414;border-color:#2B8A4A66;}
+  .mission-mini label{min-width:0;font-family:var(--f-ui);font-weight:900;font-size:var(--fs-xs);color:#CFC4E6;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .mission-mini.done label{color:#7FFFA8;text-decoration:line-through;}
+  .mission-mini em{font-style:normal;font-family:var(--f-pk);font-size:clamp(8px,2vmin,10px);color:#70647E;white-space:nowrap;}
+  .result-next-card{width:100%;border-radius:16px;padding:12px;background:linear-gradient(135deg,rgba(18,48,38,.92),rgba(18,18,34,.92));border:1px solid rgba(120,230,255,.28);text-align:left;}
+  .result-next-card b{display:block;font-family:var(--f-pk);font-size:clamp(9px,2.2vmin,12px);color:#78E6FF;margin-bottom:5px;}
+  .result-next-card span{font-family:var(--f-ui);font-weight:1000;font-size:var(--fs-sm);line-height:1.35;color:#F7F3FF;}
+
   /* VOC-101/102: interactive cards */
   .card-btn{transition:transform .12s,box-shadow .12s,background .12s;outline:none;}
   .card-btn:hover:not([aria-disabled="true"]){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.5)!important;}
@@ -878,6 +906,8 @@ const CSS = `
     .launch-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
     .questline{grid-template-columns:1fr;}
     .quest-card{min-height:94px;}
+    .reward-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+    .result-goal-panel{grid-template-columns:1fr;}
   }
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:#3A2A50;border-radius:2px;}
@@ -1930,11 +1960,7 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
             const rewardLine = rLines[Math.floor(Math.random()*rLines.length)];
             addEggToInventory("common", rewardLine, "revenge");
           }
-          setDailyMissions(prev=>prev.map(m=>{
-            if(m.done) return m;
-            if(m.id==="revenge"){const np=Math.min(m.target,m.progress+1);return{...m,progress:np,done:np>=m.target};}
-            return m;
-          }));
+          setDailyMissions(prev=>updateMissionProgress(prev, { revenge: 1 }));
           setToast(isPerfect
             ? `완벽 복수 성공! +${coinReward}G +${expReward}EXP${giveEgg ? " +알 1개" : ""}`
             : `보상 획득! +${coinReward}G +${expReward}EXP`);
@@ -2032,6 +2058,36 @@ function RevengeLandScreen({ wrongWords, setWrongWords, mon, monLv, setMonLv, se
   );
 }
 
+function updateMissionProgress(missions, increments) {
+  return (missions || []).map((mission) => {
+    if (mission.done) return mission;
+    const raw = increments[mission.id];
+    const amount = typeof raw === "function" ? raw(mission) : raw;
+    if (!amount) return mission;
+    const progress = Math.min(mission.target, mission.progress + amount);
+    return { ...mission, progress, done: progress >= mission.target };
+  });
+}
+
+function getMissionWeekKey(date = new Date()) {
+  const d = new Date(date);
+  const dayFromMonday = (d.getDay() + 6) % 7;
+  d.setHours(0, 0, 0, 0);
+  d.setDate(d.getDate() - dayFromMonday);
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function makeWeeklyMissions() {
+  return [
+    { id:"weeklyStars", emoji:"⭐", label:"별 12개 모으기", target:12, progress:0, done:false },
+    { id:"weeklyClears", emoji:"🏁", label:"스테이지 5회 클리어", target:5, progress:0, done:false },
+    { id:"weeklyHatches", emoji:"🥚", label:"알 3개 부화", target:3, progress:0, done:false },
+  ];
+}
+
 // ─────────────────────────────────────────────────────────────────
 //  MAIN APP
 export default function VocabMon() {
@@ -2111,6 +2167,7 @@ export default function VocabMon() {
   const [wrongCount,setWrongCount]=useState(0);
   const [correctCount,setCorrectCount]=useState(0);
   const [won,      setWon]      = useState(false);
+  const [lastBattleReward, setLastBattleReward] = useState(null);
   const [evoAnim,  setEvoAnim]  = useState(false);
   const [showEvoModal,setShowEvoModal]=useState(false);
   const [newMonName,setNewMonName]=useState("");
@@ -2139,6 +2196,8 @@ export default function VocabMon() {
 
   // Duolingo 미션 시스템
   const [dailyMissions, setDailyMissions] = useState([]); // [{id,label,emoji,target,progress,done}]
+  const [weeklyMissions, setWeeklyMissions] = useState([]);
+  const [weeklyMissionKey, setWeeklyMissionKey] = useState(getMissionWeekKey());
   const [dailyEggDate,  setDailyEggDate]  = useState(""); // 오늘 달걀 수령 날짜
   const [streakShields, setStreakShields] = useState(0);  // 스트릭 실드 수
 
@@ -2302,6 +2361,7 @@ export default function VocabMon() {
     }
 
     sfxHatch(rewardEgg.rarity);
+    setWeeklyMissions(prev => updateMissionProgress(prev, { weeklyHatches: 1 }));
     setTimeout(() => setEggHatch(hatchPayload), 120);
     return true;
   }, [hatcherySlots, lineId, monsterCollection]);
@@ -2440,6 +2500,15 @@ export default function VocabMon() {
       setDailyMissions(saved?.dailyMissions || makeDailyMissions());
     }
 
+    const currentWeekKey = getMissionWeekKey();
+    if (saved?.weeklyMissionKey === currentWeekKey && Array.isArray(saved?.weeklyMissions)) {
+      setWeeklyMissions(saved.weeklyMissions);
+      setWeeklyMissionKey(currentWeekKey);
+    } else {
+      setWeeklyMissions(makeWeeklyMissions());
+      setWeeklyMissionKey(currentWeekKey);
+    }
+
     // 일일 달걀 상태 복원
     setDailyEggDate(restoredEggDate);
 
@@ -2481,14 +2550,14 @@ export default function VocabMon() {
     eggInventory,
     hatcherySlots,
     wrongWords,
-    dailyMissions, dailyEggDate, streakShields,
+    dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
     dailyMissionDate: new Date().toDateString(),
   }), [
     unitStars, monLv, monExp, coins, battleTickets, arenaTicketUpdatedAt, arenaWins, arenaRating, battleBoost,
     lineId, stageIdx, curBook,
     streak, loginDays, lastLogin,
     caughtMons, pendingEggs, monsterCollection, eggInventory, hatcherySlots,
-    wrongWords, dailyMissions, dailyEggDate, streakShields,
+    wrongWords, dailyMissions, weeklyMissions, weeklyMissionKey, dailyEggDate, streakShields,
   ]);
 
   useEffect(() => {
@@ -2740,6 +2809,7 @@ export default function VocabMon() {
     setCurOpts(stg===2 ? getMasterOpts(words[0]) : getOpts(words[0]));
     setPHp(effMon.hp); setEHp(words.length);
     setWrongCount(0); setCorrectCount(0);
+    setLastBattleReward(null);
     const stgLabel=["EXPLORE","RECALL","MASTER"][stg];
     const subLabel = subIdx === 4 ? "👑 BOSS" : `Stage ${subIdx+1}`;
     setLog([
@@ -2777,13 +2847,11 @@ export default function VocabMon() {
       setTimeout(()=>setFeedback(null), 800);
 
       // 미션 진행 업데이트
-      setDailyMissions(prev => prev.map(m => {
-        if (m.done) return m;
-        let np = m.progress;
-        if (m.id === "correct10" || m.id === "correct20" || m.id === "words15") np = Math.min(m.target, np + 1);
-        if (m.id === "combo5" && ns >= m.target) np = m.target;
-        const done = np >= m.target;
-        return { ...m, progress: np, done };
+      setDailyMissions(prev => updateMissionProgress(prev, {
+        correct10: 1,
+        correct20: 1,
+        words15: 1,
+        combo5: (mission) => ns >= mission.target ? mission.target : 0,
       }));
 
       // 정답: 플레이어가 먼저 공격
@@ -2876,7 +2944,10 @@ export default function VocabMon() {
 
   function endBattle(didWin, wc=wrongCount) {
     stopBGM();
-    if(didWin) sfxVictory(); else sfxDefeat();
+    if(didWin) {
+      sfxVictory();
+      setTimeout(sfxReward, 360);
+    } else sfxDefeat();
     setPhase("end"); setWon(didWin);
     if(didWin){
       const total=queue.length;
@@ -2913,16 +2984,32 @@ export default function VocabMon() {
       addEggToInventory(eggRarity, pickedLine, "unit_clear");
 
       // 유닛 클리어 미션 업데이트
-      setDailyMissions(prev => prev.map(m => {
-        if (m.done) return m;
-        if (m.id === "unit1") {
-          const np = Math.min(m.target, m.progress + 1);
-          return { ...m, progress: np, done: np >= m.target };
-        }
-        return m;
+      setDailyMissions(prev => updateMissionProgress(prev, { unit1: 1 }));
+      setWeeklyMissions(prev => updateMissionProgress(prev, {
+        weeklyStars: stars,
+        weeklyClears: 1,
       }));
+      setLastBattleReward({
+        won: true,
+        stars,
+        coins: ec,
+        exp: ex,
+        lineExp: lineExpGain,
+        core: coreGain,
+        eggRarity,
+        eggLineId: pickedLine,
+        wrongCount: wc,
+        total,
+        leveled: levelResult.leveled,
+        level: levelResult.level,
+      });
     } else {
       setLog(p=>[...p,`${mon.name} fainted...`]);
+      setLastBattleReward({
+        won: false,
+        wrongCount: wc,
+        total: queue.length,
+      });
     }
     setTimeout(()=>{
       setScreen("result");
@@ -2962,6 +3049,9 @@ export default function VocabMon() {
         activeMonsterEntry,
         monsterCollection,
         hatcherySlots,
+        dailyMissions,
+        weeklyMissions,
+        lastBattleReward,
       }),
       answerCorrect: () => {
         if (screen !== "battle" || phase !== "question") return false;
@@ -3199,6 +3289,9 @@ export default function VocabMon() {
     const hasFreeEgg = dailyEggDate !== today;
     const doneMissions = dailyMissions.filter(m=>m.done).length;
     const allMissionsDone = doneMissions >= dailyMissions.length && dailyMissions.length > 0;
+    const weeklyList = weeklyMissions.length > 0 ? weeklyMissions : makeWeeklyMissions();
+    const weeklyDone = weeklyList.filter(m=>m.done).length;
+    const allWeeklyDone = weeklyDone >= weeklyList.length && weeklyList.length > 0;
     const firstEgg = pendingEggs[0];
     const eggLine = firstEgg ? CATCH_MON_LINES.find(l=>l.lineId===firstEgg.lineId) : null;
     const storyChapter = getStoryChapter({
@@ -3435,6 +3528,44 @@ export default function VocabMon() {
                 <div style={{fontFamily:"var(--f-pk)",fontSize:"clamp(9px,2.5vmin,12px)",
                   color:m.done?"#44FF88":"#4A3A60",whiteSpace:"nowrap"}}>
                   {m.done?"완료!":`${m.progress}/${m.target}`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 주간 미션 */}
+        <div style={{background:"linear-gradient(135deg,#141A24,#1D1528)",borderRadius:14,padding:"clamp(10px,2.5vw,14px)",
+          border:`2px solid ${allWeeklyDone?"#78E6FF88":"#2A3048"}`,flexShrink:0}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",gap:10,marginBottom:10}}>
+            <div>
+              <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-sm)",color:allWeeklyDone?"#78E6FF":"#9FE9FF"}}>
+                {allWeeklyDone ? "이번 주 목표 완료!" : "이번 주 성장 목표"}
+              </div>
+              <div style={{fontFamily:"var(--f-ui)",fontWeight:900,fontSize:"var(--fs-xs)",color:"#8194B8",marginTop:4}}>
+                월요일까지 진행
+              </div>
+            </div>
+            <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-xs)",color:"#78E6FF",whiteSpace:"nowrap"}}>
+              {weeklyDone}/{weeklyList.length}
+            </div>
+          </div>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(122px,1fr))",gap:7}}>
+            {weeklyList.map(m=>(
+              <div key={m.id} style={{minHeight:88,display:"flex",flexDirection:"column",gap:6,justifyContent:"space-between",
+                background:m.done?"#07222A":"#0E1220",borderRadius:11,padding:"9px 10px",
+                border:`1px solid ${m.done?"#78E6FF66":"#263148"}`}}>
+                <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:6}}>
+                  <span style={{fontSize:"clamp(15px,3.8vmin,20px)"}}>{m.emoji}</span>
+                  <span style={{fontFamily:"var(--f-pk)",fontSize:"clamp(8px,2vmin,10px)",color:m.done?"#78E6FF":"#5E6F92"}}>
+                    {m.done ? "DONE" : `${m.progress}/${m.target}`}
+                  </span>
+                </div>
+                <div style={{fontFamily:"var(--f-ui)",fontWeight:1000,fontSize:"var(--fs-xs)",lineHeight:1.25,color:m.done?"#B7F6FF":"#C3CCE6"}}>
+                  {m.label}
+                </div>
+                <div style={{height:4,background:"#1A2234",borderRadius:99,overflow:"hidden"}}>
+                  <div style={{height:"100%",background:m.done?"#78E6FF":"#F5C842",width:`${Math.min(100,(m.progress/m.target)*100)}%`,transition:"width .3s"}}/>
                 </div>
               </div>
             ))}
@@ -4317,12 +4448,39 @@ export default function VocabMon() {
     const stars=won?calcStars(wrongCount,total):0;
     const hasWrong=wrongQueue.length>0;
     const resultSubStageCount = curUnit ? getSubStages(curBook||"ww5", curUnit).length : 4;
+    const reward = lastBattleReward || {
+      won,
+      stars,
+      coins: 0,
+      exp: 0,
+      lineExp: 0,
+      core: 0,
+      wrongCount,
+      total,
+    };
+    const rewardEggLine = reward.eggLineId ? CATCH_MON_LINES.find(l => l.lineId === reward.eggLineId) : null;
+    const rewardEggLabel = ({ common:"COMMON", rare:"RARE", superrare:"SUPER", legendary:"LEGEND" })[reward.eggRarity] || "EGG";
+    const rewardEggColor = ({ common:"#8DFF9A", rare:"#78E6FF", superrare:"#C77DFF", legendary:"#FFD76A" })[reward.eggRarity] || "#FF8844";
+    const resultWeeklyList = weeklyMissions.length > 0 ? weeklyMissions : makeWeeklyMissions();
+    const resultDailyDone = dailyMissions.filter(m=>m.done).length;
+    const resultWeeklyDone = resultWeeklyList.filter(m=>m.done).length;
+    const dexPercent = Math.round((dexProgress.ownedMonsters / Math.max(1, dexProgress.totalMonsters)) * 100);
+    const nextHint = readyEggCount > 0
+      ? "부화 완료 알이 있어요. 알 탭에서 바로 수집 보상을 열 수 있습니다."
+      : hasWrong && won
+        ? "오답 복습으로 약점을 줄이면 다음 판 별 3개가 훨씬 쉬워집니다."
+        : won && curSubStage < resultSubStageCount - 1
+          ? `다음 Stage ${curSubStage + 2}로 이어가면 흐름이 끊기지 않습니다.`
+          : won
+            ? "보스전에 도전해 큰 보상과 다음 목표를 여세요."
+            : "방금 틀린 단어를 다시 보면 다음 전투에서 바로 체감됩니다.";
     return (
-      <div data-testid="result-screen" className="crt page slide-up" style={{position:"relative",
-        alignItems:"center",justifyContent:"center",padding:24,textAlign:"center",
+      <div data-testid="result-screen" className="crt page-y slide-up" style={{position:"relative",
+        alignItems:"stretch",justifyContent:"flex-start",padding:"clamp(14px,3vw,24px)",textAlign:"center",
         background:won?"radial-gradient(ellipse at 50% 30%,#0A2814,#0C0A18)":
                        "radial-gradient(ellipse at 50% 30%,#280808,#0C0A18)"}}>
         <style>{CSS}</style>
+        <div className="result-shell">
         <div style={{marginBottom:12,animation:"floatBob 2.5s ease-in-out infinite"}}>
           <mon.Sprite w={Math.min(100,Math.max(64,Math.floor(window.innerWidth*.2)))}
             fainted={!won}/>
@@ -4358,6 +4516,68 @@ export default function VocabMon() {
             오답 {wrongQueue.length}개 복습 추천!
           </div>
         )}
+
+        {won&&(
+          <div className="reward-panel">
+            <span className="reward-spark" style={{left:"9%",top:"74%",animationDelay:"0s"}}>✦</span>
+            <span className="reward-spark" style={{left:"84%",top:"70%",animationDelay:".25s"}}>✦</span>
+            <span className="reward-spark" style={{left:"58%",top:"82%",animationDelay:".48s"}}>✦</span>
+            <div className="reward-title">
+              <span>획득 보상</span>
+              <span>{reward.wrongCount === 0 ? "무결점 클리어" : `정확도 ${Math.max(0, Math.round(((reward.total - reward.wrongCount) / Math.max(1, reward.total)) * 100))}%`}</span>
+            </div>
+            <div className="reward-grid">
+              <div className="reward-chip" style={{"--accent":"#F5C842"}}>
+                <span>코인</span>
+                <strong>+{reward.coins}G</strong>
+                <small>상점/부화기 성장 재화</small>
+              </div>
+              <div className="reward-chip" style={{"--accent":"#78E6FF"}}>
+                <span>몬스터 EXP</span>
+                <strong>+{reward.exp}</strong>
+                <small>{reward.leveled ? `Lv.${reward.level} 달성` : "파트너 성장"}</small>
+              </div>
+              <div className="reward-chip" style={{"--accent":"#8DFF9A"}}>
+                <span>라인 EXP</span>
+                <strong>+{reward.lineExp}</strong>
+                <small>{reward.core > 0 ? `진화 코어 +${reward.core}` : "진화 준비"}</small>
+              </div>
+              <div className="reward-chip" style={{"--accent":rewardEggColor}}>
+                <span>알 보상</span>
+                <strong>{rewardEggLine?.eggEmoji || "🥚"} {rewardEggLabel}</strong>
+                <small>{rewardEggLine?.name || "새 몬스터 후보"}</small>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="result-goal-panel">
+          <div className="result-goal-card">
+            <b>도감 완성 목표</b>
+            <p>발견 {dexProgress.ownedMonsters}/{dexProgress.totalMonsters} · {dexPercent}% 진행</p>
+            <div style={{height:6,background:"#191528",borderRadius:99,overflow:"hidden",marginTop:9}}>
+              <div style={{height:"100%",width:`${dexPercent}%`,background:"linear-gradient(90deg,#C77DFF,#78E6FF)",borderRadius:99}}/>
+            </div>
+          </div>
+          <div className="result-goal-card">
+            <b>미션 진행</b>
+            <p>오늘 {resultDailyDone}/{dailyMissions.length || 3} · 이번 주 {resultWeeklyDone}/{resultWeeklyList.length}</p>
+            <div className="mission-mini-list">
+              {[...dailyMissions.slice(0,1), ...resultWeeklyList.slice(0,1)].map((mission)=>(
+                <div key={mission.id} className={`mission-mini ${mission.done ? "done" : ""}`}>
+                  <span>{mission.emoji}</span>
+                  <label>{mission.label}</label>
+                  <em>{mission.done ? "완료" : `${mission.progress}/${mission.target}`}</em>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="result-next-card">
+          <b>다음 추천</b>
+          <span>{nextHint}</span>
+        </div>
 
         <div style={{display:"flex",flexDirection:"column",gap:10,width:"100%",maxWidth:300}}>
           {won && curSubStage < resultSubStageCount - 1 && (
@@ -4396,6 +4616,7 @@ export default function VocabMon() {
               다시 도전
             </button>
           )}
+        </div>
         </div>
 
       {showRevengePrompt&&(
