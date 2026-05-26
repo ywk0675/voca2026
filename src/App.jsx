@@ -308,8 +308,9 @@ const BG_MAP = {plains:BG_PLAINS, library:BG_LIBRARY, cave:BG_CAVE, void:BG_VOID
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Nunito:wght@700;800;900&display=swap');
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  html,body,#root{height:100%;overflow:hidden;}
+  html,body,#root{width:100%;height:100%;overflow:hidden;}
   html{-webkit-text-size-adjust:100%;text-size-adjust:100%;}
+  img,svg,canvas{max-width:100%;}
   button{-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 
   :root{
@@ -325,8 +326,11 @@ const CSS = `
     --fs-xl:clamp(26px,7vmin,36px);
   }
 
-  .page{height:100vh;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);}
-  .page-y{height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:var(--bg);}
+  .page{width:100%;height:100dvh;min-height:0;overflow:hidden;display:flex;flex-direction:column;background:var(--bg);}
+  .page-y{width:100%;height:100dvh;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;background:var(--bg);}
+  @supports not (height:100dvh){
+    .page,.page-y{height:100vh;}
+  }
   .slide-up{animation:slideUp .22s ease;}
 
   .monster-preview{
@@ -992,6 +996,31 @@ const CSS = `
     .enemy-trait-card{grid-template-columns:auto minmax(0,1fr);min-height:42px;padding:7px 9px;}
     .enemy-trait-card em{display:none;}
     .enemy-skill-banner{top:38px;width:92%;padding:8px 10px;}
+  }
+  @media(max-height:700px){
+    .nav-chip{height:38px;min-height:38px;font-size:11px;}
+    .screen-bottom-nav .nav-chip{height:42px;}
+    .screen-topbar{padding:6px;gap:7px;}
+    .screen-topbar__icon{width:38px;height:38px;}
+    .system-card{min-height:68px;}
+    .battle-system-strip{grid-template-columns:1fr 1fr;}
+    .battle-objective-card,.focus-burst-btn{min-height:42px;padding:7px 8px;}
+    .battle-objective-card span,.focus-burst-btn > span > span{display:none;}
+    .enemy-trait-card{min-height:36px;padding:6px 8px;}
+    .enemy-trait-card small{display:none;}
+    .battle-question-card{padding:8px 10px!important;}
+    .battle-question-card [data-testid="battle-question-prompt"]{line-height:1.35!important;}
+    .move-btn{min-height:40px!important;padding:8px!important;line-height:1.25!important;}
+    .battle-log{display:none;}
+    .battle-flee-btn{display:none;}
+  }
+  @media(max-width:360px){
+    .nav-chip{min-width:40px;font-size:10px;}
+    .screen-bottom-nav{gap:6px;}
+  }
+  @media(max-height:480px) and (min-width:600px){
+    .battle-options-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important;}
+    .battle-options-grid .move-btn{font-size:11px!important;}
   }
   ::-webkit-scrollbar{width:4px;}
   ::-webkit-scrollbar-thumb{background:#3A2A50;border-radius:2px;}
@@ -4577,7 +4606,7 @@ export default function VocabMon() {
           current={1}
         />
         <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",
-          padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.5vh,16px)",overflow:"hidden"}}>
+          padding:"clamp(12px,3vw,20px)",gap:"clamp(10px,2.5vh,16px)",overflowY:"auto",overflowX:"hidden",minHeight:0}}>
           <div style={{textAlign:"center"}}>
             <div style={{fontSize:"clamp(28px,7vmin,40px)",marginBottom:4}}>{u.emoji}</div>
             <div style={{fontFamily:"var(--f-pk)",fontSize:"var(--fs-md)",color:"#F5C842"}}>Unit {uid}</div>
@@ -4811,7 +4840,7 @@ export default function VocabMon() {
         />
 
         {/* Battle field */}
-        <div style={{position:"relative",flex:"0 0 auto",height:"clamp(160px,30vh,240px)",overflow:"hidden"}}>
+        <div style={{position:"relative",flex:"0 0 auto",height:"clamp(96px,22dvh,220px)",overflow:"hidden"}}>
           {bgSvg}
           {enemyNotice&&(
             <div data-testid="enemy-skill-banner" className="enemy-skill-banner" style={{"--enemy": enemyNotice.color}}>
@@ -5018,7 +5047,7 @@ export default function VocabMon() {
 
           {/* Question card */}
           {word&&(
-            <div className="battle-panel" style={{padding:"clamp(9px,2vmin,13px) clamp(10px,2.5vw,15px)",flexShrink:0}}>
+            <div className="battle-panel battle-question-card" style={{padding:"clamp(9px,2vmin,13px) clamp(10px,2.5vw,15px)",flexShrink:0}}>
               <div style={{fontFamily:"var(--f-ui)",fontWeight:700,fontSize:"var(--fs-xs)",
                 color:"#888",marginBottom:5,textTransform:"uppercase",letterSpacing:".04em"}}>
                 {battleStage===0?"Definition -> Word":battleStage===1?"Korean -> Word":"Word -> Korean"}
@@ -5042,7 +5071,7 @@ export default function VocabMon() {
 
           {/* Answer options */}
           {word&&(
-            <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(5px,1.5vmin,8px)",flexShrink:0}}>
+            <div className="battle-options-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"clamp(5px,1.5vmin,8px)",flexShrink:0}}>
               {curOpts.map((opt,i)=>{
                 const correctAns=battleStage===2?word.m:word.w;
                 let cls="move-btn";
@@ -5062,7 +5091,7 @@ export default function VocabMon() {
           )}
 
           {/* Log */}
-          <div ref={logRef} style={{flex:"0 1 auto",maxHeight:"clamp(72px,14vh,104px)",overflowY:"auto",
+          <div ref={logRef} className="battle-log" style={{flex:"0 1 auto",maxHeight:"clamp(72px,14vh,104px)",overflowY:"auto",
             background:"#0A0818",borderRadius:8,border:"1px solid var(--rim)",
             padding:"clamp(5px,1.2vmin,8px) 12px"}}>
             {log.slice(-4).map((l,i,a)=>(
@@ -5073,7 +5102,7 @@ export default function VocabMon() {
           </div>
 
           {/* 도망가기 버튼 */}
-          <button className="big-btn" onClick={()=>{
+          <button className="big-btn battle-flee-btn" onClick={()=>{
             setScreen("world");
           }}
             style={{flexShrink:0,padding:"clamp(10px,2.2vmin,13px)",

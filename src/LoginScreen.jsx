@@ -628,6 +628,99 @@ const CSS = `
       height: 84px;
     }
   }
+
+  @media (max-width: 420px) {
+    .login-opening {
+      padding: 10px;
+    }
+
+    .opening-stage {
+      gap: 10px;
+      padding-bottom: 0;
+    }
+
+    .opening-title {
+      margin: 8px 0 5px;
+      font-size: clamp(34px, 12vw, 44px);
+      text-shadow:
+        0 3px 0 #B64A22,
+        0 7px 0 #31205E,
+        0 14px 26px rgba(0,0,0,.58);
+    }
+
+    .opening-subtitle {
+      display: none;
+    }
+
+    .opening-kicker {
+      padding: 6px 9px;
+      font-size: 10px;
+      gap: 6px;
+    }
+
+    .starter-parade {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .starter-card {
+      height: 92px;
+      padding: 6px 3px;
+    }
+
+    .starter-card::before {
+      inset: 5px;
+    }
+
+    .starter-card img {
+      width: 54px;
+      height: 54px;
+      margin-bottom: 3px;
+    }
+
+    .starter-name {
+      font-size: 7px;
+    }
+
+    .starter-type {
+      display: none;
+    }
+
+    .login-panel {
+      padding: 13px;
+    }
+
+    .login-panel__badge {
+      margin-bottom: 10px;
+      font-size: 10px;
+    }
+
+    .field-stack {
+      gap: 10px;
+    }
+
+    .login-field label {
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+
+    .login-input {
+      min-height: 44px;
+      padding-block: 10px;
+      font-size: 15px;
+    }
+
+    .start-button {
+      min-height: 48px;
+      font-size: 16px;
+    }
+
+    .teacher-row {
+      margin-top: 10px;
+      gap: 8px;
+    }
+  }
 `;
 
 export default function LoginScreen({ onLogin, onTeacher }) {
