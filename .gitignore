@@ -1,9 +1,15 @@
-node_modules/
-dist/
+# Vercel
+.vercel
+
+# Environment variables - never commit real keys
+.env
 .env.local
 .env.*.local
-*.local
-.DS_Store
 
-.vercel
-.env*.local
+# Dependencies & build output
+node_modules/
+dist/
+
+# OS
+.DS_Store
+Thumbs.db

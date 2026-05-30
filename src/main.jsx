@@ -1,13 +1,14 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { registerSW } from "virtual:pwa-register";
-import App from "./App";
-import "./index.css";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import App from './App.jsx'
+import TeacherDashboard from './TeacherDashboard.jsx'
 
-registerSW({ immediate: true });
+const params = new URLSearchParams(window.location.search);
+const teacherPw = import.meta.env.VITE_TEACHER_PASSWORD ?? "";
+const isTeacher = params.get("teacher") === teacherPw;
 
-ReactDOM.createRoot(document.getElementById("root")).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+ReactDOM.createRoot(document.getElementById('root')).render(
+  isTeacher
+    ? <TeacherDashboard onExit={() => { window.location.href = "/"; }} />
+    : <App />
+)
