@@ -1,7 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 
 function cleanEnvValue(value) {
-  return String(value || "").trim().replace(/^["']|["']$/g, "");
+  return String(value || "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .replace(/(?:\\r|\\n|\r|\n)+$/g, "");
 }
 
 const SUPABASE_URL = cleanEnvValue(import.meta.env.VITE_SUPABASE_URL);
