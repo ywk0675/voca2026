@@ -4853,7 +4853,7 @@ export default function VocabMon() {
           )}
 
           {/* Enemy nameplate ??top left */}
-          <div style={{position:"absolute",top:8,left:8,zIndex:3}}>
+          <div style={{position:"absolute",top:8,left:8,zIndex:4}}>
             <Nameplate name={curEnemy.name} typeName={curEnemy.type} typeClr={curEnemy.typeClr}
               hp={eHp} maxHp={curEnemy.hp} isEnemy/>
           </div>
@@ -4870,7 +4870,8 @@ export default function VocabMon() {
           {/* Enemy sprite — z-index 높여서 attackE 시 플레이어 위에 올라옴 */}
           <div style={{
             position:"absolute",right:"5%",top:"4%",
-            zIndex: attackE ? 6 : 2,
+            zIndex: attackE ? 24 : 20,
+            pointerEvents:"none",
             transformOrigin:"center bottom",
             animation: attackE
               ? "enemyCharge .8s cubic-bezier(.3,.7,.4,1) forwards"
@@ -4916,7 +4917,8 @@ export default function VocabMon() {
           {/* Player sprite — z-index 높여서 attackP 시 적 위에 올라옴 */}
           <div style={{
             position:"absolute",left:"4%",bottom:"24%",
-            zIndex: attackP ? 6 : 2,
+            zIndex: attackP ? 24 : 20,
+            pointerEvents:"none",
             transformOrigin:"center bottom",
             animation: attackP
               ? "playerCharge .8s cubic-bezier(.3,.7,.4,1) forwards"
@@ -4930,7 +4932,7 @@ export default function VocabMon() {
           </div>
 
           {/* Player nameplate ??bottom right */}
-          <div style={{position:"absolute",bottom:6,right:8,zIndex:3}}>
+          <div style={{position:"absolute",bottom:6,right:8,zIndex:4}}>
             <Nameplate name={mon.name} typeName={mon.type} typeClr={mon.typeClr}
               hp={pHp} maxHp={mon.hp} lv={monLv}/>
           </div>
